@@ -21,6 +21,8 @@ MODULES_ON = {
 }
 ```
 
+> 对应的hoshino服务是 clanblack
+
 ---
 
 ## 使用方法是

@@ -5,7 +5,7 @@ import asyncio
 from hoshino import Service
 from hoshino.typing import CQEvent
 
-sv = Service('prc-cbl')
+sv = Service('clanblack')
 
 # 忽略的表头有4行
 keep_head_column = 4
