@@ -134,7 +134,10 @@ def delete_message_image_file(message):
         # 如果包含file协议就删除
         urls = list(i[8:] if 'file:///' in i else i for i in urls)
         # 直接删除
-        ok = list(os.remove(i) for i in urls)
+        try:
+            ok = list(os.remove(i) for i in urls)
+        except FileNotFoundError as e:
+            print(e)
 
 
 # 获取消息中字符串 处理md5值
