@@ -22,8 +22,11 @@ def get_config():
 
 # 获取字符串中的关键字  is_first为true返回后面 false返回 前面和后面
 def get_msg_keyword(keyword, msg, is_first=False):
-    res = re.split(format_reg(keyword, is_first), msg, 1)
-    res = tuple(res[::-1]) if len(res) == 2 else False
+    try:
+        res = re.split(format_reg(keyword, is_first), msg, 1)
+        res = tuple(res[::-1]) if len(res) == 2 else False
+    except TypeError:
+        return False
     return ''.join(res) if is_first and res else res
 
 

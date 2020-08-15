@@ -35,12 +35,16 @@ async def eqa_main(*params):
     # 处理回答所有人的问题
     keyword = util.get_msg_keyword(config['comm']['answer_all'], msg, True)
     if keyword:
-        return await bot.send(ctx, await ask(ctx, keyword, False))
+        msg = await ask(ctx, keyword, False)
+        if msg:
+            return await bot.send(ctx, msg)
 
     # 处理回答自己的问题
     keyword = util.get_msg_keyword(config['comm']['answer_me'], msg, True)
     if keyword:
-        return await bot.send(ctx, await ask(ctx, keyword, True))
+        msg = await ask(ctx, keyword, True)
+        if msg:
+            return await bot.send(ctx, msg)
 
     # 回复消息
     ans = await answer(ctx)
@@ -82,7 +86,8 @@ async def ask(ctx, keyword, is_me):
     answer_handler = config['comm']['answer_handler']
     qa_msg = util.get_msg_keyword(answer_handler, keyword)
     if not qa_msg:
-        return f'嗯嗯，加上{answer_handler}后再重新设置试试看吧~'
+        # return f'嗯嗯，加上{answer_handler}后再重新设置试试看吧~'
+        return False
     ans, qus = qa_msg
     qus = f'{qus}'.strip()
     if not str(qus).strip():
