@@ -59,9 +59,20 @@ rules:
     Custom-Source: erinilis
   # -------------------------------
 
+
+history_clan:
+  白羊座: '2020-05-18 15:00:00'
+  金牛座: '2020-06-12 15:00:00'
+  双子座: '2020-07-09 15:00:00'
+  巨蟹座: '2020-08-06 15:00:00'
+
+
 str:
+  ts_formet: '%Y/%m/%d/ %H:%M:%S'
+
   # 自定义查询信息显示
   print_rank_info: |
+    更新: {ts}
     排名: {rank}  {rank_ext}
     公会: {clan_name}
     会长: {leader_name}

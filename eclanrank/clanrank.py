@@ -1,4 +1,5 @@
 from typing import List
+import time
 import asyncio
 import math
 import nonebot
@@ -30,15 +31,15 @@ def get_rank(keyword):
     else:
         params['name'] = keyword
 
-    info = query.get_rank(**params)
+    info, ts = query.get_rank(**params)
 
     if not info:
         return '木有找到相关的工会'
 
-    return print_rank(info)
+    return print_rank(info, ts=ts)
 
 
-def print_rank(info, new_info=None):
+def print_rank(info, new_info=None, ts=None):
     if not info:
         return ''
     info: List[query.get_rank_response] = info if isinstance(info, list) else [info]
@@ -56,7 +57,7 @@ def print_rank(info, new_info=None):
             rank_ext = f'▼{rank_calc}' if rank_calc > 0 else f'▲{abs(rank_calc)}'
             damage_ext = f'▲{format(damage_calc, ",")}'
             data = new
-
+        data.data['ts'] = ts if ts else time.strftime(config.str.ts_formet, time.localtime())
         data.data['rank_ext'] = rank_ext
         data.data['score'] = format(data.damage, ",")
         data.data['score_ext'] = damage_ext
@@ -66,7 +67,8 @@ def print_rank(info, new_info=None):
         if line:
             target = util.filter_list(line, lambda x: x['damage'] > data.damage)
             if not target:
-                target = [query.get_rank(rank=1)[0].data]
+                info, ts = query.get_rank(rank=1)
+                target = [info[0].data]
             target = target[0]
             message.append(
                 text(f'档线 -> 排行[ {target["rank"]} ] 相差[ {format(target["damage"] - data.damage, ",")} ]分数\n'))

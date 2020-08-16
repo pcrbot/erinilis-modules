@@ -41,12 +41,12 @@ def lock(ctx, target):
     if failed:
         return msg
 
-    info = query.get_rank(name=name)
+    info, ts = query.get_rank(name=name)
     if not info:
         return '锁定失败 木有找到相关工会'
 
     if len(info) > 1 and not uid:
-        msg = clanrank.print_rank(info)
+        msg = clanrank.print_rank(info, ts=ts)
         msg.append(MessageSegment.text(f'\n找到多个公会请详细指定公会名，如重复使用[ 会战锁定{name}#UID ]来锁定'))
         return msg
 
@@ -125,12 +125,12 @@ def default_rank(group_id):
         return '还没有绑定公会呢 快用 会战锁定公会名 来进行绑定'
     res = []
     for value in group:
-        info = query.get_rank(name=value['clan_name'], uid=value['leader_viewer_id'])
+        info, ts = query.get_rank(name=value['clan_name'], uid=value['leader_viewer_id'])
         if not info:
             return __failed_get_info__(info)
         res.append(*info)
 
-    return clanrank.print_rank(list(query.get_rank_response(i) for i in group))
+    return clanrank.print_rank(list(query.get_rank_response(i) for i in group), ts=ts)
 
 
 async def check_rank_state():
@@ -140,7 +140,7 @@ async def check_rank_state():
     group_list = groupby(sum(db.values(), []), lambda x: x['clan_name'])
     for key, group in group_list:
         logger.info(f'正在更新：{key} 公会')
-        info = query.get_rank(name=key)
+        info, ts = query.get_rank(name=key)
         for data in group:
             group_id = data['group_id']
             # 如果这公会不存在了就广播吧
@@ -152,7 +152,7 @@ async def check_rank_state():
                 util.filter_list(info, lambda x: x.leader_viewer_id == data['leader_viewer_id'])[0]
             try:
                 await bot.send_group_msg(group_id=group_id,
-                                         message=clanrank.print_rank(query.get_rank_response(data), new_info))
+                                         message=clanrank.print_rank(query.get_rank_response(data), new_info, ts=ts))
             except Exception as e:
                 if e == 103:
                     logger.info(f'群：{group_id} 不存在')

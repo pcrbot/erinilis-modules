@@ -1,4 +1,5 @@
 from typing import List
+import datetime
 import math
 import json
 import requests
@@ -90,14 +91,15 @@ def get_rank(
         logger.info(info['msg'])
         return False
 
-    info = info['data']
+    data = info['data']
     if uid:
-        info = util.filter_list(info, lambda x: x['leader_viewer_id'] == uid)
+        data = util.filter_list(data, lambda x: x['leader_viewer_id'] == uid)
 
-    if not bool(info):
+    if not bool(data):
         return False
 
-    return list(get_rank_response(i) for i in info)
+    return list(get_rank_response(i) for i in data), datetime.datetime.fromtimestamp(info['ts']).strftime(
+        config.str.ts_formet)
 
 
 def get_line() -> List or bool:
