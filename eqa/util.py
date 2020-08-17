@@ -154,8 +154,12 @@ def get_message_str(message):
             continue
         # 处理图片
         if ms['type'] == 'image':
-            _id = re.match('{.+}', ms['data']['file']).group()[1:-1]
-            res += _id.split('-')[-1]
+            file = ms['data']['file']
+            try:
+                _id = re.match('{.+}', file).group()[1:-1]
+                res += _id.split('-')[-1]
+            except AttributeError:
+                res += ms['data']['file'].split('.')[0].lower()
             continue
         res += str(ms)
     return res
