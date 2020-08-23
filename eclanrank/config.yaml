@@ -15,8 +15,10 @@ comm:
   locked: ["[会公工][战会][锁绑]定"]
   # 解锁一个公会
   unlocked: ["[会公工][战会]解[锁除绑]"]
-  #
+  # 查看当前绑定的公会
   defaultLucked: ["[会公工][战会][排查][行名询]$"]
+  # 查看当前档线
+  
 
 #规则
 rules:
@@ -77,6 +79,5 @@ str:
     公会: {clan_name}
     会长: {leader_name}
     UID: {leader_viewer_id}
-    成员: {member_num}
     分数: {score}  {score_ext}
     进度: {process}
