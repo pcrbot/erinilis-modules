@@ -127,7 +127,7 @@ def default_rank(group_id):
     for value in group:
         info, ts = query.get_rank(name=value['clan_name'], uid=value['leader_viewer_id'])
         if not info:
-            return __failed_get_info__(info)
+            return __failed_get_info__(value)
         res.append(*info)
 
     return clanrank.print_rank(list(query.get_rank_response(i) for i in group), ts=ts)

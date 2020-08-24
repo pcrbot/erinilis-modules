@@ -1,4 +1,5 @@
 from typing import List
+import time
 import datetime
 import math
 import json
@@ -81,7 +82,7 @@ def get_rank(
         last_req['ids'] = ids
 
     if not last_api:
-        return False
+        return False, ''
 
     url = f'{config.rules.base_url}{last_api}{(rank if rank != -1 else 0)}'
     headers = config.rules.headers
@@ -89,7 +90,7 @@ def get_rank(
 
     if info['code'] > 0:
         logger.info(info['msg'])
-        return False
+        return False, ''
 
     data = info['data']
     if uid:
@@ -97,7 +98,7 @@ def get_rank(
 
     if not bool(data):
         return False, ''
-
+    info['ts'] = info['ts'] if info['ts'] else time.time()
     return list(get_rank_response(i) for i in data), datetime.datetime.fromtimestamp(info['ts']).strftime(
         config.str.ts_formet)
 
