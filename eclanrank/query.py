@@ -96,7 +96,7 @@ def get_rank(
         data = util.filter_list(data, lambda x: x['leader_viewer_id'] == uid)
 
     if not bool(data):
-        return False
+        return False, ''
 
     return list(get_rank_response(i) for i in data), datetime.datetime.fromtimestamp(info['ts']).strftime(
         config.str.ts_formet)
