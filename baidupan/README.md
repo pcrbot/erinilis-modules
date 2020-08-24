@@ -1,6 +1,7 @@
 # 度盘直链解析
 
 ---
+首先. 你得是SVIP. 其次才有下载速度
 
 安装依赖
 > pip install pyyaml -i https://pypi.tuna.tsinghua.edu.cn/simple
