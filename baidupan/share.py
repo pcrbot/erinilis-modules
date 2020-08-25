@@ -3,7 +3,7 @@ import json
 import re
 from urllib import parse
 from nonebot.log import logger
-from . import util, api
+from . import util, api, dupan_link
 
 config = util.get_config()
 
@@ -117,7 +117,10 @@ def handle_file_list(file_list, yun_data, randsk):
         if rapidupload_info:
             logger.info('获取秒传地址成功')
             md5, md5s, size, file_name = rapidupload_info
-            msg_file_str += f'秒传: {md5}#{md5s}#{size}#{file_name}\n'
+            dlink = dupan_link.dulink.make(file_name, size, md5, md5s)
+            msg_file_str += f'秒传: {dlink.to_pandownload_link()}\n'
+        else:
+            msg_file_str += '秒传地址获取失败,可能服务器尚未刷新MD5值\n'
         if dl_link:
             msg_file_str += f'下载地址: {dl_link}\n'
         else:

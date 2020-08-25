@@ -48,7 +48,8 @@ def get_rapidupload_info(download_link):
         file_name = re.search(r'filename="(.+)"', res.headers.get('Content-Disposition')).group(1)
         file_name = file_name.encode('raw_unicode_escape').decode('utf-8')
         return md5, md5s, size, file_name
-    except:
+    except Exception as e:
+        print(e)
         return False
 
 
