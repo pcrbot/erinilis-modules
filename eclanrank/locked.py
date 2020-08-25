@@ -134,8 +134,8 @@ def default_rank(group_id):
 
 
 async def check_rank_state():
-    # 更新一下现在的档线
-    await clanrank.update_line()
+    # # 更新一下现在的档线
+    # await clanrank.update_line()
 
     group_list = groupby(sum(db.values(), []), lambda x: x['clan_name'])
     for key, group in group_list:

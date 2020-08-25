@@ -40,6 +40,10 @@ def get_rank(keyword):
 
 
 def print_rank(info, new_info=None, ts=None):
+    res = query.get_line()
+    res.reverse()
+    line_db['line'] = res
+
     if not info:
         return ''
     info: List[query.get_rank_response] = info if isinstance(info, list) else [info]
