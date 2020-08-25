@@ -130,7 +130,7 @@ def default_rank(group_id):
             return __failed_get_info__(value)
         res.append(*info)
 
-    return clanrank.print_rank(list(query.get_rank_response(i) for i in group), ts=ts)
+    return clanrank.print_rank(res, ts=ts)
 
 
 async def check_rank_state():
