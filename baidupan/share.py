@@ -78,9 +78,8 @@ def get_file_dl_link(fs_id, share_id, uk, randsk, sign, timestamp):
         "product": 'share',
         "type": 'nolimit'
     }
-    res = util.dict_to_object(
-        json.loads(requests.post(url, data=data, headers=api.get_randsk_headers(randsk), timeout=30).text))
-
+    res = requests.post(url, data=data, headers=api.get_randsk_headers(randsk), timeout=30)
+    res = util.dict_to_object(json.loads(res.text))
     if not res.errno == 0:
         return False
 
@@ -111,8 +110,14 @@ def handle_file_list(file_list, yun_data, randsk):
             sign=yun_data.sign,
             timestamp=yun_data.timestamp
         )
+
         msg_file_str += f'文件名: {file.server_filename}\n'
         msg_file_str += f'大小: {util.size_format(int(file.size))}\n'
+        rapidupload_info = api.get_rapidupload_info(dl_link)
+        if rapidupload_info:
+            logger.info('获取秒传地址成功')
+            md5, md5s, size, file_name = rapidupload_info
+            msg_file_str += f'秒传: {md5}#{md5s}#{size}#{file_name}\n'
         if dl_link:
             msg_file_str += f'下载地址: {dl_link}\n'
         else:

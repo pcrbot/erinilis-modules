@@ -1,5 +1,7 @@
 import requests
+import hashlib
 import json
+import re
 from urllib import parse
 from nonebot.log import logger
 from . import util, share, sign, dupan_link
@@ -29,6 +31,25 @@ def rapidupload(md5, md5s, size, file_name, dir_name='temp/'):
     if not res['errno'] == 0:
         return None
     return res['info']
+
+
+# 根据下载链接获取秒传信息
+def get_rapidupload_info(download_link):
+    try:
+        headers = {
+            'user-agent': 'LogStatistic',
+            'Cookie': f'BDUSS={config.BDUSS};',
+            'Range': 'bytes=0-262143'
+        }
+        res = requests.get(download_link, headers=headers, timeout=30, allow_redirects=False)
+        md5 = res.headers.get('Content-MD5').upper()
+        md5s = hashlib.new('md5', res.content).hexdigest().upper()
+        size = res.headers.get('x-bs-file-size')
+        file_name = re.search(r'filename="(.+)"', res.headers.get('Content-Disposition')).group(1)
+        file_name = file_name.encode('raw_unicode_escape').decode('utf-8')
+        return md5, md5s, size, file_name
+    except:
+        return False
 
 
 def get_real_url_by_dlink(dlink):
