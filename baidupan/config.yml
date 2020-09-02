@@ -49,10 +49,12 @@ str:
     因百度限制，需修改浏览器UA后下载。
 
     xdown（推荐）
+    https://xdown.org/
     设置 -> User-Agent -> 填入 LogStatistic
     复制链接，新建任务直接下载即可
 
     IDM（推荐）
+    (6.38) https://www.lanzoux.com/iLdj0fk05ni
     选项 -> 下载 -> 手动添加任务时使用的用户代理（UA）-> 填入 LogStatistic
     右键复制下载链接，在 IDM 新建任务，粘贴链接即可下载。
 
