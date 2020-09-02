@@ -46,7 +46,8 @@ async def pan_main(*params):
     # 获取帮助信息
     keyword = util.get_msg_keyword(config.comm.help, msg, True)
     if isinstance(keyword, str):
-        return await bot.send(ctx, config.str.help)
+        for x in config.str.help:
+            await bot.send(ctx, x)
 
 
 # 获取分享信息
