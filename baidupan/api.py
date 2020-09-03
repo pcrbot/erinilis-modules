@@ -9,7 +9,7 @@ config = util.get_config()
 
 def get_pan_ua():
     # return 'netdisk;2.2.51.6;netdisk;10.0.63;PC;android-android'
-    return 'netdisk;10.0.63;LogStatistic'
+    return 'netdisk;LogStatistic;'
 
 
 def get_randsk_headers(ua=None, randsk=None):
