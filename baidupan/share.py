@@ -58,7 +58,10 @@ def verify(surl: str, pwd=None):
 def get_yun_data(surl: str, randsk: str):
     url = f'https://pan.baidu.com/s/1{surl}'
     res = requests.get(url, headers=api.get_randsk_headers(randsk=randsk), timeout=30).text
-    return util.dict_to_object(json.loads(re.search(r'yunData.setData\(({.+)\);', res).group(1)))
+    data_str = re.search(r'yunData.setData\(({.+)\);', res)
+    if not data_str:
+        return False
+    return util.dict_to_object(json.loads(data_str.group(1)))
 
 
 # 获取文件列表

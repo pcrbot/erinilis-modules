@@ -31,7 +31,7 @@ def fix_rapidupload():
 def get_rapidupload_info(download_link, ua=None):
     try:
         headers = {
-            'User-Agent': ua if ua else 'LogStatistic',
+            'User-Agent': ua if ua else api.get_pan_ua(),
             'Cookie': f'BDUSS={config.BDUSS};',
             'Range': 'bytes=0-262143'
         }

@@ -1,5 +1,4 @@
 from nonebot import *
-from nonebot.log import logger
 from . import util, api, dupan_link, share, ru
 
 from hoshino import Service  # 如果使用hoshino的分群管理取消注释这行
@@ -86,11 +85,12 @@ async def get_share(ctx, keyword, pan_url: str,
                     continue
                 else:
                     await sp.send('尝试创建本地下载地址..')
-                    l_url = api.get_local_download_link(is_ok['path'])
-                    if not l_url:
+                    urls = api.get_local_download_link(is_ok['path'])
+                    if not urls:
                         msg += f'{info.name} 获取失败'
                         continue
-                    url = api.get_real_url_by_dlink(l_url, ua=api.get_pan_ua())
+                    # url = api.get_real_url_by_dlink(urls[0], urls=urls, ua=api.get_pan_ua())
+                    url = urls[0]
 
             else:
                 url = '\n'.join(api.get_web_file_url([is_ok['fs_id']]))
@@ -117,6 +117,8 @@ async def get_share(ctx, keyword, pan_url: str,
         return f'啊这 提取码错误或者是文件失效\n{tip}'
     await sp.send('正在获取分享信息')
     yun_data = share.get_yun_data(surl, randsk)
+    if not yun_data:
+        return '分享过期或者被取消'
     file_list = share.get_file_list(yun_data.shareid, yun_data.uk, randsk, dir_str=dir_str)
 
     if not file_list.errno == 0:
@@ -152,14 +154,14 @@ async def get_ru(ctx, url_str, yun_data, randsk):
         await sp.send('转存成功,正在修复')
         info = []
         for file_path in files:
-            url = api.get_local_download_link(file_path)
-            if not url:
+            urls = api.get_local_download_link(file_path)
+            if not urls:
                 await _bot.send(ctx, f'{file_path} 修复失败')
                 continue
-            real_url = api.get_real_url_by_dlink(url, ua=api.get_pan_ua())
+            real_url = api.get_real_url_by_dlink(urls[0])
             if not real_url:
-                await _bot.send(ctx, f'{file_path} 本地下载地址获取失败,过段时间在试吧')
-                continue
+                # await _bot.send(ctx, f'{file_path} 本地下载地址获取失败,过段时间在试吧')
+                real_url = urls[0]
             ru_info = ru.get_rapidupload_info(real_url, ua=api.get_pan_ua())
             if not ru_info:
                 await _bot.send(ctx, f'{file_path} 修复失败,获取内部下载失败')
