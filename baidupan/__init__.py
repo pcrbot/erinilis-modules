@@ -87,7 +87,7 @@ async def get_share(ctx, keyword, pan_url: str,
                     await sp.send('尝试创建本地下载地址..')
                     urls = api.get_local_download_link(is_ok['path'])
                     if not urls:
-                        msg += f'{info.name} 获取失败'
+                        msg += f'\n——————————\n文件 {info.name} 获取失败\n——————————\n'
                         continue
                     # url = api.get_real_url_by_dlink(urls[0], urls=urls, ua=api.get_pan_ua())
                     url = urls[0]
@@ -98,9 +98,11 @@ async def get_share(ctx, keyword, pan_url: str,
             if not url:
                 await _bot.send(ctx, f'{info.name} 获取下载地址失败啦\n')
                 continue
+            msg += '\n——————————\n'
             msg += f'文件名: {info.name}\n'
             msg += f'大小: {util.size_format(int(info.size))}\n'
             msg += f'下载地址: {url}\n'
+            msg += '\n——————————\n'
         return msg
 
     surl, s_pwd = share.get_surl(pan_url)
