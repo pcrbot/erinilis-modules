@@ -9,7 +9,7 @@ config = util.get_config()
 
 def get_pan_ua():
     # return 'netdisk;2.2.51.6;netdisk;10.0.63;PC;android-android'
-    return 'netdisk;android-android;LogStatistic;'
+    return 'netdisk;android-android;'
 
 
 def get_randsk_headers(ua=None, randsk=None):
@@ -26,7 +26,7 @@ def get_real_url_by_dlink(dlink, urls: list = None, ua=None):
     if not dlink:
         return ''
     headers = {
-        'User-Agent': ua if ua else get_pan_ua(),
+        'User-Agent': ua if ua else 'LogStatistic',  # 这里好坑啊 不能使用pan的ua
         'Cookie': f'BDUSS={config.BDUSS};'
     }
     try:

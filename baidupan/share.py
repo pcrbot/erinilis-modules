@@ -124,7 +124,7 @@ def handle_file_list(file_list, yun_data, randsk):
             'fs_id': file.fs_id,
             'name': f'{file.server_filename}',
             'url': dl_link,
-            'size': f'{util.size_format(int(file.size))}',
+            'size': int(file.size),
             'image': yun_data['photo']
         })
     return msg_dir_str, file_info

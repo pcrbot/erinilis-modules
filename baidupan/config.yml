@@ -48,7 +48,7 @@ str:
     - |
       因百度限制，需修改浏览器UA后下载。
       下列设置后填入以下UA
-      netdisk;android-android;LogStatistic;
+      LogStatistic
 
       xdown（推荐）
       设置 -> User-Agent -> 填入 UA

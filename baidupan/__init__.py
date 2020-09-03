@@ -98,12 +98,12 @@ async def get_share(ctx, keyword, pan_url: str,
             if not url:
                 await _bot.send(ctx, f'{info.name} 获取下载地址失败啦\n')
                 continue
-            msg += '\n——————————\n'
+            msg += '——————————\n'
             msg += f'文件名: {info.name}\n'
             msg += f'大小: {util.size_format(int(info.size))}\n'
             msg += f'下载地址: {url}\n'
-            msg += '\n——————————\n'
-        return msg
+            msg += '——————————\n'
+        return msg + '请设置这个UA下载 %s' % api.get_pan_ua()
 
     surl, s_pwd = share.get_surl(pan_url)
     if not surl:
@@ -133,7 +133,8 @@ async def get_share(ctx, keyword, pan_url: str,
 
     if is_get_url:
         for file_i in file_info:
-            await _bot.send(ctx, '文件名: %s\n大小: %s\n地址: %s' % (file_i['name'], file_i['size'], file_i['url']))
+            await _bot.send(ctx, '文件名: %s\n大小: %s\n地址: %s' % (
+                file_i['name'], util.size_format(file_i['size']), file_i['url']))
 
     if is_get_ru:
         for file_i in file_info:
