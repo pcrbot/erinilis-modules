@@ -22,11 +22,6 @@ def rapidupload(md5, md5s, size, file_name, dir_name='temp/'):
     return res['info']
 
 
-# 修复秒传文件
-def fix_rapidupload():
-    pass
-
-
 # 根据下载链接获取秒传信息
 def get_rapidupload_info(download_link, ua=None):
     try:

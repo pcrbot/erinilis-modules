@@ -1,6 +1,7 @@
+import re
+
 from nonebot import *
 from . import util, api, dupan_link, share, ru
-
 from hoshino import Service  # 如果使用hoshino的分群管理取消注释这行
 
 #
@@ -13,8 +14,8 @@ config = util.get_config()
 _bot = get_bot()
 
 
-@sv.on_message('group')  # 如果使用hoshino的分群管理取消注释这行 并注释下一行的 @_bot.on_message("group")
-# @_bot.on_message  # nonebot使用这
+# @sv.on_message('group')  # 如果使用hoshino的分群管理取消注释这行 并注释下一行的 @_bot.on_message("group")
+@_bot.on_message  # nonebot使用这
 async def pan_main(*params):
     bot, ctx = (_bot, params[0]) if len(params) == 1 else params
 
@@ -22,7 +23,11 @@ async def pan_main(*params):
     # 获取下载直链
     keyword = util.get_msg_keyword(config.comm.keyword, msg, True)
     if keyword:
-        return await bot.send(ctx, await get_share(ctx, keyword, *keyword.split(config.comm.split)))
+        try:
+            return await bot.send(ctx, await get_share(ctx, keyword, *keyword.split(config.comm.split)))
+        except TypeError as e:
+            print(e)
+            await bot.send(ctx, '如果是秒传链接请尝试使用 %s' % config.comm.link2bdlink)
 
     # 获取秒传链接和直链
     keyword = util.get_msg_keyword(config.comm.get_all, msg, True)
@@ -62,6 +67,7 @@ async def get_share(ctx, keyword, pan_url: str,
     sp = util.send_process(ctx, 0, 3)
 
     if file_r and keyword:
+        is_local = None
         msg = ''
         for info in file_r:
             is_ok = ru.rapidupload(
@@ -78,7 +84,9 @@ async def get_share(ctx, keyword, pan_url: str,
             # 大于50M 需要分享后处理
             if int(info.size) > 52428800:
                 await sp.send('正在转存.')
-                s_url = share.set_share([is_ok['fs_id']])
+                s_url, shareid = share.set_share(is_ok['fs_id'])
+                if config.rules.auto_cancel_share:
+                    share.auto_cancel_share(shareid, is_ok['path'])  # 自动取消分享
                 if s_url:
                     await sp.send()
                     msg += await get_share(ctx, '', s_url, pwd='erin')
@@ -91,6 +99,7 @@ async def get_share(ctx, keyword, pan_url: str,
                         continue
                     # url = api.get_real_url_by_dlink(urls[0], urls=urls, ua=api.get_pan_ua())
                     url = urls[0]
+                    is_local = True
 
             else:
                 url = '\n'.join(api.get_web_file_url([is_ok['fs_id']]))
@@ -103,7 +112,7 @@ async def get_share(ctx, keyword, pan_url: str,
             msg += f'大小: {util.size_format(int(info.size))}\n'
             msg += f'下载地址: {url}\n'
             msg += '——————————\n'
-        return msg + '请设置这个UA下载 %s' % api.get_pan_ua()
+        return msg + '请设置这个UA下载 %s' % api.get_pan_ua() if is_local else msg
 
     surl, s_pwd = share.get_surl(pan_url)
     if not surl:
@@ -111,6 +120,9 @@ async def get_share(ctx, keyword, pan_url: str,
 
     if not pwd and s_pwd:
         pwd = s_pwd
+
+    if pwd:
+        pwd = re.search(r'[a-zA-Z0-9]+', pwd).group()
 
     surl = surl[1:]
     # await _bot.send(ctx, f'{sp.send(1, 4)} 网盘分享链接获取成功 [1{surl}]')

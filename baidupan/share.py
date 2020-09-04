@@ -2,6 +2,8 @@ import requests
 import base64
 import json
 import re
+import datetime
+import nonebot
 from urllib import parse
 
 from . import util, api
@@ -130,8 +132,53 @@ def handle_file_list(file_list, yun_data, randsk):
     return msg_dir_str, file_info
 
 
+# 取消分享
+def cancel_share(shareid):
+    shareid = shareid if isinstance(shareid, list) else [shareid]
+    url = f'https://pan.baidu.com/share/cancel?channel=chunlei&clienttype=0&web=1&channel=chunlei&web=1&app_id=250528&clienttype=0'
+    shareid = ",".join([str(i) for i in shareid])
+    data = {
+        "shareid_list": f'[{shareid}]',
+    }
+    res = util.dict_to_object(
+        json.loads(requests.post(url, data=data, headers=api.get_randsk_headers(), timeout=30).text))
+
+    return res.errno == 0, res.err_msg
+
+
+# 删除文件
+def delete_share(file_path):
+    file_path = file_path if isinstance(file_path, list) else [file_path]
+    url = f'https://pan.baidu.com/api/filemanager?opera=delete&async=2&onnest=fail&channel=chunlei&web=1&app_id=250528&clienttype=0'
+    file_path = ",".join(['"%s"' % i for i in file_path])
+    data = {
+        "filelist": f'[{file_path}]',
+    }
+    res = util.dict_to_object(
+        json.loads(requests.post(url, data=data, headers=api.get_randsk_headers(), timeout=30).text))
+
+    return res.errno == 0, res.taskid
+
+
+def auto_cancel_share(shareid, file_path):
+    # 8小时后自动删除分享内容
+    @nonebot.scheduler.scheduled_job(
+        'date',
+        run_date=datetime.datetime.now() + datetime.timedelta(hours=config.rules.auto_cancel_share_time)
+    )
+    def _():
+        ok, err_msg = cancel_share(shareid)
+        if not ok:
+            print(err_msg)
+        if config.rules.delete_share_file:
+            ok, taskid = delete_share(file_path)
+            if not ok:
+                print('删除分享文件失败')
+
+
 # 设置分享文件
-def set_share(fs_id: list, pwd='erin', expire_time=7):
+def set_share(fs_id, pwd='erin', expire_time=7):
+    fs_id = fs_id if isinstance(fs_id, list) else [fs_id]
     url = f'https://pan.baidu.com/share/set?channel=chunlei&clienttype=0&web=1&channel=chunlei&web=1&app_id=250528&clienttype=0'
     fs_id = ",".join([str(i) for i in fs_id])
     data = {
@@ -145,11 +192,12 @@ def set_share(fs_id: list, pwd='erin', expire_time=7):
         json.loads(requests.post(url, data=data, headers=api.get_randsk_headers(), timeout=30).text))
 
     if not res.errno == 0:
-        return False
+        return False, 0
 
-    return res.link
+    return res.link, res.shareid
 
 
+# 创建目录
 def create_dir(dir_str):
     url = 'https://pan.baidu.com/api/create?a=commit&channel=chunlei&app_id=250528&channel=chunlei&web=1&app_id=250528&clienttype=0&'
     # url += 'bdstoken=%s&logid=%s' % (yun_data.bdstoken, logid)
