@@ -36,6 +36,8 @@ def get_real_url_by_dlink(dlink, urls: list = None, ua=None):
         if real_link.status_code == 403 and urls:
             urls.pop(0)
             return get_real_url_by_dlink(urls[0], urls, ua=ua)
+        if real_link.status_code == 31360:
+            return 'bduss 已过期,请重新获取'
         return ''
     except requests.exceptions.SSLError:
         if not urls or not isinstance(urls, list):

@@ -14,8 +14,8 @@ config = util.get_config()
 _bot = get_bot()
 
 
-# @sv.on_message('group')  # 如果使用hoshino的分群管理取消注释这行 并注释下一行的 @_bot.on_message("group")
-@_bot.on_message  # nonebot使用这
+@sv.on_message('group')  # 如果使用hoshino的分群管理取消注释这行 并注释下一行的 @_bot.on_message("group")
+# @_bot.on_message  # nonebot使用这
 async def pan_main(*params):
     bot, ctx = (_bot, params[0]) if len(params) == 1 else params
 
