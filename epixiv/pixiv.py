@@ -105,6 +105,18 @@ class epixiv(ByPassSniApi):
             return []
         self.keyword = keyword
         res = self.search_illust(keyword)
+
+        if not res.search_span_limit:
+            try:
+                self.login(config.pixiv.username, config.pixiv.password)
+            except Exception as e:
+                print('登录p站失败了 请检查配置.')
+                return []
+            res = self.search_illust(keyword)
+            if not res.search_span_limit:
+                print('查询出错 请检查账号问题')
+                return []
+
         max_item_size = 30
         total_page = math.ceil(res.search_span_limit / max_item_size)
         workers = min(search_sort_num, total_page)
