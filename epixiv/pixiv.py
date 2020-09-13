@@ -91,7 +91,8 @@ class epixiv(ByPassSniApi):
     def illust_is_r18(illust):
         if illust.x_restrict == 1:
             return True
-        return 'R-18' in tags_list(illust) or 'R18' in tags_list(illust)
+        r18 = ['R-18', 'R18', 'R-18G', 'R18G']
+        return any(map(lambda x: x in r18, tags_list(illust)))
 
     async def search(self, keyword,
                      # 搜索多少页
