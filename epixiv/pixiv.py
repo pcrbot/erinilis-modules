@@ -223,7 +223,7 @@ class epixiv(ByPassSniApi):
 
     def get_meta_pages(self, illust_id):
         if not illust_id:
-            return None
+            return None, []
         info = self.illust_detail(illust_id)
         if info.error:
             print(info.error.user_message)
@@ -235,12 +235,23 @@ class epixiv(ByPassSniApi):
             img_info.original]
         return illust, images
 
-    def recommend(self, illust_id, is_r18=False):
+    def recommend(self, illust_id, is_r18=False, can_r18=False):
         info = self.illust_related(illust_id)
         if info.error:
-            print(info.error.user_message)
-            return []
+            try:
+                self.login(config.pixiv.username, config.pixiv.password)
+            except Exception as e:
+                print('登录p站失败了 请检查配置.')
+                return []
+            info = self.illust_related(illust_id)
+            if info.error:
+                print(info.error.user_message)
+                return []
+
         illusts = sorted(info.illusts, key=lambda item: item.total_view, reverse=True)
+
+        if can_r18:
+            return __proxy_illusts_img__(illusts)
 
         if not is_r18:
             illusts = filter(lambda item: not self.illust_is_r18(item), illusts)
