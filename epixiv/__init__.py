@@ -226,6 +226,9 @@ async def ptag(ctx, keyword: str):
     ac = epixiv.auto_complete(keyword)
     if ac:
         tag_info = epixiv.get_tag_img(ac[0]['text'])
+        if not tag_info:
+            await _bot.send(ctx, '没有搜索到标签信息呢')
+            return
         ac_str = '\n'.join(map(lambda x: '%s  %s' % (x['translation'], x['text']), ac))
         tag_info['local_img'] = MessageSegment.image(tag_info['local_img'])
         tag_info['ac'] = ac_str
