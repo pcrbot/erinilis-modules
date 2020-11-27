@@ -3,8 +3,6 @@
 ---
 首先. 你得是SVIP. 其次才有下载速度 
 
-或者可以买 [共享号](http://fulivip.com/lin/519CF40314DBDFD4) 一年45
-
 
 安装依赖
 > pip install pyyaml -i https://pypi.tuna.tsinghua.edu.cn/simple
