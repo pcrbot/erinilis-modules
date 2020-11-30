@@ -145,7 +145,7 @@ async def answer(ctx):
     # 获取到当前群的列表 判断是否来自该群 或者是否是超级管理员
     # 超级管理员设置的是否为所有群问答
     ans_list = util.filter_list(ans_list, lambda x: group_id == x['group_id'] or (
-            x['user_id'] in admins) if super_admin_is_all_group else False)
+            x['user_id'] in admins if super_admin_is_all_group else False))
 
     # 木有在这群
     if not ans_list:
