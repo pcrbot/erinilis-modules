@@ -1,0 +1,19 @@
+﻿打包可以使用下面指令执行
+
+python -m pip install virtualenv -i https://pypi.tuna.tsinghua.edu.cn/simple
+virtualenv pc_env
+cd pc_env/Scripts
+activate
+cd../..
+pip install pyinstaller -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip install mitmproxy -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip install winreg -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip install requests -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip install pyyaml -i https://pypi.tuna.tsinghua.edu.cn/simple
+pyinstaller -F bind.py
+
+之后执行后可以跳过pip install部分从activate执行,即
+cd pc_env/Scripts
+activate
+cd../..
+pyinstaller -F bind.py

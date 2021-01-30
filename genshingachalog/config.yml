@@ -1,0 +1,12 @@
+cache_dir: ./data/
+
+# 触发的命令
+comm:
+  #
+  gachalog: 原神卡池进度
+
+  #
+  gacha_statistics: 原神卡池统计#
+
+
+api: https://hk4e-api.mihoyo.com/event/gacha_info/api/
