@@ -149,11 +149,14 @@ class gacha_log:
         plt.rcParams['font.sans-serif'] = ['SimHei']
         plt.rcParams['axes.unicode_minus'] = False
         all_pulls_num = len(logs) - pulls
-        plt.title(
-            '%s(%s次5星出货概率为%.2f%%)' % (gacha_type_name, all_pulls_num, ((len(input_values) - 1) / all_pulls_num) * 100),
-            fontsize=24)
 
-        max_pulls = 73
+        if not len(input_values) - 1:
+            total_probability = 0
+        else:
+            total_probability = ((len(input_values) - 1) / all_pulls_num) * 100
+        plt.title('%s(%s次5星出货概率为%.2f%%)' % (gacha_type_name, all_pulls_num, total_probability), fontsize=24)
+
+        max_pulls = 74
 
         probability = 0.6
 
