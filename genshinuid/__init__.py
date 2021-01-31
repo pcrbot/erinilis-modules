@@ -40,7 +40,7 @@ async def get_stat(uid):
     if info.retcode != 0:
         return '[%s]错误或者不存在 (%s)' % (uid, info.message)
     stats = query.stats(info.data.stats, True)
-    msg = stats.string + '\n'
+    msg = 'UID: %s\n%s\n' % (uid, stats.string)
     for i in info.data.city_explorations:
         msg += '\n%s的探索进度为%s，声望等级为：%s级' % (i["name"], str(i["exploration_percentage"] / 10) + '%', i["level"])
     return msg
