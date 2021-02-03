@@ -79,19 +79,20 @@ class gacha_log:
             if not clist:
                 break
             for data in clist:
-                item_info = util.filter_list(items, lambda x: x['item_id'] == data['item_id'])
-                if not len(item_info):
-                    item_info = [{
-                        "item_id": data['item_id'],
-                        "name": "unknown",
-                        "item_type": "unknown",
-                        "rank_type": "unknown"
-                    }]
-                item_info = item_info[0]
-                item_info['time'] = data['time']
-                item_list.append(item_info)
+                # item_info = util.filter_list(items, lambda x: x['item_id'] == data['item_id'])
+                # if not len(item_info):
+                #     item_info = [{
+                #         "item_id": data['item_id'],
+                #         "name": "unknown",
+                #         "item_type": "unknown",
+                #         "rank_type": "unknown"
+                #     }]
+                # item_info = item_info[0]
+                # item_info['time'] = data['time']
+                # item_list.append(item_info)
+                item_list.append(data)
                 if _filter:
-                    _flag = _filter(item_info)
+                    _flag = _filter(data)
                     if _flag:
                         break
             if _flag:
