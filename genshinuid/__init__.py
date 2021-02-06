@@ -25,7 +25,7 @@ async def main(*params):
 
             info = db.get(uid, {})
             if not info:
-                return await bot.send(ctx, '请输入游戏uid, 只支持b服或者官服, 只需要输入一次就会记住下次直接使用%s获取就好' % config.comm.player_uid)
+                return await bot.send(ctx, '请在原有指令后面输入游戏uid,只需要输入一次就会记住下次直接使用%s获取就好' % config.comm.player_uid)
             else:
                 keyword = info['uid']
 
