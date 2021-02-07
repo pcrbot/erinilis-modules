@@ -22,7 +22,7 @@ setting:
     - 495
     - 1957
   # 是否开启原神公告推送
-  ann_cron_enable: false
+  ann_cron_enable: true
   # 是否只允许非群员开启
   ann_enable_only_admin: true
   # 是否默认开启
