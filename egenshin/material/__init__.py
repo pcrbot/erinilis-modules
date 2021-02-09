@@ -60,8 +60,11 @@ class material:
         self.name = name
         job_id = self.get_job_id()
         time = self.get_material_time(name)
-        if not time:
+        custom_time = float(get_msg_keyword(r'\D+', name)[0] or '0')
+        if not time and not custom_time:
             return '无法添加收集任务,没有找到此材料信息'
+        if custom_time and not time:
+            time = custom_time
         now = datetime.datetime.now()
         if format_time:
             notify_time = datetime.datetime.strptime(format_time, '%Y-%m-%d %H:%M:%S')
