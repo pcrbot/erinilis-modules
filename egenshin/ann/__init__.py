@@ -58,7 +58,8 @@ class ann:
         if not content:
             return '没有找到对应的公告ID'
         soup = BeautifulSoup(content[0]['content'], 'lxml')
-
+        banner = content[0]['banner']
+        ann_img = str(MessageSegment.image(banner)) if banner else ''
         for a in soup.find_all('a'):
             href = a.get('href')
             a.string += ' (%s)' % re.search(r'https?.+', re.sub(r'[;()\']', '', href)).group()
@@ -67,6 +68,7 @@ class ann:
             img.string = str(MessageSegment.image(img.get('src')))
 
         msg_list = [BeautifulSoup(x.get_text('\n').replace('<<', ''), 'lxml').get_text() for x in soup.find_all('p')]
+        msg_list.append(ann_img)
         return '\n'.join(msg_list)
 
 
