@@ -8,7 +8,7 @@ from . import util
 
 config = util.get_config()
 
-mhyVersion = "2.2.1"
+mhyVersion = "2.4.0"
 
 
 def __md5__(text):
@@ -18,14 +18,7 @@ def __md5__(text):
 
 
 def __get_ds__():
-    global mhyVersion
-    if mhyVersion == "2.1.0":
-        n = __md5__(mhyVersion)
-    elif mhyVersion == "2.2.1":
-        n = "cx2y9z9a29tfqvr1qsq6c7yz99b5jsqt"
-    else:
-        mhyVersion = "2.2.1"
-        n = "cx2y9z9a29tfqvr1qsq6c7yz99b5jsqt"
+    n = "pbcfcvnfsm5s2w4x3lsq8caor7v8nlqm"
     i = str(int(time.time()))
     r = ''.join(random.sample(string.ascii_lowercase + string.digits, 6))
     c = __md5__("salt=" + n + "&t=" + i + "&r=" + r)
@@ -45,7 +38,7 @@ def info(uid):
             'Origin': 'https://webstatic.mihoyo.com',
             'x-rpc-app_version': mhyVersion,
             'User-Agent': 'Mozilla/5.0 (Linux; Android 9; Unspecified Device) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/39.0.0.0 Mobile Safari/537.36 miHoYoBBS/2.2.0',
-            'x-rpc-client_type': '4',
+            'x-rpc-client_type': '5',
             'Referer': 'https://webstatic.mihoyo.com/app/community-game-records/index.html?v=6',
             'Accept-Encoding': 'gzip, deflate',
             'Accept-Language': 'zh-CN,en-US;q=0.8',
