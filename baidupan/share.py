@@ -60,7 +60,7 @@ def verify(surl: str, pwd=None):
 def get_yun_data(surl: str, randsk: str):
     url = f'https://pan.baidu.com/s/1{surl}'
     res = requests.get(url, headers=api.get_randsk_headers(randsk=randsk), timeout=30).text
-    data_str = re.search(r'yunData.setData\(({.+)\);', res)
+    data_str = re.search(r'yunData.setData\(({.+)\);', res) or re.search(r'locals.mset\(({.+)\);', res)
     if not data_str:
         return False
     return util.dict_to_object(json.loads(data_str.group(1)))
@@ -97,7 +97,7 @@ def get_file_dl_link(fs_id, share_id, uk, randsk, sign, timestamp):
     return api.get_real_url_by_dlink(res.list[0]['dlink'])
 
 
-def handle_file_list(file_list, yun_data, randsk):
+def handle_file_list(surl, file_list, yun_data, randsk):
     file_info = []
     msg_dir_str = []
 
@@ -109,17 +109,27 @@ def handle_file_list(file_list, yun_data, randsk):
                 file_list = get_file_list(yun_data.shareid, yun_data.uk, randsk, dir_str=file.path)
                 if not file_list.errno == 0:
                     return msg_dir_str, file_info
-                return handle_file_list(file_list, yun_data, randsk)
+                return handle_file_list(surl, file_list, yun_data, randsk)
             msg_dir_str.append(file.path)
             continue
+
+        if yun_data.get('sign'):
+            sign = yun_data.sign
+            timestamp = yun_data.timestamp
+        else:
+            url = f'https://pan.baidu.com/share/tplconfig?surl=1{surl}&fields=sign,timestamp&channel=chunlei&web=1&app_id=250528&clienttype=0'
+            res = requests.get(url, headers=api.get_randsk_headers(randsk=randsk), timeout=30)
+            get_sign = util.dict_to_object(json.loads(res.text)).data
+            sign = get_sign.sign
+            timestamp = get_sign.timestamp
 
         dl_link = get_file_dl_link(
             fs_id=file.fs_id,
             share_id=yun_data.shareid,
             uk=yun_data.uk,
             randsk=randsk,
-            sign=yun_data.sign,
-            timestamp=yun_data.timestamp
+            sign=sign,
+            timestamp=timestamp
         )
 
         file_info.append({

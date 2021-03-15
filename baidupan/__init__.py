@@ -139,7 +139,7 @@ async def get_share(ctx, keyword, pan_url: str,
         return '文件失效或者分享被取消'
     await sp.send('正在获取文件信息')
 
-    msg_dir_str, file_info = share.handle_file_list(file_list, yun_data, randsk)
+    msg_dir_str, file_info = share.handle_file_list(surl, file_list, yun_data, randsk)
     if not msg_dir_str and not file_info:
         return '获取文件列表失败'
 
