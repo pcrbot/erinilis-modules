@@ -4,6 +4,7 @@ cache_dir: ./data/
 pixiv:
   username: ''
   password: ''
+  refresh_token: ''
 
 # 触发的命令
 comm:
@@ -59,6 +60,9 @@ rules:
 
   # 后面加上啥东西可以开启r18模式
   r18_flag: R18
+
+  # 后面加上啥东西可以搜索正常图
+  noh_flag: NOH
 
 str:
   print: |

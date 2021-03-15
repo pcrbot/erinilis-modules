@@ -25,10 +25,9 @@ epixiv = pixiv.epixiv(
 )
 
 try:
-    epixiv.login(config.pixiv.username, config.pixiv.password)
-    pass
+    epixiv.auth(refresh_token=config.pixiv.refresh_token)
 except Exception as e:
-    print('登录p站失败了 请检查配置.')
+    print('登录p站失败了 请检查配置. %s' % e.body)
 
 
 @sv.on_message('group')  # 如果使用hoshino的分群管理取消注释这行 并注释下一行的 @_bot.on_message("group")
@@ -40,8 +39,8 @@ async def epixiv_main(*params):
     # 搜索
     keyword = util.get_msg_keyword(config.comm.get_image_header, msg, True)
     if keyword:
-        footer = util.get_msg_keyword(config.comm.get_image_footer, keyword)
-        keyword = await search(ctx, footer[-1] if footer else keyword)
+        comm, footer = util.get_msg_keyword(config.comm.get_image_footer, keyword)
+        keyword = await search(ctx, footer + comm)
         await ptag(ctx, keyword)
     # 显示全部页面
     keyword = util.get_msg_keyword(config.comm.show_meta_pages, msg, True)
@@ -70,6 +69,13 @@ async def search(ctx, keyword: str):
         comm, keyword = is_r18
         is_r18 = 'r18'
 
+    sanity_level = 6
+    is_noh = util.get_msg_keyword(rules.noh_flag, keyword + comm) or ''
+    if is_noh:
+        comm, keyword = is_noh
+        is_noh = 'noh'
+        sanity_level = 2
+
     if not keyword:
         return ''
 
@@ -88,7 +94,7 @@ async def search(ctx, keyword: str):
         return ''
     ps.running('搜索中...')
     await _bot.send(ctx, '正在搜索 请稍等')
-    db_key = keyword + is_r18
+    db_key = keyword + is_r18 + is_noh
     search_db = db.get(db_key, {})
     search_db.setdefault('create_time', time.time())
     search_db.setdefault('keyword', db_key)
@@ -99,7 +105,8 @@ async def search(ctx, keyword: str):
     illusts = search_db.illusts
     if search_db.create_time + rules.refresh_day * 24 * 60 * 60 < time.time() or not illusts:
         print('pixiv refresh cache..')
-        illusts = await epixiv.search(keyword, search_sort_num=rules.search_sort_num, is_r18=bool(is_r18))
+        illusts = await epixiv.search(keyword, search_sort_num=rules.search_sort_num, is_r18=bool(is_r18),
+                                      sanity_level=sanity_level)
         if not illusts:
             ps.done()
             await _bot.send(ctx, '嗨呀 都没搜索到, 要不你换个搜')

@@ -13,15 +13,17 @@ epixiv文件夹复制到nonebot的模块目录就可
 >
 > pip install pixivpy -i https://pypi.tuna.tsinghua.edu.cn/simple
 ---
+目前暂时不能使用账号密码登录了,只能使用另外的脚本获取`refresh_token`进行登录<br>
+获取方法参考 [手动获取](https://gist.github.com/ZipFile/c9ebedb224406f4f11845ab700124362) 的方式进行获取refresh_token
 
+---
 ## 配置文件
 ```yaml
 cache_dir: ./data/
 
 # p站账号密码
 pixiv:
-  username: ''
-  password: ''
+  refresh_token: ''
 
 # 触发的命令
 comm:
