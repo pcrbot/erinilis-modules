@@ -52,6 +52,7 @@ class gacha_log:
                 service='getGachaLog',
                 page=1,
                 gacha_type=301,
+                end_id=0
                 ):
         params = dict()
         params['authkey_ver'] = 1
@@ -61,6 +62,8 @@ class gacha_log:
         params['size'] = self.size
         params['page'] = page
         params['gacha_type'] = gacha_type
+        if end_id:
+            params['end_id'] = end_id
         url = f'{config.api}{service}?{urllib.parse.urlencode(params)}'
         res = util.dict_to_object(json.loads(requests.get(url, timeout=30).text))
         if res.message == 'authkey valid error':
@@ -71,25 +74,23 @@ class gacha_log:
             return False
         return res.data
 
-    async def get_logs(self, gacha_type, _filter=None):
+    async def get_logs(self, gacha_type, _filter=None, history=None):
         item_list = []
         _flag = False
+        end_id = 0
+        add_history = False
         for page in range(1, 9999):
-            clist = self.get_api(page=page, gacha_type=gacha_type).list
+            if add_history:
+                break
+            clist = self.get_api(page=page, gacha_type=gacha_type, end_id=end_id).list
             if not clist:
                 break
+            end_id = clist[-1]['id']
             for data in clist:
-                # item_info = util.filter_list(items, lambda x: x['item_id'] == data['item_id'])
-                # if not len(item_info):
-                #     item_info = [{
-                #         "item_id": data['item_id'],
-                #         "name": "unknown",
-                #         "item_type": "unknown",
-                #         "rank_type": "unknown"
-                #     }]
-                # item_info = item_info[0]
-                # item_info['time'] = data['time']
-                # item_list.append(item_info)
+                if history and history[0]['id'] == data['id']:
+                    item_list = item_list + history
+                    add_history = True
+                    break
                 item_list.append(data)
                 if _filter:
                     _flag = _filter(data)
@@ -124,12 +125,14 @@ class gacha_log:
     async def check_authkey(self):
         return await self.get_config_list()
 
-    async def gacha_statistics(self, gacha_type_name):
+    async def gacha_statistics(self, uid, gacha_type_name):
         gacha_type = gacha_type_by_name(gacha_type_name)
         if not gacha_type:
             return
-        logs = await self.get_logs(gacha_type)
-
+        user = db.get(uid, {})
+        logs = await self.get_logs(gacha_type, history=user.get(str(gacha_type), []))
+        user[str(gacha_type)] = logs
+        db[uid] = user
         data = list(map(lambda x: x if x['rank_type'] == '5' else 0, logs))
         input_values = []
         squares = []
