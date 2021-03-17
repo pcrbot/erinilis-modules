@@ -133,6 +133,8 @@ async def get_share(ctx, keyword, pan_url: str,
     yun_data = share.get_yun_data(surl, randsk)
     if not yun_data:
         return '分享过期或者被取消'
+    if yun_data.get('share_uk'):
+        yun_data.uk = yun_data.share_uk
     file_list = share.get_file_list(yun_data.shareid, yun_data.uk, randsk, dir_str=dir_str)
 
     if not file_list.errno == 0:

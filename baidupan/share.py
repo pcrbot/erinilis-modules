@@ -187,7 +187,7 @@ def auto_cancel_share(shareid, file_path):
 
 
 # 设置分享文件
-def set_share(fs_id, pwd='erin', expire_time=7):
+def set_share(fs_id, pwd='erin', expire_time=1):
     fs_id = fs_id if isinstance(fs_id, list) else [fs_id]
     url = f'https://pan.baidu.com/share/set?channel=chunlei&clienttype=0&web=1&channel=chunlei&web=1&app_id=250528&clienttype=0'
     fs_id = ",".join([str(i) for i in fs_id])
