@@ -152,6 +152,8 @@ async def get_share(ctx, keyword, pan_url: str,
 
     if is_get_ru:
         for file_i in file_info:
+            if isinstance(yun_data.file_list, list):
+                yun_data.file_list = util.dict_to_object({'list': file_list.list})
             ru_link = await get_ru(ctx, file_i['url'], yun_data, randsk)
             await _bot.send(ctx, ru_link)
     await sp.send()
