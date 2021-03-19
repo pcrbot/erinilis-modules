@@ -8,7 +8,7 @@ from . import util
 
 config = util.get_config()
 
-mhyVersion = "2.4.0"
+mhyVersion = "2.3.0"
 
 
 def __md5__(text):
@@ -18,7 +18,7 @@ def __md5__(text):
 
 
 def __get_ds__():
-    n = "pbcfcvnfsm5s2w4x3lsq8caor7v8nlqm"
+    n = "h8w582wxwgqvahcdkpvdhbh2w9casgfl"
     i = str(int(time.time()))
     r = ''.join(random.sample(string.ascii_lowercase + string.digits, 6))
     c = __md5__("salt=" + n + "&t=" + i + "&r=" + r)
