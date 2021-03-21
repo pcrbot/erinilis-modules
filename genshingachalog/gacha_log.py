@@ -7,6 +7,7 @@ import urllib.parse
 from io import BytesIO
 import matplotlib.pyplot as plt
 from enum import Enum
+from nonebot import MessageSegment
 from . import util
 
 config = util.get_config()
@@ -133,6 +134,7 @@ class gacha_log:
         logs = await self.get_logs(gacha_type, history=user.get(str(gacha_type), []))
         user[str(gacha_type)] = logs
         db[uid] = user
+        # logs = user.get(str(gacha_type)) # debug
         data = list(map(lambda x: x if x['rank_type'] == '5' else 0, logs))
         input_values = []
         squares = []
@@ -148,33 +150,48 @@ class gacha_log:
         input_values.append('%s(%s)' % ('目前', pulls))
         squares.append(pulls)
 
-        plt.plot(input_values, squares, label='一共%s个5星' % (len(input_values) - 1))
-        plt.legend()
         plt.rcParams['font.sans-serif'] = ['SimHei']
         plt.rcParams['axes.unicode_minus'] = False
-        all_pulls_num = len(logs) - pulls
 
-        if not len(input_values) - 1:
-            total_probability = 0
-        else:
-            total_probability = ((len(input_values) - 1) / all_pulls_num) * 100
-        plt.title('%s(%s次5星出货概率为%.2f%%)' % (gacha_type_name, all_pulls_num, total_probability), fontsize=24)
+        def split_list(arr, n=8):
+            return [arr[i:i + n] for i in range(0, len(arr), n)]
 
-        max_pulls = 74
+        input_values_arr = split_list(input_values)
+        squares_arr = split_list(squares)
+        msg = []
+        for index, item in enumerate(input_values_arr):
+            total_val = len(item) - 1 if len(input_values_arr) - 1 == index else len(item)
+            plt.plot(item, squares_arr[index], label='一共%s个5星' % total_val)
+            plt.legend()
+            if index == len(input_values_arr) - 1:
+                all_pulls_num = len(logs) - pulls
+                if not len(input_values) - 1:
+                    total_probability = 0
+                else:
+                    total_probability = ((len(input_values) - 1) / all_pulls_num) * 100
+                plt.title('%s(%s次5星出货概率为%.2f%%)' % (gacha_type_name, all_pulls_num, total_probability), fontsize=24)
 
-        probability = 0.6
+                max_pulls = 74
+                if gacha_type == GACHA_TYPE.weapon.value:
+                    max_pulls -= 10
 
-        if pulls > max_pulls:
-            probability = probability + (pulls - max_pulls) * 5.3
-            probability_str = "当前%s抽,下一抽大概有%.2f%%几率获得5星" % (pulls, probability)
-        else:
-            mp = max_pulls - pulls
-            probability_str = '74抽前抽%s次有%.2f%%几率出现5星' % (mp, round((1 - math.pow(0.994, mp)) * 100, 2))
+                probability = 0.6
 
-        plt.xlabel(probability_str, fontsize=14)
+                if pulls > max_pulls:
+                    probability = probability + (pulls - max_pulls) * 5.3
+                    probability_str = "当前%s抽,下一抽大概有%.2f%%几率获得5星" % (pulls, probability)
+                else:
+                    mp = max_pulls - pulls
+                    probability_str = '%s抽前抽%s次有%.2f%%几率出现5星' % (
+                        max_pulls, mp, round((1 - math.pow(0.994, mp)) * 100, 2))
+                plt.xlabel(probability_str, fontsize=14)
+            else:
+                plt.title('前一组记录(%s)' % index, fontsize=24)
 
-        buf = BytesIO()
-        plt.savefig(buf, format='PNG', dpi=100)
-        plt.close()
-        base64_str = base64.b64encode(buf.getvalue()).decode()
-        return 'base64://' + base64_str
+            buf = BytesIO()
+            plt.savefig(buf, format='PNG', dpi=150)
+            plt.close()
+            base64_str = base64.b64encode(buf.getvalue()).decode()
+            msg.append(MessageSegment.image('base64://' + base64_str))
+        msg.reverse()
+        return msg

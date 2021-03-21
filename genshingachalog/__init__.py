@@ -56,4 +56,4 @@ async def gacha_statistics(ctx, keyword):
     if not log:
         return
     await _bot.send(ctx, '正在处理 请稍等')
-    await _bot.send(ctx, MessageSegment.image(await log.gacha_statistics(ctx.user_id, keyword)), at_sender=True)
+    await _bot.send(ctx, await log.gacha_statistics(ctx.user_id, keyword), at_sender=True)
