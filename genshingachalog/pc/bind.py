@@ -1,4 +1,5 @@
 import os
+import re
 import yaml
 import winreg
 import ctypes
@@ -7,6 +8,8 @@ import asyncio
 import requests
 import urllib.parse
 import mitmproxy.http
+from sys import exit
+from pathlib import Path
 from mitmproxy.options import Options
 from mitmproxy.proxy.config import ProxyConfig
 from mitmproxy.proxy.server import ProxyServer
@@ -90,7 +93,7 @@ def handle_bind(url):
     print(res)
     # m.shutdown()
     print('可以关闭软件了, 如果网页打不开请重新打开软件使用 2.清除代理')
-    disable_proxy()
+    # disable_proxy()
     input()
 
 
@@ -129,17 +132,31 @@ class Addon(object):
             ''')
 
 
+def from_log_file():
+    log_file = Path(os.getenv('LOCALAPPDATA') + 'Low') / 'miHoYo' / '原神' / 'output_log.txt'
+    if not log_file.exists():
+        print('错误.找不到本地日志文件')
+        os.system('pause')
+        exit()
+    with log_file.open() as f:
+        log = f.read()
+    url = re.search(r'.+gacha/index.html?(.+)', log)
+    if not url:
+        print('请在游戏内先F3打开抽卡页面后,点击下面的历史记录后在继续')
+        os.system('pause')
+        from_log_file()
+    handle_bind(url.group(1))
+
+
 def menu():
     print('1.绑定原神卡池记录')
     print('2.清除代理(上不了网使用这个)')
+    print('3.从本地日志获取(作用同1,不同的是不需要对网络进行代理)')
 
     return input_num('选择一个来执行:')
 
 
 if __name__ == "__main__":
-    print('此程序仅设置Internet局域网代理 可能会被拦截,请允许.')
-    print('不要启动加速器或者其它代理程序.')
-
     config = get_config()
     config.setdefault('select', 0)
     config.setdefault('QQ', 0)
@@ -154,6 +171,8 @@ if __name__ == "__main__":
         select = menu()
 
     if str(select) == '1':
+        print('此程序仅设置Internet局域网代理 可能会被拦截,请允许.')
+        print('不要启动加速器或者其它代理程序.')
         qq = config.QQ
         if not qq:
             qq = input_num('输入一个QQ号进行绑定:')
@@ -197,3 +216,9 @@ if __name__ == "__main__":
         disable_proxy()
         print('清除代理成功')
         os.system('pause')
+
+    if select == '3':
+        qq = config.QQ
+        if not qq:
+            qq = input_num('输入一个QQ号进行绑定:')
+        from_log_file()
