@@ -85,17 +85,15 @@ async def get_group_member_name(group_id, user_id):
     return qq_info['card'] or qq_info['nickname']
 
 
-bossData = {
-    'scoreRate': [
-        [1, 1, 1.3, 1.3, 1.5],
-        [1.3, 1.3, 1.8, 1.8, 2],
-    ],
-    'hp': [6000000, 8000000, 10000000, 12000000, 20000000],
-    'max': 2,
-}
-
-
 def calc_hp(hp_base: int):
+    def getClanBattlePhase(zm):
+        for i in range(bossData['max']-1,-1,-1):
+            if zm >= bossData['phase'][i]:
+                return i
+    bossData = {'scoreRate': [[1, 1, 1.3, 1.3, 1.5],[1.4, 1.4, 1.8, 1.8, 2],[2.0, 2.0, 2.5, 2.5, 3],],
+        'hp': [6000000, 8000000, 10000000, 12000000, 20000000],
+        'phase':[1,4,11],
+        'max':3}
     zm = 1
     king = 1
     cc = 0.0
@@ -103,9 +101,8 @@ def calc_hp(hp_base: int):
     damage = 0
     remainHp = 0.0
     remainPer = 0.0
-
     while True:
-        nowZm = bossData['max'] - 1 if zm > bossData['max'] else zm - 1
+        nowZm = getClanBattlePhase(zm)
         cc += bossData['scoreRate'][nowZm][king - 1] * bossData['hp'][king - 1]
         if cc > hp_base:
             cc -= bossData['scoreRate'][nowZm][king - 1] * bossData['hp'][king - 1]
