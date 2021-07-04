@@ -2,7 +2,7 @@
 """
 作者艾琳有栖
 
-版本 0.0.8
+版本 0.1.0
 
 基于 nonebot 问答
 """
@@ -17,7 +17,8 @@ from hoshino import Service  # 如果使用hoshino的分群管理取消注释这
 sv = Service('eqa')  # 如果使用hoshino的分群管理取消注释这行
 
 config = util.get_config()
-db = util.init_db(config['cache_dir'])
+db = util.init_db(config['cache_dir'], tablename='unnamed')
+reg_db = util.init_db(config['cache_dir'], tablename='reg')
 
 _bot = get_bot()
 
@@ -31,6 +32,26 @@ async def eqa_main(*params):
     bot, ctx = (_bot, params[0]) if len(params) == 1 else params
 
     msg = str(ctx['message']).strip()
+
+    # 显示全部设置的问题
+    show_target = util.get_msg_keyword(config['comm']['show_question_list'], msg, True)
+    if isinstance(show_target, str):
+        return await bot.send(ctx, await show_question(ctx, show_target, True))
+
+    # 显示设置的问题
+    show_target = util.get_msg_keyword(config['comm']['show_question'], msg, True)
+    if isinstance(show_target, str):
+        return await bot.send(ctx, await show_question(ctx, show_target))
+
+    # 删除设置的问题
+    del_target = util.get_msg_keyword(config['comm']['answer_delete'], msg, True)
+    if del_target:
+        return await bot.send(ctx, await del_question(ctx, del_target))
+
+    # 清空设置的问题
+    del_all = util.get_msg_keyword(config['comm']['answer_delete_all'], msg, True)
+    if del_all:
+        return await bot.send(ctx, await del_question(ctx, del_all, True))
 
     # 处理回答所有人的问题
     keyword = util.get_msg_keyword(config['comm']['answer_all'], msg, True)
@@ -53,26 +74,6 @@ async def eqa_main(*params):
     # elif isinstance(ans, str):
     #     return ans
 
-    # 显示全部设置的问题
-    show_target = util.get_msg_keyword(config['comm']['show_question_list'], msg, True)
-    if isinstance(show_target, str):
-        return await bot.send(ctx, await show_question(ctx, show_target, True))
-
-    # 显示设置的问题
-    show_target = util.get_msg_keyword(config['comm']['show_question'], msg, True)
-    if isinstance(show_target, str):
-        return await bot.send(ctx, await show_question(ctx, show_target))
-
-    # 删除设置的问题
-    del_target = util.get_msg_keyword(config['comm']['answer_delete'], msg, True)
-    if del_target:
-        return await bot.send(ctx, await del_question(ctx, del_target))
-
-    # 清空设置的问题
-    del_all = util.get_msg_keyword(config['comm']['answer_delete_all'], msg, True)
-    if del_all:
-        return await bot.send(ctx, await del_question(ctx, del_all, True))
-
 
 # 设置问题的函数
 async def ask(ctx, keyword, is_me):
@@ -89,7 +90,7 @@ async def ask(ctx, keyword, is_me):
         # return f'嗯嗯，加上{answer_handler}后再重新设置试试看吧~'
         return False
     ans, qus = qa_msg
-    qus = f'{qus}'.strip()
+    qus = f'{qus}'.strip().replace('&#91;', '[').replace('&#93;', ']')
     if not str(qus).strip():
         return '问题呢? 问题呢??'
     if not str(ans).strip():
@@ -117,7 +118,18 @@ async def ask(ctx, keyword, is_me):
                 return '图片缓存失败了啦！'
         message.append(ms)
 
-    qus_list = db.get(qus, [])
+    # 判断是否是正则表达式的问答
+    reg_qus = util.get_msg_keyword(config['str']['reg_match_cmd'], qus, True)
+    if reg_qus:
+        if re.search(r'\[CQ:at,', qus):
+            reg_qus = util.get_message_str(reg_qus, True)
+
+        _db = reg_db  # 切换为正则表达式的数据库
+        qus = reg_qus
+    else:
+        _db = db  # 否则使用普通的数据库
+
+    qus_list = _db.get(qus, [])
     qus_list.append({
         'user_id': ctx['user_id'],
         'group_id': ctx['group_id'],
@@ -125,16 +137,22 @@ async def ask(ctx, keyword, is_me):
         'qus': qus,
         'message': message
     })
-    db[qus] = qus_list
+    _db[qus] = qus_list
     return '我学会啦 来问问我吧！'
 
 
 # 回复的函数
-async def answer(ctx):
+async def answer(ctx, _reg_flag=False):
     msg = util.get_message_str(ctx['message']).strip()
     ans_list = db.get(msg, [])
-    if not ans_list:
-        return False
+    _is_reg = False
+    if not ans_list or _reg_flag:
+        msg = util.get_message_str(msg, True)
+        reg_list = list(filter(None, map(lambda x: re.search(x, msg) and reg_db[x] or None, reg_db.keys())))
+        if not reg_list:
+            return False
+        ans_list = sum(reg_list, [])
+        _is_reg = True
 
     group_id = ctx['group_id']
     user_id = ctx['user_id']
@@ -145,10 +163,12 @@ async def answer(ctx):
     # 获取到当前群的列表 判断是否来自该群 或者是否是超级管理员
     # 超级管理员设置的是否为所有群问答
     ans_list = util.filter_list(ans_list, lambda x: group_id == x['group_id'] or (
-            x['user_id'] in admins) if super_admin_is_all_group else False)
+        x['user_id'] in admins if super_admin_is_all_group else False))
 
     # 木有在这群
     if not ans_list:
+        return answer(ctx, True)
+    elif not ans_list and _reg_flag:
         return False
 
     # 是否优先自己的回答 是的话则选择自己的列表
@@ -170,28 +190,32 @@ async def answer(ctx):
         if ans['user_id'] != user_id:
             return False
 
-    msg = ans['message']
-    if len(msg) == 1:  # str(Message(msg))
-        _msg = msg[0]
+    ans_msg = ans['message']
+    _msg = ans_msg[0]
+    if len(ans_msg) == 1:  # str(Message(msg))
         if _msg['type'] == 'text' and _msg['data']['text'][:1] == config['str']['cmd_head_str']:
             ctx['raw_message'] = _msg['data']['text'][1:]
             ctx['message'] = Message(ctx['raw_message'])
             _bot.on_message(ctx)
             return False
+    if _is_reg and _msg['type'] == 'text' and _msg['data']['text'][:1] == config['str']['reg_match_cmd']:
+        text = _msg['data']['text'][1:] or str(Message(ans_msg[1:]))
+        ans_msg = Message(re.sub(ans['qus'], text, msg))
 
     # 如果使用了base64 那么需要把信息里的图片转换一下
     if config['image_base64']:
         ans['message'] = util.message_image2base64(ans['message'])
 
     # 最后就是把验证成功的消息返回去
-    return msg
+    return ans_msg
 
 
 # 显示问题的函数
 async def show_question(ctx, target, show_all=False):
     print_all_split = config['str']['print_all_split'] or " | "
 
-    db_list = list(db.values())
+    db_list = list(db.values()) + list(reg_db.values())
+
     # 获取当前群设置的问题列表
     ans_list = util.get_current_ans_list(ctx, db_list)
 
@@ -241,6 +265,7 @@ async def show_question(ctx, target, show_all=False):
 
         str_list = util.get_qus_str_by_list(ans_list)
         str_list = await util.cq_msg2str(str_list, group_id=ctx['group_id'])
+        str_list = sorted(str_list)
         # 把问题都打印出来
         msg_context = f'全体问答:\n{print_all_split.join(str_list)}' if show_all else "\n".join(str_list)
 
@@ -257,7 +282,15 @@ async def show_question(ctx, target, show_all=False):
 # 删除问题的函数
 async def del_question(ctx, target, clear=False):
     target = util.get_message_str(target).strip()
-    ans_list = db.get(target, [])
+    # 判断是否是正则表达式的问答
+    reg_qus = util.get_msg_keyword(config['str']['reg_match_cmd'], target, True)
+    if reg_qus:
+        _db = reg_db  # 切换为正则表达式的数据库
+        target = reg_qus
+    else:
+        _db = db  # 否则使用普通的数据库
+
+    ans_list = _db.get(target, [])
     if not ans_list:
         return '没这个问题哦'
 
@@ -269,7 +302,7 @@ async def del_question(ctx, target, clear=False):
     if clear:
         if is_super_admin:
             util.delete_message_image_file(ans_list)
-            db.pop(target)
+            _db.pop(target)
             return '清空成功~'
         else:
             return '木有权限啦~~'
@@ -309,8 +342,8 @@ async def del_question(ctx, target, clear=False):
         if config['rule']['question_del_last']:
             ans_list.reverse()
         if bool(ans_list):
-            db[target] = ans_list
+            _db[target] = ans_list
         else:
-            db.pop(target)
+            _db.pop(target)
 
     return '删除成功啦' if is_del_flag else '删除失败 可能木有权限'

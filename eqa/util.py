@@ -20,6 +20,9 @@ def get_config():
     return yaml.load(file.read(), Loader=yaml.FullLoader)
 
 
+config = get_config()
+
+
 # 获取字符串中的关键字  is_first为true返回后面 false返回 前面和后面
 def get_msg_keyword(keyword, msg, is_first=False):
     try:
@@ -41,8 +44,9 @@ def get_path(*paths):
 
 
 # 初始化数据库
-def init_db(db_dir, db_name='db.sqlite'):
+def init_db(db_dir, db_name='db.sqlite', tablename=''):
     return SqliteDict(get_path(db_dir, db_name),
+                      tablename=tablename,
                       encode=json.dumps,
                       decode=json.loads,
                       autocommit=True)
@@ -144,13 +148,15 @@ def delete_message_image_file(message):
 
 
 # 获取消息中字符串 处理md5值
-def get_message_str(message):
+def get_message_str(message, is_reg=False):
     res = ''
     message = message if isinstance(message, MessageSegment) else Message(message)
     for ms in message:
         # 处理文本
         if ms['type'] == 'text':
             res += str(ms['data']['text']).strip()
+            if res == config['str']['reg_match_cmd']:
+                is_reg = True
             continue
         # 处理图片
         if ms['type'] == 'image':
@@ -160,6 +166,10 @@ def get_message_str(message):
                 res += _id.split('-')[-1]
             except AttributeError:
                 res += ms['data']['file'].split('.')[0].lower()
+            continue
+        # AT
+        if is_reg and ms['type'] == 'at':
+            res += 'at%s' % ms['data']['qq']
             continue
         res += str(ms)
     return res

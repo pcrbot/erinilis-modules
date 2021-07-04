@@ -66,6 +66,9 @@ rule:
 
 # 打印字符配置
 str:
+  # 使用正则表达式前缀
+  reg_match_cmd: 'R'
+
   # 使用命令回答前缀 谨慎修改
   cmd_head_str: '='
 
