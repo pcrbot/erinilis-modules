@@ -121,6 +121,10 @@ async def ask(ctx, keyword, is_me):
     # 判断是否是正则表达式的问答
     reg_qus = util.get_msg_keyword(config['str']['reg_match_cmd'], qus, True)
     if reg_qus:
+        try:
+            re.compile(reg_qus)
+        except:
+            return '设置的正则表达式不对啦'
         if re.search(r'\[CQ:at,', qus):
             reg_qus = util.get_message_str(reg_qus, True)
 
