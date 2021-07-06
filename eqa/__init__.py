@@ -171,7 +171,7 @@ async def answer(ctx, _reg_flag=False):
 
     # 木有在这群
     if not ans_list:
-        return answer(ctx, True)
+        return await answer(ctx, True)
     elif not ans_list and _reg_flag:
         return False
 
