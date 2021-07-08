@@ -1,6 +1,5 @@
 import json
 import requests
-from urllib import parse
 
 from . import util
 
@@ -12,11 +11,15 @@ def short(url: str):
         return url
 
     data = {
-        'key': setting.short_key,
-        'url': parse.quote(url)
+        'url': url
     }
+
     try:
-        res = json.loads(requests.get(setting.short_api.format(**data), timeout=30).text, object_hook=util.Dict)
+        res = json.loads(requests.post(setting.short_api,
+                                       json=data,
+                                       headers=setting.short_headers,
+                                       timeout=30
+                                       ).text, object_hook=util.Dict)
     except TimeoutError:
         print('short url time out')
         return url

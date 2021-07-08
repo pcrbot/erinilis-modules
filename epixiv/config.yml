@@ -100,15 +100,12 @@ setting:
   # 启用短网址
   short_url_enable: true
   # 申请地址 https://urlc.cn/ 自己申请的可管理短链接
-  short_api: 'https://urlc.cn/api/?key={key}&format=json&url={url}'
-  short_key: 'ApThkrKWZbzu'
+  short_api: 'https://www.urlc.cn/api/url/add'
+  short_key: ''
   short_error: 'error'
   short_error_value: 1
   short_json_str: 'short'
+  short_headers:
+    Content-Type: 'application/json'
+    Authorization: 'Token rAnpKScCWjw3AZRdsfic'
 
-  # 备用缩短地址
-  #  short_api: 'https://is.gd/create.php?format=json&url={url}'
-  #  short_key: ''
-  #  short_error: ''
-  #  short_error_value: 1
-  #  short_json_str: 'shorturl'
