@@ -166,6 +166,4 @@ class Guess:
             user = await bot.get_group_member_info(group_id=ev['group_id'],user_id=ev['user_id'])
             num = i + 1
             msg += f"第{num}名: {escape(user['card'])}, 猜对{data['count']}次"
-            if i >= 10:
-                break
         return msg
