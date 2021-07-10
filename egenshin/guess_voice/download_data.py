@@ -23,7 +23,7 @@ API = {
 
 config = {
     # 中 日 英 韩
-    'voice_language': ['中', '日']
+    'voice_language': ['中', '日', '英', '韩']
 }
 
 
@@ -106,21 +106,22 @@ async def update_voice_data():
                 url = v[language]
                 if not url:
                     continue
-                out_path = OUT_PUT / language / char / Path(url).name
+                path = str(Path() / language / char / Path(url).name)
+                out_path = OUT_PUT / path
                 out = str(out_path)
                 if not out_path.exists():
                     await download(url, out)
 
                 if language == '中':
-                    chn = out
+                    chn = path
                 elif language == '日':
-                    jap = out
+                    jap = path
                 elif language == '英':
-                    eng = out
+                    eng = path
                 elif language == '韩':
-                    kor = out
+                    kor = path
 
-                print('下载成功: %s -> %s' % (char, out))
+                print('下载成功: %s -> %s' % (char, path))
 
             data.append({
                 'title': v['title'],

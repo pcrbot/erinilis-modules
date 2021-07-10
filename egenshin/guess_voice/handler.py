@@ -2,12 +2,14 @@ import os
 import random
 import datetime
 import json
+from pathlib import Path
 from apscheduler.triggers.date import DateTrigger
 from typing import List
 from nonebot import MessageSegment, scheduler, get_bot
 
 from .. import util
 
+config = util.get_config('guess_voice/config.yml')
 user_db = util.init_db('guess_voice/data', 'user.sqlite')
 voice_db = util.init_db('guess_voice/data', 'voice.sqlite')
 process = {}
@@ -110,7 +112,10 @@ class Guess:
                           jobstore='default',
                           max_instances=1)
 
-        return MessageSegment.record(f'file:///{util.get_path("guess_voice", voice_path)}')
+        data_path = Path(config.voice_path)
+        if not data_path.root:
+            data_path = Path(__file__).parent / config.voice_path
+        return MessageSegment.record(f'file:///{str(data_path / voice_path)}')
 
     async def end_game(self):
         self.group = process.get(self.group_id)

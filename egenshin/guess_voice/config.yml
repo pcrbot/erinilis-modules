@@ -1,3 +1,5 @@
+voice_path: './data'
+
 comm:
 
   start: 猜语音
