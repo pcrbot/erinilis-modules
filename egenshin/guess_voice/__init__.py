@@ -41,7 +41,7 @@ async def guess_genshin_voice(bot, ev):
     guess = Guess(ev['group_id'], time=setting_time)
     if keyword == '排行榜':
         await bot.finish(ev, await guess.get_rank(bot, ev))
-    if keyword in ['中','中国','汉语','中文','中国话','Chinese','cn']:
+    if keyword in ['中','中国','汉语','中文','中国话','Chinese','cn'] or not keyword:
         keyword = '中'
     elif keyword in ['日','日本','日语','霓虹','日本语','Japanese','jp']:
         keyword = '日'
