@@ -2,14 +2,21 @@ import os
 import random
 import datetime
 import json
-from pathlib import Path
+import hoshino
 from apscheduler.triggers.date import DateTrigger
 from typing import List
 from nonebot import MessageSegment, scheduler, get_bot
+from hoshino.util import escape
 
 from .. import util
 
-config = util.get_config('guess_voice/config.yml')
+dir_data = os.path.join(os.path.dirname(__file__), 'data')
+
+data_path = os.path.join(os.path.dirname(__file__), 'voice')
+
+if not os.path.exists(dir_data):
+    os.makedirs(dir_data)
+
 user_db = util.init_db('guess_voice/data', 'user.sqlite')
 voice_db = util.init_db('guess_voice/data', 'voice.sqlite')
 process = {}
@@ -42,6 +49,21 @@ def char_name_by_name(name):
     return ''
 
 
+def get_random_voice(name, language='中'):
+    voice_list = voice_db.get(char_name_by_name(name))
+    if not voice_list:
+        return
+    temp_voice_list = []
+    for v in voice_list:
+        voice_path = get_voice_by_language(v, language)
+        if voice_path:
+            temp_voice_list.append(voice_path)
+    if not temp_voice_list:
+        return
+    path = os.path.join(data_path, random.choice(temp_voice_list))
+    return path
+
+
 class Guess:
     time: int
     group_id: int
@@ -57,23 +79,6 @@ class Guess:
             return False
         return self.group['start']
 
-    def get_random_voice(self, name, language='中'):
-        voice_list = voice_db.get(char_name_by_name(name))
-        if not voice_list:
-            return
-        temp_voice_list = []
-        for v in voice_list:
-            voice_path = get_voice_by_language(v, language)
-            if voice_path:
-                temp_voice_list.append(voice_path)
-        if not temp_voice_list:
-            return
-
-        data_path = Path(config.voice_path)
-        if not data_path.root:
-            data_path = Path(__file__).parent / config.voice_path
-        return str(data_path / random.choice(temp_voice_list))
-
     def start(self, language: List[str] = None):
         if not language:
             language = ['中']
@@ -81,8 +86,7 @@ class Guess:
         language = random.choice(language)
         # 随机选择一个语音
         answer = random.choice(list(voice_db.keys()))
-        print('正确答案为: %s' % answer)
-        #
+        #print('正确答案为: %s' % answer)
         temp_voice_list = []
 
         for v in voice_db[answer]:
@@ -92,7 +96,7 @@ class Guess:
                     temp_voice_list.append(voice_path)
 
         if not temp_voice_list:
-            print('随机到了个哑巴,, 重新随机.. 如果反复出现这个 你应该检查一下数据库')
+            hoshino.logger.info('随机到了个哑巴,, 重新随机.. 如果反复出现这个 你应该检查一下数据库')
             return self.start([language])
 
         voice_path = random.choice(temp_voice_list)
@@ -116,10 +120,9 @@ class Guess:
                           jobstore='default',
                           max_instances=1)
 
-        data_path = Path(config.voice_path)
-        if not data_path.root:
-            data_path = Path(__file__).parent / config.voice_path
-        return MessageSegment.record(f'file:///{str(data_path / voice_path)}')
+        path = os.path.join(data_path, voice_path)
+
+        return MessageSegment.record(f'file:///{path}')
 
     async def end_game(self):
         self.group = process.get(self.group_id)
@@ -152,11 +155,17 @@ class Guess:
             process[self.group_id]['ok'].add(qq)
 
     # 获取排行榜
-    def get_rank(self):
+    async def get_rank(self,bot,ev):
         user_list = user_db.get(self.group_id, {})
 
         user_list = sorted(user_list.items(), key=lambda v: v[1]['count'])
         user_list.reverse()
+        i = 0
         msg = '本群猜语音排行榜:\n'
-        msg += '\n'.join(['%s  %s' % (data['count'], MessageSegment.at(user)) for user, data in user_list][:10])
+        for user, data in user_list[:10]:
+            user = await bot.get_group_member_info(group_id=ev['group_id'],user_id=ev['user_id'])
+            num = i + 1
+            msg += f"第{num}名: {escape(user['card'])}, 猜对{data['count']}次"
+            if i >= 10:
+                break
         return msg

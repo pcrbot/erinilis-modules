@@ -4,6 +4,7 @@
 """
 
 import asyncio
+import hoshino
 import requests
 import json
 import os
@@ -12,7 +13,7 @@ from sqlitedict import SqliteDict
 from pathlib import Path
 from bs4 import BeautifulSoup
 
-OUT_PUT = Path(__file__).parent / 'data'
+OUT_PUT = Path(__file__).parent / 'voice'
 
 BASE_URL = 'https://wiki.biligame.com/ys/'
 
@@ -26,6 +27,10 @@ config = {
     'voice_language': ['中', '日', '英', '韩']
 }
 
+dir_data = os.path.join(os.path.dirname(__file__), 'data')
+
+if not os.path.exists(dir_data):
+    os.makedirs(dir_data)
 
 ############
 def get_path(*paths):
@@ -57,7 +62,7 @@ async def get_character_list():
 
 # 获取角色语音
 async def get_voice_info(character_name: str):
-    print('获取数据: %s' % character_name)
+    hoshino.logger.info('获取数据: %s' % character_name)
     html = requests.get(BASE_URL + API['voice'] % character_name).text
     soup = BeautifulSoup(html, 'lxml')
     if soup.find(text='本页面目前没有内容。您可以在其他页面中'):
@@ -67,7 +72,7 @@ async def get_voice_info(character_name: str):
     for item in voice_list:
         item_tab = item.find_all(attrs={'class': ''})[1:]
         if isinstance(item_tab[1].next, str):
-            print('...别管龙哥了')
+            hoshino.logger.info('...别管龙哥了')
             return info_list
         info_list.append({
             'title': item_tab[0].text,
@@ -121,7 +126,7 @@ async def update_voice_data():
                 elif language == '韩':
                     kor = path
 
-                print('下载成功: %s -> %s' % (char, path))
+                hoshino.logger.info('下载成功: %s -> %s' % (char, path))
 
             data.append({
                 'title': v['title'],
@@ -133,13 +138,3 @@ async def update_voice_data():
             })
         # 存入数据库
         db[char] = data
-
-
-def run_init():
-    loop = asyncio.new_event_loop()
-    loop.run_until_complete(update_voice_data())
-    loop.close()
-
-
-if __name__ == '__main__':
-    run_init()
