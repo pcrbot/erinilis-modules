@@ -41,10 +41,18 @@ async def guess_genshin_voice(bot, ev):
     guess = Guess(ev['group_id'], time=setting_time)
     if keyword == '排行榜':
         await bot.finish(ev, await guess.get_rank(bot, ev))
-    if keyword not in list('中日英韩'):
+    if keyword in ['中','中国','汉语','中文','中国话','Chinese','cn']:
         keyword = '中'
+    elif keyword in ['日','日本','日语','霓虹','日本语','Japanese','jp']:
+        keyword = '日'
+    elif keyword in ['韩','韩国','韩语','棒子','南朝鲜','南朝鲜语']:
+        keyword = '韩'
+    elif keyword in ['英','英文','英语','洋文','English','en']:
+        keyword = '英'
+    else:
+        await bot.finish(ev, f'没有找到{keyword}的语音')
     if guess.is_start():
-        return await bot.send(ev, '游戏正在进行中哦')
+        await bot.finish(ev, '游戏正在进行中哦')
     await bot.send(ev, f'即将发送一段原神语音,将在{setting_time}秒后公布答案')
     await asyncio.sleep(1)
     await bot.send(ev, guess.start(keyword.split()))
