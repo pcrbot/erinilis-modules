@@ -6,7 +6,7 @@ import hoshino
 from apscheduler.triggers.date import DateTrigger
 from typing import List
 from nonebot import MessageSegment, scheduler, get_bot
-from hoshino.util import escape, text2img
+from hoshino.util import escape
 
 from .. import util
 
@@ -168,5 +168,4 @@ class Guess:
             msg += f"第{num}名: {escape(user['card'])}, 猜对{data['count']}次"
             if i >= 10:
                 break
-        msg = text2img(msg.strip())
         return msg
