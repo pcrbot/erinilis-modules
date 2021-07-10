@@ -42,12 +42,12 @@ async def guess_genshin_voice(bot, ev):
     if keyword == '排行榜':
         await bot.finish(ev, await guess.get_rank(bot, ev))
     if keyword not in list('中日英韩'):
-        keyword == '中'
+        keyword = '中'
     if guess.is_start():
         return await bot.send(ev, '游戏正在进行中哦')
     await bot.send(ev, f'即将发送一段原神语音,将在{setting_time}秒后公布答案')
     await asyncio.sleep(1)
-    await bot.send(ev, guess.start(keyword))
+    await bot.send(ev, guess.start(keyword.split()))
 
 
 @sv.on_message('group')
@@ -71,3 +71,9 @@ async def get_genshin_voice(bot, ev):
     if not path:
         await bot.finish(ev, f'没有找到{name}的语音呢')
     await bot.send(ev, MessageSegment.record(f'file:///{util.get_path("guess_voice", path)}'))
+
+
+@sv.on_fullmatch('更新原神语音资源')
+async def update_genshin_voice(bot, ev):
+    await bot.send(ev, '将在后台开始更新原神语音资源，耐心等待')
+    await download_data.update_voice_data()
