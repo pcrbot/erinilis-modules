@@ -1,64 +1,73 @@
 import asyncio
-from pathlib import Path
+import os
 from .. import util
-from hoshino import Service, get_bot, MessageSegment
-from .download_data import update_voice_data
-from .handler import Guess
+from hoshino import Service, MessageSegment, priv
+from .handler import Guess, get_random_voice
+from . import download_data
 
-sv = Service('genshin-guess-voice')
+sv_help = '''
+[原神猜语音] 开始原神猜语音
+[原神猜语音排行榜] 查看本群原神猜语音的排行榜
+[原神语音+角色名] 播放指定角色的随机一条语音 
+'''.strip()
 
-config = util.get_config('guess_voice/config.yml')
+sv = Service(
+    name = '原神猜语音',  #功能名
+    use_priv = priv.NORMAL, #使用权限   
+    manage_priv = priv.ADMIN, #管理权限
+    visible = True, #可见性
+    enable_on_default = True, #默认启用
+    bundle = '娱乐', #分组归类
+    help_ = sv_help #帮助说明
+    )
 
-_bot = get_bot()
+setting_time = 30   # 游戏持续时间
+
+dir_name = os.path.join(os.path.dirname(__file__), 'voice')
+
+
+async def download_voice(bot,ev):
+    if not os.path.exists(dir_name):
+        os.makedirs(dir_name)
+        await bot.send(ev, '资源尚未初始化，现在开始下载资源，这需要较长的时间，请耐心等待')
+        await download_data.update_voice_data()
+        await bot.send(ev, '资源下载完成，请重新发送指令开始游戏')
+
+
+@sv.on_prefix('原神猜语音')
+async def guess_genshin_voice(bot, ev):
+    await download_voice(bot,ev)
+    keyword = ev.message.extract_plain_text().strip()
+    guess = Guess(ev['group_id'], time=setting_time)
+    if keyword == '排行榜':
+        await bot.finish(ev, await guess.get_rank(bot, ev))
+    if keyword not in list('中日英韩'):
+        keyword == '中'
+    if guess.is_start():
+        return await bot.send(ev, '游戏正在进行中哦')
+    await bot.send(ev, f'即将发送一段原神语音,将在{setting_time}秒后公布答案')
+    await asyncio.sleep(1)
+    await bot.send(ev, guess.start(keyword))
 
 
 @sv.on_message('group')
-async def main(*params):
-    bot, ctx = (_bot, params[0]) if len(params) == 1 else params
-    msg = str(ctx['message']).strip()
-    guess = Guess(ctx.group_id, time=config.setting.time)
-
-    # 排行榜
-    show_rank = util.get_msg_keyword(config.comm.rank, msg, True)
-    if isinstance(show_rank, str):
-        return await _bot.send(ctx, guess.get_rank())
-
-    # 开始游戏
-    start = util.get_msg_keyword(config.comm.start, msg, True)
-    if isinstance(start, str):
-        if not start:
-            start = '中'
-        if not (start in list('中日英韩')):
-            return await _bot.send(ctx, '参数不正确呢')
-
-        if not (Path(__file__).parent / 'data' / start).exists():
-            await _bot.send(ctx, '资源尚未初始化')
-            print('资源文件不存在,请运行download_data.py文件获取呢')
-            return
-
-        if guess.is_start():
-            return await _bot.send(ctx, '游戏正在进行中哦.')
-
-        await _bot.send(ctx, '即将发送一段语音,将在%s秒后公布答案' % config.setting.time)
-        await asyncio.sleep(1)
-        await _bot.send(ctx, guess.start(list(start)))
-    # 加入答案
+async def on_input_chara_name(bot, ev):
+    msg = ev['raw_message']
+    guess = Guess(ev['group_id'], time=setting_time)
     if guess.is_start():
-        guess.add_answer(ctx.user_id, msg)
+        guess.add_answer(ev['user_id'], msg)
 
-    # 获取单个语音
-    get_voice = util.get_msg_keyword(config.comm.get_random_voice, msg, True)
-    if get_voice:
-        path = guess.get_random_voice(get_voice)
-        if not path:
-            return await _bot.send(ctx, '没有找到 %s 的语音呢' % get_voice)
 
-        await _bot.send(ctx, MessageSegment.record(f'file:///{util.get_path("guess_voice", path)}'))
-    # 获取单个语音
-    get_voice = util.get_msg_keyword(config.comm.get_random_voice_jp, msg, True)
-    if get_voice:
-        path = guess.get_random_voice(get_voice, '日')
-        if not path:
-            return await _bot.send(ctx, '没有找到 %s 的语音呢' % get_voice)
-
-        await _bot.send(ctx, MessageSegment.record(f'file:///{util.get_path("guess_voice", path)}'))
+@sv.on_prefix('原神语音')
+async def get_genshin_voice(bot, ev):
+    name = ev.message.extract_plain_text().strip()
+    if name.startswith('日'):
+        language = '日'
+        name = name[1:]
+    else:
+        language = '中'
+    await download_voice(bot,ev)
+    path = get_random_voice(name, language)
+    if not path:
+        await bot.finish(ev, f'没有找到{name}的语音呢')
+    await bot.send(ev, MessageSegment.record(f'file:///{util.get_path("guess_voice", path)}'))
