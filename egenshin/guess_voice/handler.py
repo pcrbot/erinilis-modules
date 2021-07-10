@@ -68,7 +68,11 @@ class Guess:
                 temp_voice_list.append(voice_path)
         if not temp_voice_list:
             return
-        return random.choice(temp_voice_list)
+
+        data_path = Path(config.voice_path)
+        if not data_path.root:
+            data_path = Path(__file__).parent / config.voice_path
+        return str(data_path / random.choice(temp_voice_list))
 
     def start(self, language: List[str] = None):
         if not language:
