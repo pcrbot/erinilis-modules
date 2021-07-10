@@ -37,7 +37,7 @@ async def download_voice(bot,ev):
 @sv.on_prefix('原神猜语音')
 async def guess_genshin_voice(bot, ev):
     await download_voice(bot,ev)
-    keyword = ev.message.extract_plain_text().strip() or '中'
+    keyword = ev.message.extract_plain_text().strip()
     guess = Guess(ev['group_id'], time=setting_time)
     if keyword == '排行榜':
         await bot.finish(ev, await guess.get_rank(bot, ev))
