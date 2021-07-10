@@ -150,9 +150,11 @@ class Guess:
         user_db[self.group_id] = user_group
 
     # 只添加正确的答案
-    def add_answer(self, qq: int, msg: str):
+    async def add_answer(self, qq: int, msg: str):
         if char_name_by_name(msg) == self.group['answer']:
             process[self.group_id]['ok'].add(qq)
+            scheduler.remove_job(str(self.group_id), 'default')
+            await self.end_game()
 
     # 获取排行榜
     async def get_rank(self,bot,ev):

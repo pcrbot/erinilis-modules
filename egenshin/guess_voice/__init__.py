@@ -55,7 +55,7 @@ async def on_input_chara_name(bot, ev):
     msg = ev['raw_message']
     guess = Guess(ev['group_id'], time=setting_time)
     if guess.is_start():
-        guess.add_answer(ev['user_id'], msg)
+        await guess.add_answer(ev['user_id'], msg)
 
 
 @sv.on_prefix('原神语音')
