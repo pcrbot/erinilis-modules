@@ -75,5 +75,7 @@ async def get_genshin_voice(bot, ev):
 
 @sv.on_fullmatch('更新原神语音资源')
 async def update_genshin_voice(bot, ev):
+    if not priv.check_priv(ev, priv.SUPERUSER):
+        return
     await bot.send(ev, '将在后台开始更新原神语音资源，耐心等待')
     await download_data.update_voice_data()
