@@ -162,10 +162,10 @@ class Guess:
 
         user_list = sorted(user_list.items(), key=lambda v: v[1]['count'])
         user_list.reverse()
-        i = 0
+        num = 0
         msg = '本群猜语音排行榜:\n'
         for user, data in user_list[:10]:
-            user = await bot.get_group_member_info(group_id=ev['group_id'],user_id=ev['user_id'])
-            num = i + 1
-            msg += f"第{num}名: {escape(user['card'])}, 猜对{data['count']}次"
+            user = await bot.get_group_member_info(group_id=ev['group_id'],user_id=user)
+            num += 1
+            msg += f"第{num}名: {escape(user['card'])}, 猜对{data['count']}次\n"
         return msg
