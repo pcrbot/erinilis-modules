@@ -1,0 +1,12 @@
+comm:
+
+  start: 猜语音
+  rank: 猜语音排行榜
+
+  get_random_voice: 语音
+  get_random_voice_jp: 日语音
+
+
+setting:
+  # second
+  time: 30

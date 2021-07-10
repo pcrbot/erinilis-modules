@@ -1,5 +1,6 @@
 # -*- coding: UTF-8 -*-
 from sqlitedict import SqliteDict
+from pathlib import Path
 from nonebot import *
 import yaml
 import json
@@ -25,7 +26,7 @@ def dict_to_object(dict_obj):
 
 # 获取配置
 def get_config(name='config.yml'):
-    file = open(os.path.join(os.path.dirname(__file__), name), 'r', encoding="utf-8")
+    file = open(os.path.join(os.path.dirname(__file__), str(Path(name))), 'r', encoding="utf-8")
     return dict_to_object(yaml.load(file.read(), Loader=yaml.FullLoader))
 
 

@@ -1,5 +1,8 @@
 import requests
 import nonebot
+import time
+import datetime
+# from datetime import datetime
 from bs4 import BeautifulSoup
 from ..util import *
 
@@ -12,8 +15,10 @@ ann_list_url = '%sgetAnnList%s' % (api_url, api_params)
 class ann:
     ann_list_data = []
     ann_content_data = []
+    today = 0
 
     def __init__(self):
+        self.today = datetime.datetime.fromtimestamp(time.mktime(datetime.date.today().timetuple()))
         pass
 
     async def get_ann_content(self):
@@ -41,11 +46,24 @@ class ann:
         await self.get_ann_list()
         if not self.ann_list_data:
             return '获取游戏公告失败,请检查接口是否正常'
+
         msg = ''
         for data in self.ann_list_data:
             msg += '%s:\n' % data['type_label']
             data_list = [x for x in data['list'] if not x['ann_id'] in config.setting.ann_block]
-            msg += '\n'.join(map(lambda x: '%s %s' % (x['ann_id'], x['title']), data_list))
+            msg_item_list = []
+            for item in data_list:
+                tip_time = (datetime.datetime.strptime(item['start_time'], '%Y-%m-%d %H:%M:%S') - self.today).days
+                if tip_time > 0:
+                    tip_time = '(%s天后开始)' % tip_time
+                else:
+                    tip_time = (datetime.datetime.strptime(item['end_time'], '%Y-%m-%d %H:%M:%S') - self.today).days
+                    tip_time = '(剩余%s天)' % tip_time
+
+                msg_item_list.append('%s%s %s' % (item['ann_id'], tip_time, item['title']))
+
+            # msg += '\n'.join(map(lambda x: '%s %s' % (x['ann_id'], x['title']), data_list))
+            msg += '\n'.join(msg_item_list)
             msg += '\n'
         msg += '\n请输入前面的数字ID进行查看,例: %s0000' % config.comm.ann_detail
         return msg
