@@ -5,7 +5,7 @@
 
 import asyncio
 import hoshino
-import requests
+from hoshino import aiorequests
 import json
 import os
 
@@ -51,8 +51,8 @@ db = init_db('data', 'voice.sqlite')
 
 # 获取角色列表
 async def get_character_list():
-    html = requests.get(BASE_URL + API['character_list']).text
-    soup = BeautifulSoup(html, 'lxml')
+    html = await aiorequests.get(BASE_URL + API['character_list'])
+    soup = BeautifulSoup(await html.text, 'lxml')
     char_list = soup.find(attrs={'class': 'resp-tab-content', 'style': 'display:block;'})
     char_list = char_list.find_all(attrs={'class': 'center'})
     res = list(set(map(lambda x: x.find('a').attrs['title'], char_list)))
@@ -63,8 +63,8 @@ async def get_character_list():
 # 获取角色语音
 async def get_voice_info(character_name: str):
     hoshino.logger.info('获取数据: %s' % character_name)
-    html = requests.get(BASE_URL + API['voice'] % character_name).text
-    soup = BeautifulSoup(html, 'lxml')
+    html = await aiorequests.get(BASE_URL + API['voice'] % character_name)
+    soup = BeautifulSoup(await html.text, 'lxml')
     if soup.find(text='本页面目前没有内容。您可以在其他页面中'):
         return None
     voice_list = soup.find_all(attrs={'class': 'visible-md'})[2:]
@@ -88,12 +88,12 @@ async def get_voice_info(character_name: str):
 # 下载音频文件到本地
 async def download(url, path):
     try:
-        res = requests.get(url, timeout=30)
-    except requests.exceptions.ConnectionError:
+        res = await aiorequests.get(url, timeout=30)
+    except aiorequests.exceptions.ConnectionError:
         raise
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "wb") as f:
-        f.write(res.content)
+        f.write(await res.content)
 
 
 async def update_voice_data():
