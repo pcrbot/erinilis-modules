@@ -133,7 +133,10 @@ class Guess:
         else:
             msg = '回答正确的人: ' + ' '.join([str(MessageSegment.at(qq)) for qq in ok_list])
         msg = '正确答案是 %s\n%s' % (self.group['answer'], msg)
-        await get_bot().send_group_msg(group_id=self.group_id, message=msg)
+        try:
+            await get_bot().send_group_msg(group_id=self.group_id, message=msg)
+        except Exception as e:
+            hoshino.logger.error(e)
 
         # 清理记录
         process[self.group_id] = {}
