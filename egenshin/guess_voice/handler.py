@@ -86,7 +86,7 @@ class Guess:
         language = random.choice(language)
         # 随机选择一个语音
         answer = random.choice(list(voice_db.keys()))
-        #print('正确答案为: %s' % answer)
+        # print('正确答案为: %s' % answer)
         temp_voice_list = []
 
         for v in voice_db[answer]:
@@ -153,11 +153,13 @@ class Guess:
     async def add_answer(self, qq: int, msg: str):
         if char_name_by_name(msg) == self.group['answer']:
             process[self.group_id]['ok'].add(qq)
-            scheduler.remove_job(str(self.group_id), 'default')
+            job_id = str(self.group_id)
+            if scheduler.get_job(job_id, 'default'):
+                scheduler.remove_job(job_id, 'default')
             await self.end_game()
 
     # 获取排行榜
-    async def get_rank(self,bot,ev):
+    async def get_rank(self, bot, ev):
         user_list = user_db.get(self.group_id, {})
 
         user_list = sorted(user_list.items(), key=lambda v: v[1]['count'])
@@ -165,7 +167,7 @@ class Guess:
         num = 0
         msg = '本群猜语音排行榜:'
         for user, data in user_list[:10]:
-            user = await bot.get_group_member_info(group_id=ev['group_id'],user_id=user)
+            user = await bot.get_group_member_info(group_id=ev['group_id'], user_id=user)
             num += 1
             msg += f"\n第{num}名: {escape(user['card'])}, 猜对{data['count']}次"
         return msg
