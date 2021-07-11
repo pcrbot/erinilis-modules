@@ -128,6 +128,8 @@ class Guess:
         self.group = process.get(self.group_id)
 
         ok_list = list(process[self.group_id]['ok'])
+        if len(ok_list) > 1:  # 只允许1个人猜对
+            return
         if not ok_list:
             msg = '还没有人猜中呢'
         else:
