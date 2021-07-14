@@ -2,10 +2,11 @@
 select: 0
 
 # 填写指定的QQ
-QQ: 0
+QQ: 389897773
 
 # 对应服务器地址 比如 xxxxxx.cn:7701
-server:
+server: 127.0.0.1:7702
+#server: erinilis.cn:7701
 
 # 本机代理端口号 一般不用改
 proxy_port: 6454

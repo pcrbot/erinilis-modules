@@ -1,14 +1,16 @@
 import base64
+import requests
 import json
 import math
 import re
-import requests
 import urllib.parse
 from io import BytesIO
 import matplotlib.pyplot as plt
 from enum import Enum
+from hoshino import aiorequests
 from nonebot import MessageSegment
 from . import util
+from .xlsx_handler import write_xlsx
 
 config = util.get_config()
 db = util.init_db(config.cache_dir)
@@ -49,12 +51,12 @@ class gacha_log:
         self.size = size
         self.region = region
 
-    def get_api(self,
-                service='getGachaLog',
-                page=1,
-                gacha_type=301,
-                end_id=0
-                ):
+    async def get_api(self,
+                      service='getGachaLog',
+                      page=1,
+                      gacha_type=301,
+                      end_id=0
+                      ):
         params = dict()
         params['authkey_ver'] = 1
         params['lang'] = 'zh-cn'
@@ -66,7 +68,8 @@ class gacha_log:
         if end_id:
             params['end_id'] = end_id
         url = f'{config.api}{service}?{urllib.parse.urlencode(params)}'
-        res = util.dict_to_object(json.loads(requests.get(url, timeout=30).text))
+        res = await aiorequests.get(url, timeout=30)
+        res = util.dict_to_object(json.loads(await res.text))
         if res.message == 'authkey valid error':
             print('authkey 错误')
             return False
@@ -80,12 +83,20 @@ class gacha_log:
         _flag = False
         end_id = 0
         add_history = False
+        history_player_uid = ""
+        if history:
+            history_player_uid = await self.get_player_uid(history)
         for page in range(1, 9999):
             if add_history:
                 break
-            clist = self.get_api(page=page, gacha_type=gacha_type, end_id=end_id).list
+            clist = (await self.get_api(page=page, gacha_type=gacha_type, end_id=end_id)).list
             if not clist:
                 break
+
+            player_uid = await self.get_player_uid(clist)
+            if history_player_uid != player_uid:  # 如果 历史记录不匹配 则不使用之前的记录
+                history = None
+
             end_id = clist[-1]['id']
             for data in clist:
                 if history and history[0]['id'] == data['id']:
@@ -120,12 +131,41 @@ class gacha_log:
         return msg
 
     async def get_config_list(self):
-        data = self.get_api('getConfigList')
+        data = await self.get_api('getConfigList')
         return data.gacha_type_list if data else False
 
     async def check_authkey(self):
-        return await self.get_config_list()
+        return bool(await self.get_config_list())
 
+    async def get_player_uid(self, clist=None):
+        if not clist:
+            clist = (await self.get_api(gacha_type=GACHA_TYPE.activity.value)).list
+            if not clist:
+                return None
+        return clist[0]['uid']
+
+    async def update_xlsx(self, uid, is_expired_authkey=False):
+        user = db.get(uid, {})
+        logs = None
+        if is_expired_authkey:
+            # 如果凭证过期的话 直接从数据库拿缓存
+            logs = user[str(GACHA_TYPE.activity.value)]
+        else:
+            for gacha_type in GACHA_TYPE:
+                gacha_type = gacha_type.value
+                data = await self.get_logs(gacha_type, history=user.get(str(gacha_type), []))
+                user[str(gacha_type)] = data
+                if not logs:
+                    logs = data
+            db[uid] = user
+
+        player_uid = await self.get_player_uid(logs)
+        await write_xlsx(user)
+        msg = is_expired_authkey and '缓存数据' or '数据已更新'
+        urls = '\n'.join([f'{url}?uid={player_uid}' for url in config.gacha_analyzer_webs])
+        return f'{msg}, 请访问: \n{urls}'
+
+    # 暂时弃用 直接使用网页版本的
     async def gacha_statistics(self, uid, gacha_type_name):
         gacha_type = gacha_type_by_name(gacha_type_name)
         if not gacha_type:
