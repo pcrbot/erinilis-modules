@@ -26,9 +26,11 @@ MODULES_ON = {
 ```
 
 ---
+
 你需要fork一份网页进行数据获取 https://github.com/yuyumoko/genshin-gacha-analyzer  <br>
 fork后在 `/src/pages/LoadPage.tsx` 的第`28`行的`host`变量里修改你的bot地址(必须有公网)<br>
 修改完毕后你可以直接部署到actions中, 然后在`config.yml`文件里的 `gacha_analyzer_webs`填写对应的网站即可<br>
+
 ---
 
 命令  | 说明 | 例
