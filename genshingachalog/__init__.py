@@ -39,7 +39,8 @@ async def check_bind(ctx) -> gacha_log:
     uid = ctx.user_id
     log_db = db.get(uid, {})
     if not log_db:
-        await _bot.send(ctx, '你还没有绑定')
+        help_msg = '1.请在游戏内打开派蒙界面(esc)\n2.点击反馈,pc端会打开浏览器\n3.复制浏览器上的链接地址后使用 {comm} 进行绑定\n手机端打开反馈后进行断网再刷新,会显示网页无法打开,把里面的内容全选复制就可\n例: {comm}https://webstatic.mi....'
+        await _bot.send(ctx, help_msg.format(comm=config.comm.bind))
         return
     gl = gacha_log.gacha_log(uid, log_db['authkey'], log_db.get('region'))
     return gl

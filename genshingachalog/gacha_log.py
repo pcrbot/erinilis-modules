@@ -137,6 +137,31 @@ class gacha_log:
     async def check_authkey(self):
         return bool(await self.get_config_list())
 
+    async def get_player_info(self):
+        params = dict()
+        params['im_out'] = True
+        params['sign_type'] = 2
+        params['auth_appid'] = 'im_ccs'
+        params['authkey_ver'] = 1
+        params['win_direction'] = 'portrait'
+        params['lang'] = 'zh-cn'
+        params['device_type'] = 'pc'
+        params['ext'] = '%7B%7D'
+        params['game_version'] = 'CNRELWin1.6.0_R3557509_S3266913_D3526661'
+        params['authkey'] = self.authkey
+        params['game_biz'] = 'hk4e_cn'
+        url = f'https://api-takumi.mihoyo.com/common/im/userClient/initUserChat?{urllib.parse.urlencode(params)}'
+        res = await aiorequests.post(url, json={
+            "device": 'Mozilla',
+            "language": 'zh-cn',
+            "system_info": 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36'
+        }, timeout=30)
+        res = util.dict_to_object(json.loads(await res.text))
+        data = res.get('data')
+        if not data:
+            return None
+        return data
+
     async def get_player_uid(self, clist=None):
         if not clist:
             clist = (await self.get_api(gacha_type=GACHA_TYPE.activity.value)).list
@@ -149,7 +174,9 @@ class gacha_log:
         logs = None
         if is_expired_authkey:
             # 如果凭证过期的话 直接从数据库拿缓存
-            logs = user[str(GACHA_TYPE.activity.value)]
+            logs = user.get(str(GACHA_TYPE.activity.value))
+            if not logs:
+                return '你尚未获取过卡池记录,请重新绑定刷新数据'
         else:
             for gacha_type in GACHA_TYPE:
                 gacha_type = gacha_type.value
