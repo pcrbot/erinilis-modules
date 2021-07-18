@@ -87,7 +87,7 @@ str:
     {img}
 
 setting:
-  proxy_enable: true #如果你开启了全局代理的话 应该设置本地代理的链接
+  proxy_enable: false #如果你开启了全局代理的话 应该设置本地代理的链接
   proxy_url: '127.0.0.1:8118'
 
   # 图片镜像缓存服务
