@@ -83,6 +83,7 @@ class epixiv(ByPassSniApi):
                  search_sanity_level_count=10
                  ):
         super().__init__(timeout=30)
+        self.hosts = "https://app-api.pixiv.net"
         self.require_appapi_hosts()
         self.require_appapi_hosts(hostname="public-api.secure.pixiv.net")
         self.refresh_day = refresh_day
