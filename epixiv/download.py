@@ -2,6 +2,7 @@ import os
 import requests
 from . import util
 
+setting = util.get_config().setting
 
 # 下载网络图片到本地
 def get_img(url, save_dir='img', cache=True, headers=None):
@@ -15,9 +16,14 @@ def get_img(url, save_dir='img', cache=True, headers=None):
     if cache and os.path.exists(path):
         if not os.path.getsize(path) == 204:
             return res_path
-
+    proxy = {}
+    if setting.proxy_enable:
+        proxy = {
+            "http": setting.proxy_url,
+            "https": setting.proxy_url
+        }
     try:
-        content = requests.get(url, timeout=30, headers=headers).content
+        content = requests.get(url, timeout=30, headers=headers, proxies=proxy).content
     except requests.exceptions.ConnectionError:
         return False
     if len(content) == 204:  # 404页面

@@ -83,7 +83,13 @@ class epixiv(ByPassSniApi):
                  search_sanity_level_count=10
                  ):
         super().__init__(timeout=30)
-        self.hosts = "https://app-api.pixiv.net"
+        if config.setting.proxy_enable:
+            proxy = {
+                "http": config.setting.proxy_url,
+                "https": config.setting.proxy_url
+            }
+            self.requests_kwargs.update(proxies=proxy, verify=False)
+
         self.require_appapi_hosts()
         self.require_appapi_hosts(hostname="public-api.secure.pixiv.net")
         self.refresh_day = refresh_day
