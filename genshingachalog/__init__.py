@@ -15,6 +15,14 @@ app.register_blueprint(switcher)
 config = util.get_config()
 db = util.init_db(config.cache_dir)
 
+bind_help = """
+1.请在游戏内打开派蒙界面(esc)
+2.点击反馈,pc端会打开浏览器
+3.复制浏览器上的链接地址后使用 {comm} 进行绑定
+手机端打开反馈后进行断网再刷新,会显示网页无法打开,把里面的内容全选复制就可
+例: {comm}https://webstatic.mi....
+"""
+
 
 @sv.on_message('group')
 # @_bot.on_message  # nonebot使用这
@@ -39,8 +47,7 @@ async def check_bind(ctx) -> gacha_log:
     uid = ctx.user_id
     log_db = db.get(uid, {})
     if not log_db:
-        help_msg = '1.请在游戏内打开派蒙界面(esc)\n2.点击反馈,pc端会打开浏览器\n3.复制浏览器上的链接地址后使用 {comm} 进行绑定\n手机端打开反馈后进行断网再刷新,会显示网页无法打开,把里面的内容全选复制就可\n例: {comm}https://webstatic.mi....'
-        await _bot.send(ctx, help_msg.format(comm=config.comm.bind))
+        await _bot.send(ctx, bind_help.format(comm=config.comm.bind))
         return
     gl = gacha_log.gacha_log(uid, log_db['authkey'], log_db.get('region'))
     return gl
@@ -51,7 +58,7 @@ async def get_log(ctx):
     if not log:
         return
     if not await log.check_authkey():
-        await _bot.send(ctx, '凭证已过期,请重新获取')
+        await _bot.send(ctx, '凭证已过期,请重新获取\n' + bind_help.format(comm=config.comm.bind))
         return
     await _bot.send(ctx, await log.current(), at_sender=True)
 
