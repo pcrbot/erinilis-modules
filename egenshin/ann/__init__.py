@@ -132,12 +132,15 @@ async def check_ann_state():
     for ann_id in new_ann:
         detail_list.append(await ann().ann_detail_msg(ann_id))
 
-    for group in sub_list:
-        for msg in detail_list:
-            await bot.send_group_msg(group_id=group, message=msg)
-
     print('推送完毕, 更新数据库')
     ann_db['ids'] = new_ids
+
+    for group in sub_list:
+        for msg in detail_list:
+            try:
+                await bot.send_group_msg(group_id=group, message=msg)
+            except Exception as e:
+                print(e)
 
 
 if config.setting.ann_cron_enable:
