@@ -1,11 +1,10 @@
 from nonebot import *
-from hoshino import Service  # 如果使用hoshino的分群管理取消注释这行
+from hoshino import Service
 from .service import switcher
 from . import util, gacha_log
 from .bind import bind
 
-#
-sv = Service('gachalog')  # 如果使用hoshino的分群管理取消注释这行
+sv = Service('gachalog')
 
 _bot = get_bot()
 app = _bot.server_app
@@ -25,7 +24,6 @@ bind_help = """
 
 
 @sv.on_message('group')
-# @_bot.on_message  # nonebot使用这
 async def gachalog_main(*params):
     bot, ctx = (_bot, params[0]) if len(params) == 1 else params
 

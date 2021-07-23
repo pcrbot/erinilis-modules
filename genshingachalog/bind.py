@@ -1,6 +1,7 @@
 from nonebot import Message
 from urllib.parse import urlparse, parse_qs, unquote
 from . import util
+from .gacha_log import gacha_log
 
 config = util.get_config()
 db = util.init_db(config.cache_dir)
@@ -27,9 +28,29 @@ class bind:
         region = query.get('region', 'cn_gf01')
         if not authkey:
             return '缺少必要参数(authkey)'
+        authkey = unquote(authkey)
+        log = gacha_log(self.qq, authkey, region)
+        user_info = await log.get_player_info()
+        if not user_info:
+            return '绑定失败,请检查链接是否能打开'
 
         info = db.get(self.qq, {})
-        info['authkey'] = unquote(authkey)
+        info['authkey'] = authkey
         info['region'] = region
         db[self.qq] = info
-        return '绑定成功'
+
+        msg = """卡池绑定成功!
+UID:{uid}
+昵称:{nickname}
+等级:{level}
+
+可以使用命令:
+{comm1}
+{comm2}"""
+
+        return msg.format(uid=user_info['user_id'],
+                          nickname=user_info['nickname'],
+                          level=user_info['level'],
+                          comm1=config.comm.gachalog,
+                          comm2=config.comm.gacha_statistics
+                          )
