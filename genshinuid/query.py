@@ -28,6 +28,7 @@ def __get_ds__():
 
 
 async def info(uid):
+    next_cookie = False
     now = datetime.datetime.now().timestamp()
     if now > config.runtime:
         config.runtime = util.get_next_day()
@@ -54,7 +55,10 @@ async def info(uid):
         }
     )
     data = util.dict_to_object(json.loads(await req.text))
-    if data.retcode == 10101:
+    if data.retcode == 10103:
+        print('error cookie [%s] (%s) !' % (config.use_cookie_index, config.cookies[config.use_cookie_index]))
+        next_cookie = True
+    if data.retcode == 10101 or next_cookie:
         print('cookie [%s] is limited!' % config.use_cookie_index)
         config.use_cookie_index += 1
         if config.use_cookie_index == len(config.cookies):
