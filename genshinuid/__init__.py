@@ -1,6 +1,6 @@
 from nonebot import *
 from . import query, util
-from hoshino import Service  # 如果使用hoshino的分群管理取消注释这行
+from hoshino import Service, Message  # 如果使用hoshino的分群管理取消注释这行
 
 #
 sv = Service('ys-user')  # 如果使用hoshino的分群管理取消注释这行
@@ -21,11 +21,17 @@ async def main(*params):
     msg = str(ctx['message']).strip()
     keyword = util.get_msg_keyword(config.comm.player_uid, msg, True)
     if isinstance(keyword, str):
-        if not keyword:
 
+        m = Message(keyword)
+        if m and m[0]['type'] == 'at':
+            keyword = ''
+            uid = m[0]['data']['qq']
+
+        if not keyword:
             info = db.get(uid, {})
             if not info:
-                return await bot.send(ctx, '请在原有指令后面输入游戏uid,只需要输入一次就会记住下次直接使用%s获取就好' % config.comm.player_uid)
+                return await bot.send(ctx, '请在原有指令后面输入游戏uid,只需要输入一次就会记住下次直接使用{comm}获取就好\n例如:{comm}105293904'.format(
+                    comm=config.comm.player_uid))
             else:
                 keyword = info['uid']
 
@@ -36,7 +42,7 @@ async def main(*params):
 async def get_stat(uid):
     if not uid.isdigit():
         return '只能是数字ID啦'
-    info = query.info(uid)
+    info = await query.info(uid)
     if info.retcode != 0:
         return '[%s]错误或者不存在 (%s)' % (uid, info.message)
     stats = query.stats(info.data.stats, True)

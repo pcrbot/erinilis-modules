@@ -1,6 +1,8 @@
 # -*- coding: UTF-8 -*-
 from sqlitedict import SqliteDict
 from nonebot import *
+import datetime
+import time
 import yaml
 import json
 import os
@@ -54,10 +56,11 @@ db = {}
 
 
 # 初始化数据库
-def init_db(db_dir, db_name='db.sqlite') -> SqliteDict:
+def init_db(db_dir, db_name='db', db_suffix='.sqlite', tablename='unnamed') -> SqliteDict:
     if db.get(db_name):
         return db[db_name]
-    db[db_name] = SqliteDict(get_path(db_dir, db_name),
+    db[db_name] = SqliteDict(get_path(db_dir, f'{db_name}{db_suffix}'),
+                             tablename=tablename,
                              encode=json.dumps,
                              decode=json.loads,
                              autocommit=True)
@@ -74,3 +77,7 @@ def find_ms_str_index(ms, keyword, is_first=False):
 
 def filter_list(plist, func):
     return list(filter(func, plist))
+
+
+def get_next_day():
+    return time.mktime((datetime.date.today() + datetime.timedelta(days=+1)).timetuple()) + 1000

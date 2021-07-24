@@ -1,14 +1,16 @@
+import datetime
 import json
-import time
 import string
 import random
 import hashlib
-import requests
+import time
+from hoshino import aiorequests
 from . import util
 
 config = util.get_config()
-
 mhyVersion = "2.7.0"
+config.use_cookie_index = 0
+config.runtime = util.get_next_day()
 
 
 def __md5__(text):
@@ -25,12 +27,17 @@ def __get_ds__():
     return i + "," + r + "," + c
 
 
-def info(uid):
+async def info(uid):
+    now = datetime.datetime.now().timestamp()
+    if now > config.runtime:
+        config.runtime = util.get_next_day()
+        config.use_cookie_index = 0
     server = 'cn_gf01'
     if uid[0] == "5":
         server = 'cn_qd01'
-
-    req = requests.get(
+    cookie = config.cookies[config.use_cookie_index]
+    # print('use cookie index: %s' % config.use_cookie_index)
+    req = await aiorequests.get(
         url="https://api-takumi.mihoyo.com/game_record/genshin/api/index?server=" + server + "&role_id=" + uid,
         headers={
             'Accept': 'application/json, text/plain, */*',
@@ -43,11 +50,18 @@ def info(uid):
             'Accept-Encoding': 'gzip, deflate',
             'Accept-Language': 'zh-CN,en-US;q=0.8',
             'X-Requested-With': 'com.mihoyo.hyperion',
-            'Cookie': config.cookie
+            'Cookie': cookie
         }
     )
+    data = util.dict_to_object(json.loads(await req.text))
+    if data.retcode == 10101:
+        print('cookie [%s] is limited!' % config.use_cookie_index)
+        config.use_cookie_index += 1
+        if config.use_cookie_index == len(config.cookies):
+            return 'all cookie(%s) has limited' % len(config.cookies)
+        return await info(uid)
 
-    return util.dict_to_object(json.loads(req.text))
+    return data
 
 
 class stats:
@@ -92,6 +106,16 @@ class stats:
         return '岩神瞳: %s/131' % self.geoculus
 
     @property
+    def electroculus(self) -> int:
+        return self.data['electroculus_number']
+
+    @property
+    def electroculus_str(self) -> str:
+        if self.max_hide and self.electroculus == 95:
+            return ''
+        return '雷神瞳: %s/95' % self.electroculus
+
+    @property
     def avatar(self) -> int:
         return self.data['avatar_number']
 
@@ -105,9 +129,9 @@ class stats:
 
     @property
     def way_point_str(self) -> str:
-        if self.max_hide and self.way_point == 83:
-            return ''
-        return '解锁传送点: %s/83' % self.way_point
+        # if self.max_hide and self.way_point == 83:
+        #     return ''
+        return '解锁传送点: %s' % self.way_point
 
     @property
     def domain(self) -> int:
@@ -164,6 +188,7 @@ class stats:
             self.achievement_str,
             self.anemoculus_str,
             self.geoculus_str,
+            self.electroculus_str,
             self.avatar_str,
             self.way_point_str,
             self.domain_str,
