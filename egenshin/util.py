@@ -1,11 +1,15 @@
 # -*- coding: UTF-8 -*-
-from sqlitedict import SqliteDict
-from pathlib import Path
-from nonebot import *
+import datetime
+import base64
+import time
 import yaml
 import json
 import os
 import re
+from io import BytesIO
+from sqlitedict import SqliteDict
+from pathlib import Path
+from nonebot import *
 
 bot = get_bot()
 
@@ -55,10 +59,11 @@ db = {}
 
 
 # 初始化数据库
-def init_db(db_dir, db_name='db.sqlite') -> SqliteDict:
+def init_db(db_dir, db_name='db.sqlite', tablename='unnamed') -> SqliteDict:
     if db.get(db_name):
         return db[db_name]
     db[db_name] = SqliteDict(get_path(db_dir, db_name),
+                             tablename=tablename,
                              encode=json.dumps,
                              decode=json.loads,
                              autocommit=True)
@@ -79,3 +84,14 @@ def filter_list(plist, func):
 
 def is_group_admin(ctx):
     return ctx['sender']['role'] in ['owner', 'admin', 'administrator']
+
+
+def get_next_day():
+    return time.mktime((datetime.date.today() + datetime.timedelta(days=+1)).timetuple()) + 1000
+
+
+def pil2b64(data):
+    bio = BytesIO()
+    data.save(bio, format='PNG')
+    base64_str = base64.b64encode(bio.getvalue()).decode()
+    return 'base64://' + base64_str
