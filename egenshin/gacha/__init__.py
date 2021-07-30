@@ -20,6 +20,8 @@ sv = Service(
     help_=sv_help  # 帮助说明
 )
 
+prefix = '原神'
+
 gacha_info_data = {
     'runtime': get_next_day()
 }
@@ -32,12 +34,11 @@ gacha_info_data = {
 #     await bot.send(ev, wish_info.data.item_name)
 
 
-@sv.on_prefix('原神十连')
+@sv.on_prefix(prefix + '十连')
 async def gacha(bot, ev):
     await check_gacha_data(ev.group_id)
     wish_info = wish(ev.user_id, gacha_info_data[ev.group_id]['type'], gacha_info_data[ev.group_id]['data']).ten()
     img = wish_ui.ten_b64_img(wish_info)
-
     await bot.send(ev, MessageSegment.image(img), at_sender=True)
 
     # msg = '\n'.join([x.data.item_name for x in wish_info])
@@ -45,7 +46,7 @@ async def gacha(bot, ev):
     # await bot.send(ev, msg)
 
 
-@sv.on_prefix('原神一单')
+@sv.on_prefix(prefix + '一单')
 async def gacha(bot, ev):
     await check_gacha_data(ev.group_id)
     x5 = []
@@ -55,7 +56,7 @@ async def gacha(bot, ev):
     await bot.send(ev, MessageSegment.image(img), at_sender=True)
 
 
-@sv.on_prefix('原神切换卡池')
+@sv.on_prefix((prefix + '切换卡池', prefix + '卡池切换'))
 async def gacha(bot, ev):
     if not priv.check_priv(ev, priv.SUPERUSER):
         return

@@ -1,4 +1,5 @@
 import json
+import copy
 from pathlib import Path
 from PIL import Image, PngImagePlugin
 from ...util import filter_list, pil2b64
@@ -7,6 +8,8 @@ assets_dir = Path(__file__).parent.parent / 'assets'
 
 with open(assets_dir / 'type.json', 'r', encoding="utf-8") as fp:
     type_json = json.load(fp)
+
+cache_img = {}
 
 
 class wish_ui:
@@ -26,7 +29,12 @@ class wish_ui:
 
     @staticmethod
     def get_assets(path) -> PngImagePlugin.PngImageFile:
-        return Image.open(assets_dir / path)
+        cache = cache_img.get(path)
+        if cache:
+            return copy.deepcopy(cache)
+        else:
+            cache_img[path] = Image.open(assets_dir / path)
+        return wish_ui.get_assets(path)
 
     @staticmethod
     def item_bg(rank):
