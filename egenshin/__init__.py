@@ -52,7 +52,12 @@ async def main(*params):
         else:
             await _bot.send(ctx, '你没有权限取消原神公告推送')
 
-    # ---------------- 素材定时提醒 ----------------
+    # 取消公告红点
+    keyword = util.get_msg_keyword(config.comm.consume_remind, msg, True)
+    if keyword and keyword.isdigit():
+        await _bot.send(ctx, await consume_remind(keyword))
+
+        # ---------------- 素材定时提醒 ----------------
     mat = material(ctx.group_id, ctx.user_id)
     # 收集素材
     keyword = util.get_msg_keyword(config.comm.material, msg, True)

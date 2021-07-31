@@ -1,8 +1,5 @@
-import requests
 import nonebot
-import time
-import datetime
-# from datetime import datetime
+from hoshino import aiorequests
 from bs4 import BeautifulSoup
 from ..util import *
 
@@ -19,16 +16,17 @@ class ann:
 
     def __init__(self):
         self.today = datetime.datetime.fromtimestamp(time.mktime(datetime.date.today().timetuple()))
-        pass
 
     async def get_ann_content(self):
-        res = dict_to_object(json.loads(requests.get(ann_content_url, timeout=10).text))
+        res = await aiorequests.get(ann_content_url, timeout=10)
+        res = await res.json(object_hook=Dict)
         if res.retcode == 0:
             self.ann_content_data = res.data.list
         return self.ann_content_data
 
     async def get_ann_list(self):
-        res = dict_to_object(json.loads(requests.get(ann_list_url, timeout=10).text))
+        res = await aiorequests.get(ann_list_url, timeout=10)
+        res = await res.json(object_hook=Dict)
         if res.retcode == 0:
             self.ann_list_data = res.data.list
         return self.ann_list_data
@@ -108,16 +106,16 @@ def unsub_ann(group):
 
 
 async def check_ann_state():
-    print('定时任务: 原神公告查询..')
+    # print('定时任务: 原神公告查询..')
     ids = ann_db.get('ids', [])
     sub_list = ann_db.get('sub', [])
     if not sub_list:
-        print('没有群订阅, 取消获取数据')
+        # print('没有群订阅, 取消获取数据')
         return
     if not ids:
         ids = await ann().get_ann_ids()
         if not ids:
-            print('获取原神公告ID列表错误,请检查接口')
+            raise Exception('获取原神公告ID列表错误,请检查接口')
         ann_db['ids'] = ids
         print('初始成功, 将在下个轮询中更新.')
         return
@@ -125,14 +123,14 @@ async def check_ann_state():
 
     new_ann = [i for i in new_ids if i not in ids]
     if not new_ann:
-        print('没有最新公告')
+        # print('没有最新公告')
         return
 
     detail_list = []
     for ann_id in new_ann:
         detail_list.append(await ann().ann_detail_msg(ann_id))
 
-    print('推送完毕, 更新数据库')
+    # print('推送完毕, 更新数据库')
     ann_db['ids'] = new_ids
 
     for group in sub_list:
@@ -141,6 +139,28 @@ async def check_ann_state():
                 await bot.send_group_msg(group_id=group, message=msg)
             except Exception as e:
                 print(e)
+
+
+async def consume_remind(uid):
+    region = 'cn_gf01'
+    if uid[0] == "5":
+        region = 'cn_qd01'
+    ann_list = await ann().get_ann_list()
+    ids = []
+    for label in ann_list:
+        ids += filter_list(label.list, lambda x: x.remind == 1)
+    ids = [x.ann_id for x in ids]
+
+    msg = '取消公告红点完毕! 一共取消了%s个' % str(len(ids))
+
+    for ann_id in ids:
+        base_url = 'https://hk4e-api.mihoyo.com/common/hk4e_cn/announcement/api/'
+        base_url += 'consumeRemind?game=hk4e&game_biz=hk4e_cn&lang=zh-cn&auth_appid=announcement&authkey_ver=1&bundle_id=hk4e_cn&channel_id=1&platform=pc&region={region}&sdk_presentation_style=fullscreen&sdk_screen_transparent=true&sign_type=2&uid={uid}&ann_id={ann_id}'
+        res = await aiorequests.get(base_url.format(region=region, uid=uid, ann_id=ann_id), timeout=10)
+        res = await res.json(object_hook=Dict)
+        if res.retcode != 0:
+            msg += '\n %s 失败,原因:%s' % (ann_id, res.message)
+    return msg
 
 
 if config.setting.ann_cron_enable:

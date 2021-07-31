@@ -8,6 +8,8 @@ comm:
   sub_ann: 订阅原神公告
   unsub_ann: 取消订阅原神公告
 
+  consume_remind: 取消红点#
+
   material: 收集材料#
   show_material: 查看材料#
 
