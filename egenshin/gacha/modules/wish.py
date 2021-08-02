@@ -129,7 +129,7 @@ class wish:
 
         return dict_to_object(res)
 
-    def ten(self):
+    async def ten(self):
         res = []
         for i in range(0, 10):
             res.append(self.once())

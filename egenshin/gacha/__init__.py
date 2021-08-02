@@ -1,4 +1,5 @@
 import datetime
+from bs4 import BeautifulSoup
 from hoshino import Service, priv, MessageSegment
 from ..util import filter_list, get_next_day
 from .utils.gacha_info import gacha_info_list, gacha_info
@@ -37,8 +38,8 @@ gacha_info_data = {
 @sv.on_prefix(prefix + '十连')
 async def gacha(bot, ev):
     await check_gacha_data(ev.group_id)
-    wish_info = wish(ev.user_id, gacha_info_data[ev.group_id]['type'], gacha_info_data[ev.group_id]['data']).ten()
-    img = wish_ui.ten_b64_img(wish_info)
+    wish_info = await wish(ev.user_id, gacha_info_data[ev.group_id]['type'], gacha_info_data[ev.group_id]['data']).ten()
+    img = await wish_ui.ten_b64_img(wish_info)
     await bot.send(ev, MessageSegment.image(img), at_sender=True)
 
     # msg = '\n'.join([x.data.item_name for x in wish_info])
@@ -51,8 +52,9 @@ async def gacha(bot, ev):
     await check_gacha_data(ev.group_id)
     x5 = []
     for i in range(0, 5):
-        x5.append(wish(ev.user_id, gacha_info_data[ev.group_id]['type'], gacha_info_data[ev.group_id]['data']).ten())
-    img = wish_ui.ten_b64_img_xn(x5)
+        x5.append(
+            await wish(ev.user_id, gacha_info_data[ev.group_id]['type'], gacha_info_data[ev.group_id]['data']).ten())
+    img = await wish_ui.ten_b64_img_xn(x5)
     await bot.send(ev, MessageSegment.image(img), at_sender=True)
 
 
@@ -65,7 +67,8 @@ async def gacha(bot, ev):
     if not gacha_type:
         await bot.finish(ev, '不存在此卡池: %s' % msg)
     await switch_gacha(ev.group_id, gacha_type)
-    await bot.send(ev, '切换为[%s]卡池' % gacha_info_data[ev.group_id]['name'])
+    title = gacha_info_data[ev.group_id]['data'].title
+    await bot.send(ev, '切换为%s卡池' % BeautifulSoup(title, 'lxml').text)
 
 
 async def check_gacha_data(group_id):

@@ -10,6 +10,7 @@ with open(assets_dir / 'type.json', 'r', encoding="utf-8") as fp:
     type_json = json.load(fp)
 
 cache_img = {}
+cache_item = {}
 
 
 class wish_ui:
@@ -45,7 +46,9 @@ class wish_ui:
         return wish_ui.get_assets('%s_star.png' % str(rank))
 
     @staticmethod
-    def create_item(rank, item_type, name, element):
+    async def create_item(rank, item_type, name, element):
+        if cache_item.get(name):
+            return cache_item[name]
         bg = wish_ui.item_bg(rank)
         item_img = wish_ui.get_assets(Path(item_type) / (name + '.png'))
         rank_img = wish_ui.rank_icon(rank).resize((119, 30))
@@ -53,9 +56,6 @@ class wish_ui:
         if item_type == '角色':
             item_img = item_img.resize((item_img.size[0] + 12, item_img.size[1] + 45))
             item_img.alpha_composite(rank_img, (4, 510))
-
-            if not element:
-                element = type_json[name]
 
             item_type_icon = wish_ui.get_assets(Path('元素') / (element + '.png')).resize((80, 80))
             item_img.alpha_composite(item_type_icon, (18, 420))
@@ -70,31 +70,34 @@ class wish_ui:
                 item_type_icon = wish_ui.get_assets(Path('类型') / (item_type_icon + '.png')).resize((100, 100))
 
                 bg.alpha_composite(item_type_icon, (18, 530))
-
+        cache_item[name] = bg
         return bg
 
-    def ten(self) -> PngImagePlugin.PngImageFile:
+    async def ten(self) -> PngImagePlugin.PngImageFile:
         i = 0
         for wish in self.data:
             i += 1
             rank = wish.rank
             name = wish.data.item_name
             item_type = wish.data.item_type
-            element = wish.data.get('item_attr')
-            i_img = wish_ui.create_item(rank, item_type, name, element)
+            element = wish.data.get('item_attr') or type_json[name]
+            i_img = await wish_ui.create_item(rank, item_type, name, element)
             self.img.alpha_composite(i_img, (105 + (i_img.size[0] * i), 123))
         self.img.thumbnail((1024, 768))
-        return self.img
+
+        img = Image.new("RGB", self.img.size, (255, 255, 255))
+        img.paste(self.img, mask=self.img.split()[3])
+        return img
 
     @classmethod
-    def ten_b64_img(cls, wish_result):  # 十连抽
-        return pil2b64(cls(wish_result).ten())
+    async def ten_b64_img(cls, wish_result):  # 十连抽
+        return pil2b64(await cls(wish_result).ten())
 
     @classmethod
-    def ten_b64_img_xn(cls, wish_result_xn):
+    async def ten_b64_img_xn(cls, wish_result_xn):
         img = Image.new("RGB", (1024, 575 * len(wish_result_xn)), (255, 255, 255))
         for index, wish_result in enumerate(wish_result_xn):
-            item_img = cls(wish_result).ten()
+            item_img = await cls(wish_result).ten()
             img.paste(item_img, (0, 575 * index))
 
         return pil2b64(img)

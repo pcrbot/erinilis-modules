@@ -92,6 +92,6 @@ def get_next_day():
 
 def pil2b64(data):
     bio = BytesIO()
-    data.save(bio, format='PNG')
+    data.save(bio, format='JPEG', quality=80)
     base64_str = base64.b64encode(bio.getvalue()).decode()
     return 'base64://' + base64_str
