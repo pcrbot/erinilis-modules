@@ -5,7 +5,7 @@ import datetime
 
 from pathlib import Path
 from ..util import pil2b64, get_path, cache
-from .imghandler import *
+from ..imghandler import *
 from . import query
 
 assets_dir = Path(get_path('assets'))
