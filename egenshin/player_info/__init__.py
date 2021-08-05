@@ -31,7 +31,7 @@ async def main(bot, ev):
         info = db.get(qid, {})
         if not info:
             await bot.finish(ev, '请在原有指令后面输入游戏uid,只需要输入一次就会记住下次直接使用{comm}获取就好\n例如:{comm}105293904'.format(
-                comm=config.comm.player_uid))
+                comm='ys#'))
         else:
             uid = info['uid']
 
