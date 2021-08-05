@@ -4,9 +4,9 @@ from pathlib import Path
 from PIL import Image, PngImagePlugin
 from ...util import filter_list, pil2b64
 
-assets_dir = Path(__file__).parent.parent.parent / 'assets'
+assets_dir = Path(__file__).parent.parent.parent / 'assets' / 'gacha'
 
-with open(assets_dir / 'gacha' / 'type.json', 'r', encoding="utf-8") as fp:
+with open(assets_dir / 'type.json', 'r', encoding="utf-8") as fp:
     type_json = json.load(fp)
 
 cache_img = {}
@@ -31,9 +31,6 @@ class wish_ui:
     @staticmethod
     def get_assets(path) -> PngImagePlugin.PngImageFile:
         base_path = assets_dir
-        p = Path(base_path / path)
-        if not p.exists():
-            base_path = assets_dir / 'gacha'
 
         cache = cache_img.get(path)
         if cache:
