@@ -8,7 +8,7 @@ comm:
   sub_ann: 订阅原神公告
   unsub_ann: 取消订阅原神公告
 
-  consume_remind: 取消红点#
+  consume_remind: 原神取消红点#
 
   material: 收集材料#
   show_material: 查看材料#
@@ -31,3 +31,9 @@ setting:
   ann_group_default_enable: false
   # 刷新获取时间 单位分钟
   ann_cron_time: 20
+  # ------------ 查询玩家UID使用的cookie列表 ------------
+  #必须设置才能使用 可以登录米游社 获取cookie 主要内容为 account_id=******; cookie_token=*********;
+  cookies:
+    - account_id=******; cookie_token=*********;
+    - account_id=******; cookie_token=*********;
+    - account_id=******; cookie_token=*********;

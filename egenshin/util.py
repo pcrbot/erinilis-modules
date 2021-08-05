@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 import datetime
 import base64
+import functools
 import time
 import yaml
 import json
@@ -92,6 +93,35 @@ def get_next_day():
 
 def pil2b64(data):
     bio = BytesIO()
+    data = data.convert("RGB")
     data.save(bio, format='JPEG', quality=80)
     base64_str = base64.b64encode(bio.getvalue()).decode()
     return 'base64://' + base64_str
+
+
+def cache(ttl=datetime.timedelta(hours=1), arg_key=None):
+    def wrap(func):
+        cache_data = {}
+
+        @functools.wraps(func)
+        async def wrapped(*args, **kw):
+            nonlocal cache_data
+            default_data = {"time": None, "value": None}
+            ins_key = 'default'
+            if arg_key:
+                ins_key = arg_key + str(kw.get(arg_key, ''))
+                data = cache_data.get(ins_key, default_data)
+            else:
+                data = cache_data.get(ins_key, default_data)
+
+            now = datetime.datetime.now()
+            if not data['time'] or now - data['time'] > ttl:
+                data['value'] = await func(*args, **kw)
+                data['time'] = now
+                cache_data[ins_key] = data
+
+            return data['value']
+
+        return wrapped
+
+    return wrap
