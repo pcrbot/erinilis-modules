@@ -23,10 +23,13 @@ db = init_db(config.cache_dir, 'uid.sqlite')
 async def main(bot, ev):
     uid = ev.message.extract_plain_text().strip()
     qid = ev.user_id
+    nickname = ev['sender']['nickname']
     m = ev.message
     if m and m[0]['type'] == 'at':
         uid = ''
         qid = m[0]['data']['qq']
+        qq_info = await bot.get_group_member_info(group_id=ev.group_id, user_id=qid)
+        nickname = qq_info['nickname']
     if not uid:
         info = db.get(qid, {})
         if not info:
@@ -35,7 +38,7 @@ async def main(bot, ev):
         else:
             uid = info['uid']
 
-    im = await info_card.draw_info_card(uid=uid, qid=qid, nickname=ev['sender']['nickname'])
+    im = await info_card.draw_info_card(uid=uid, qid=qid, nickname=nickname)
     await bot.send(ev, MessageSegment.image(im), at_sender=True)
 
     db[uid] = {'uid': uid}
