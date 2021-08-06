@@ -95,10 +95,10 @@ async def abyss_use_teams(floor):
                 card = card.crop((0, 0, card.size[0], card.size[1] - 55))
                 avatar_cards.append(card)
         temp_size = avatar_cards[0].size
-        bg = Image.new('RGB', (temp_size[0] * 4, temp_size[1] * best_data_len), '#f0ece3')
+        bg = Image.new('RGB', ((temp_size[0] + 10) * 4, temp_size[1] * best_data_len), '#f0ece3')
         return image_array(bg, avatar_cards, 4, 10, 0).convert('RGBA')
 
-    space = 100
+    space = 120
     chara_bg = None
     for i in [1, 2, 3]:
         avatar_a = get_cards(list(data['best_%s_a' % i])[0:best_data_len])
@@ -107,6 +107,7 @@ async def abyss_use_teams(floor):
         row_item = Image.new('RGB', (avatar_a.size[0] * 2 + space, avatar_a.size[1]), '#f0ece3')
         easy_paste(row_item, avatar_a, (0, 0))
         easy_paste(row_item, avatar_b, (avatar_a.size[0] + space, 0))
+
         team_space = 100
         if not chara_bg:
             chara_bg = Image.new('RGB', (
