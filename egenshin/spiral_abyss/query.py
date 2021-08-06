@@ -61,15 +61,15 @@ async def abyss_use_probability(floor):
     for char_id in data.deploy_count:
         pr = data.deploy_count[char_id] / data.roles_count[char_id]
         pr_list[char_id] = pr * 100
-
+    col_len = 6
     avatar_cards = []
     for name, pr in sorted(pr_list.items(), key=lambda x: x[1], reverse=True):
         card = Image.open(assets_dir / "chara_card" / f'{name}.png')
         draw_text_by_line(card, (0, 235), f'%s%%' % ('%.2f' % pr), get_font(35), '#475463', 226, True)
         avatar_cards.append(card)
-
-    chara_bg = Image.new('RGB', (1080, math.ceil(len(avatar_cards) / 4) * 315), '#f0ece3')
-    chara_img = image_array(chara_bg, avatar_cards, 4, 35, 0)
+    wh = ((avatar_cards[0].size[0] + 40) * col_len, math.ceil(len(avatar_cards) / col_len) * 315)
+    chara_bg = Image.new('RGB', wh, '#f0ece3')
+    chara_img = image_array(chara_bg, avatar_cards, col_len, 35, 0)
 
     info_card = Image.new('RGB', (chara_img.size[0], chara_img.size[1] + 120), '#f0ece3')
     floor = '深境螺旋[第%s层]角色使用率\n' % data.floor
