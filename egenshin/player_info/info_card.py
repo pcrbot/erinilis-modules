@@ -4,7 +4,7 @@ import os
 import datetime
 
 from pathlib import Path
-from ..util import pil2b64, get_path, cache
+from ..util import pil2b64, get_path, cache, get_font
 from ..imghandler import *
 from . import query
 
@@ -18,10 +18,6 @@ MAX_CHARA = 12  # 最大允许显示角色数量
 
 CHARA_CARD = assets_dir / "chara_card"
 CHARA = assets_dir / 'player_info'
-
-
-def get_font(size):
-    return ImageFont.truetype(str(assets_dir / 'font' / "HYWenHei 85W.ttf"), size=size)
 
 
 async def avatar_card(avatar_id, level, constellation, fetter):

@@ -40,7 +40,7 @@ def easy_alpha_composite(im: Image, im_paste: Image, pos=(0, 0), direction="lt")
     '''
     透明图像快速粘贴
     '''
-    base = Image.new("RGBA", im.size, (255, 255, 255, 0))
+    base = Image.new("RGBA", im.size)
     easy_paste(base, im_paste, pos, direction)
     base = Image.alpha_composite(im, base)
     return base

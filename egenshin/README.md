@@ -84,3 +84,21 @@ ys#  | 查询用户上一次查询的UID信息 | ys#
 ![image](./doc/player_info.jpeg)
 
 </details>
+
+## 深渊速查
+
+[数据来源](https://spiral-abyss.appsample.com)
+
+命令  | 说明 | 例
+------------- | ------------- | -------------
+原神深渊速查  | 查询一层深渊阵容推荐列表(不填参数默认12层) | 原神深渊速查11
+原神深渊使用率 | 查询一层深渊角色使用率(不填参数默认12层) | 原神深渊使用率11
+
+<details>
+<summary>示例</summary>
+
+![image](./doc/abyss_use_teams.jpeg)
+
+![image](./doc/abyss_use_probability.jpeg)
+
+</details>

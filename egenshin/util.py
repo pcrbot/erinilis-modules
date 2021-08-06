@@ -8,6 +8,8 @@ import json
 import os
 import re
 from io import BytesIO
+
+from PIL import ImageFont
 from sqlitedict import SqliteDict
 from pathlib import Path
 from nonebot import *
@@ -89,6 +91,10 @@ def is_group_admin(ctx):
 
 def get_next_day():
     return time.mktime((datetime.date.today() + datetime.timedelta(days=+1)).timetuple()) + 1000
+
+
+def get_font(size):
+    return ImageFont.truetype(get_path('assets', 'font', 'HYWenHei 85W.ttf'), size=size)
 
 
 def pil2b64(data):
