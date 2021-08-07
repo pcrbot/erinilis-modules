@@ -5,7 +5,7 @@ import hashlib
 import time
 from hoshino import aiorequests
 from urllib.parse import urlencode
-from ..util import get_config, get_next_day, Dict
+from ..util import get_config, get_next_day, Dict, init_db, cache
 
 config = get_config()
 mhyVersion = "2.7.0"
@@ -85,6 +85,7 @@ async def request_data(uid, api='index', character_ids=None):
     return json_data
 
 
+@cache(ttl=datetime.timedelta(minutes=30), arg_key='uid')
 async def info(uid):
     return await request_data(uid)
 
@@ -232,3 +233,17 @@ class stats:
             self.common_chest_str
         ]
         return '\n'.join(list(filter(None, str_list)))
+
+
+db = init_db(config.cache_dir, 'uid.sqlite')
+
+
+def get_uid_by_qid(qid):
+    db_info = db.get(qid, {})
+    if not db_info:
+        return None
+    return db_info['uid']
+
+
+def save_uid_by_qid(qid, uid):
+    db[qid] = {'uid': uid}

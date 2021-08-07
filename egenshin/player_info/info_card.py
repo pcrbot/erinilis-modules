@@ -42,22 +42,11 @@ async def avatar_card(avatar_id, level, constellation, fetter):
 
 
 @cache(ttl=datetime.timedelta(minutes=30), arg_key='uid')
-async def draw_info_card(uid, qid, nickname):
+async def draw_info_card(uid, qid, nickname, raw_data):
     '''
     绘制玩家资料卡
     '''
 
-    raw_data = await query.info(uid)
-
-    if raw_data["retcode"] != 0:
-        if raw_data["retcode"] == 10001:
-            return "Cookie错误/过期，请重置Cookie"
-        return (
-                "Api报错，返回内容为：\r\n"
-                + str(raw_data) + "\r\n出现这种情况可能的UID输入错误 or 不存在"
-        )
-
-    raw_data = raw_data.data
     stats = query.stats(raw_data.stats, True)
     world_explorations = {}
     for w in raw_data.world_explorations:

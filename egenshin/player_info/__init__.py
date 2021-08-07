@@ -1,5 +1,5 @@
 from hoshino import Service, priv, MessageSegment
-from ..util import init_db, get_config
+from ..util import get_config
 from . import query, info_card
 
 sv_help = '''
@@ -16,7 +16,6 @@ sv = Service(
     help_=sv_help  # 帮助说明
 )
 config = get_config()
-db = init_db(config.cache_dir, 'uid.sqlite')
 
 
 @sv.on_prefix('ys#')
@@ -31,14 +30,20 @@ async def main(bot, ev):
         qq_info = await bot.get_group_member_info(group_id=ev.group_id, user_id=qid)
         nickname = qq_info['nickname']
     if not uid:
-        info = db.get(qid, {})
-        if not info:
+        uid = query.get_uid_by_qid(qid)
+        if not uid:
             await bot.finish(ev, '请在原有指令后面输入游戏uid,只需要输入一次就会记住下次直接使用{comm}获取就好\n例如:{comm}105293904'.format(
                 comm='ys#'))
-        else:
-            uid = info['uid']
 
-    im = await info_card.draw_info_card(uid=uid, qid=qid, nickname=nickname)
+    raw_data = await query.info(uid)
+
+    if isinstance(raw_data, str):
+        await bot.finish(ev, raw_data)
+
+    if raw_data.retcode != 0:
+        await bot.finish(ev, f'{uid} 不存在,或者未在米游社公开.(请打开米游社,我的-个人主页-管理-公开信息)')
+
+    im = await info_card.draw_info_card(uid=uid, qid=qid, nickname=nickname, raw_data=raw_data.data)
+
     await bot.send(ev, MessageSegment.image(im), at_sender=True)
-
-    db[uid] = {'uid': uid}
+    query.save_uid_by_qid(qid, uid)
