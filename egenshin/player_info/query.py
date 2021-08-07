@@ -85,7 +85,6 @@ async def request_data(uid, api='index', character_ids=None):
     return json_data
 
 
-@cache(ttl=datetime.timedelta(minutes=30), arg_key='uid')
 async def info(uid):
     return await request_data(uid)
 
