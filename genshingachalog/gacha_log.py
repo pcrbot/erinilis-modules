@@ -41,11 +41,10 @@ items = get_item_list()
 
 
 class gacha_log:
-    qq: str
     authkey: str
     size: int
 
-    def __init__(self, qq: str, authkey: str, region='cn_gf01', size=20):
+    def __init__(self, qq, authkey: str, region='cn_gf01', size=20):
         self.qq = qq
         self.authkey = authkey
         self.size = size
@@ -169,8 +168,8 @@ class gacha_log:
                 return None
         return clist[0]['uid']
 
-    async def update_xlsx(self, uid, is_expired_authkey=False):
-        user = db.get(uid, {})
+    async def update_xlsx(self, is_expired_authkey=False):
+        user = db.get(self.qq, {})
         logs = None
         if is_expired_authkey:
             # 如果凭证过期的话 直接从数据库拿缓存
@@ -184,13 +183,47 @@ class gacha_log:
                 user[str(gacha_type)] = data
                 if not logs:
                     logs = data
-            db[uid] = user
+            db[self.qq] = user
 
         player_uid = await self.get_player_uid(logs)
         await write_xlsx(user)
         msg = is_expired_authkey and '缓存数据' or '数据已更新'
         urls = '\n'.join([f'{url}?uid={player_uid}' for url in config.gacha_analyzer_webs])
         return f'{msg}, 请访问: \n{urls}'
+
+    async def merge_gacha_json(self, gacha_data_uid, gacha_data):
+        user = db.get(self.qq, {})
+        count = 0
+        user_uid = None
+        for gacha_type in gacha_data:
+            data = gacha_data[gacha_type]
+            user_gacha = user.get(gacha_type)
+            if not user_uid:
+                user_uid = await self.get_player_uid(user_gacha)
+                if gacha_data_uid != user_uid:
+                    raise Exception('UID于导入的卡池记录不符 上传的UID:%s 服务器UID:%s' % (gacha_data_uid, user_uid))
+            # 如果没有卡池数据 则直接增加
+            if not user_gacha:
+                user[gacha_type] = data
+                count += len(data)
+            else:
+                data_index = 0
+                for index, item in enumerate(user_gacha):
+                    if item['time'] == data[data_index]['time'] and item['name'] == data[data_index]['name']:
+                        # 如果已经存在的话 则直接跳出 说明已经存在数据了
+                        data_index += 1
+                        if index + 1 == len(user_gacha) and data_index < len(data):
+                            # 说明已经到底了 没更多数据了 ,直接拼接剩下的数据
+                            update_data = data[data_index:]
+                            count += len(update_data)
+                            user_gacha += update_data
+                        continue
+
+                # 更新原有数据
+                user[gacha_type] = user_gacha
+        # 最后更新进数据库
+        db[self.qq] = user
+        return count
 
     # 暂时弃用 直接使用网页版本的
     async def gacha_statistics(self, uid, gacha_type_name):

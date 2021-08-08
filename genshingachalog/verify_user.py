@@ -5,7 +5,7 @@ from .util import cache
 bot = get_bot()
 
 
-@cache(ttl=datetime.timedelta(minutes=1))
+@cache(ttl=datetime.timedelta(minutes=20))
 async def get_all_member_list():
     group_data = {}
     for self_id in bot._wsr_api_clients.keys():

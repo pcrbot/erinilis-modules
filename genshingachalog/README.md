@@ -33,6 +33,8 @@ fork后在 `/src/pages/LoadPage.tsx` 的第`28`行的`host`变量里修改你的
 
 ---
 
+可以直接在群文件上传`gacha-list-101717153.json`这个文件格式的抽卡历史记录 用于合并服务器卡池记录
+
 命令  | 说明 | 例
 ------------- | ------------- | -------------
 原神卡池绑定  | 绑定卡池用于查询 | 原神卡池绑定
@@ -41,7 +43,7 @@ fork后在 `/src/pages/LoadPage.tsx` 的第`28`行的`host`变量里修改你的
 
 # 统计示例
 
-@？  数据已更新, 请访问: <br>
+@？ 数据已更新, 请访问: <br>
 https://genshin-gacha-analyzer.pages.dev/?uid=105293904 <br>
 https://erinilis-gacha-analyzer.vercel.app/?uid=105293904 <br>
 https://yuyumoko.github.io/genshin-gacha-analyzer/?uid=105293904 <br>
