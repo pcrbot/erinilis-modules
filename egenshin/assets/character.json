@@ -1,0 +1,180 @@
+{
+  "10000002": {
+    "name": "神里绫华",
+    "rarity": 5,
+    "element": "Cryo"
+  },
+  "10000003": {
+    "name": "琴",
+    "rarity": 5,
+    "element": "Anemo"
+  },
+  "10000005": {
+    "name": "旅行者",
+    "rarity": 5
+  },
+  "10000006": {
+    "name": "丽莎",
+    "rarity": 5,
+    "element": "Electro"
+  },
+  "10000007": {
+    "name": "旅行者",
+    "rarity": 5
+  },
+  "10000014": {
+    "name": "芭芭拉",
+    "rarity": 4,
+    "element": "Hydro"
+  },
+  "10000015": {
+    "name": "凯亚",
+    "rarity": 4,
+    "element": "Cryo"
+  },
+  "10000016": {
+    "name": "迪卢克",
+    "rarity": 5,
+    "element": "Pyro"
+  },
+  "10000020": {
+    "name": "雷泽",
+    "rarity": 4,
+    "element": "Electro"
+  },
+  "10000021": {
+    "name": "安柏",
+    "rarity": 4,
+    "element": "Pyro"
+  },
+  "10000022": {
+    "name": "温迪",
+    "rarity": 5,
+    "element": "Anemo"
+  },
+  "10000023": {
+    "name": "香菱",
+    "rarity": 4,
+    "element": "Pyro"
+  },
+  "10000024": {
+    "name": "北斗",
+    "rarity": 4,
+    "element": "Electro"
+  },
+  "10000025": {
+    "name": "行秋",
+    "rarity": 4,
+    "element": "Hydro"
+  },
+  "10000026": {
+    "name": "魈",
+    "rarity": 5,
+    "element": "Anemo"
+  },
+  "10000027": {
+    "name": "凝光",
+    "rarity": 4,
+    "element": "Geo"
+  },
+  "10000029": {
+    "name": "可莉",
+    "rarity": 5,
+    "element": "Pyro"
+  },
+  "10000030": {
+    "name": "钟离",
+    "rarity": 5,
+    "element": "Geo"
+  },
+  "10000031": {
+    "name": "菲谢尔",
+    "rarity": 4,
+    "element": "Electro"
+  },
+  "10000032": {
+    "name": "班尼特",
+    "rarity": 4,
+    "element": "Pyro"
+  },
+  "10000033": {
+    "name": "达达利亚",
+    "rarity": 5,
+    "element": "Hydro"
+  },
+  "10000034": {
+    "name": "诺艾尔",
+    "rarity": 4,
+    "element": "Geo"
+  },
+  "10000035": {
+    "name": "七七",
+    "rarity": 5,
+    "element": "Cryo"
+  },
+  "10000036": {
+    "name": "重云",
+    "rarity": 4,
+    "element": "Cryo"
+  },
+  "10000037": {
+    "name": "甘雨",
+    "rarity": 5,
+    "element": "Cryo"
+  },
+  "10000038": {
+    "name": "阿贝多",
+    "rarity": 5,
+    "element": "Geo"
+  },
+  "10000039": {
+    "name": "迪奥娜",
+    "rarity": 4,
+    "element": "Cryo"
+  },
+  "10000041": {
+    "name": "莫娜",
+    "rarity": 5,
+    "element": "Hydro"
+  },
+  "10000042": {
+    "name": "刻晴",
+    "rarity": 5,
+    "element": "Electro"
+  },
+  "10000043": {
+    "name": "砂糖",
+    "rarity": 4,
+    "element": "Anemo"
+  },
+  "10000044": {
+    "name": "辛焱",
+    "rarity": 4,
+    "element": "Pyro"
+  },
+  "10000045": {
+    "name": "罗莎莉亚",
+    "rarity": 4,
+    "element": "Cryo"
+  },
+  "10000046": {
+    "name": "胡桃",
+    "rarity": 5,
+    "element": "Pyro"
+  },
+  "10000047": {
+    "name": "枫原万叶",
+    "rarity": 5,
+    "element": "Anemo"
+  },
+  "10000048": {
+    "name": "烟绯",
+    "rarity": 4,
+    "element": "Pyro"
+  },
+  "10000051": {
+    "name": "优菈",
+    "rarity": 5,
+    "element": "Cryo"
+  }
+}

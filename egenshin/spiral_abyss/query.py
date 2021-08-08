@@ -6,7 +6,7 @@ from pathlib import Path
 from PIL import Image, PngImagePlugin
 
 from ..util import Dict, cache, get_path, get_font, pil2b64
-from ..imghandler import draw_text_by_line, image_array, easy_paste
+from ..imghandler import draw_text_by_line, image_array, easy_paste, easy_alpha_composite
 from hoshino import aiorequests
 from bs4 import BeautifulSoup
 
@@ -16,10 +16,10 @@ oLookup = {}
 s = 'no3yz5{q9kvxs6:,_-ODGW4AtiPj7mZerQXMBpabU1Jlfg}CNHY0VFRc"SEdI28KTwuLh'
 b64char = 'dAHBGOQNv"Cg,WPrU:fX93kJK-{bDVjLESs}oqMRmy0Til4nt_8c1pIZFYa6euwx5z72h'
 
-# with open(os.path.join(os.path.dirname(__file__), 'character.json'), 'r', encoding="utf-8") as f:
-#     character_json: dict = json.loads(f.read())
-
 assets_dir = Path(get_path('assets'))
+
+with open(assets_dir / 'character.json', 'r', encoding="utf-8") as f:
+    character: dict = json.loads(f.read(), object_hook=Dict)
 
 
 async def decode(raw_data):
@@ -43,6 +43,7 @@ async def __get_build_id__():
     return data.buildId
 
 
+@cache(ttl=datetime.timedelta(hours=2), arg_key='floor')
 async def get_abyss_data(floor):
     json_url = '%s/_next/data/%s/zh/floor-%s.json' % (BASE_URL, await __get_build_id__(), floor or '12')
     res = await aiorequests.get(json_url, timeout=10)
@@ -52,9 +53,6 @@ async def get_abyss_data(floor):
 
 @cache(ttl=datetime.timedelta(hours=2), arg_key='floor')
 async def abyss_use_probability(floor):
-    if not floor.isdigit() or int(floor) < 9 or int(floor) > 12:
-        return '仅支持9-12层数据'
-
     data = await get_abyss_data(floor=floor)
 
     pr_list = {}
@@ -82,43 +80,14 @@ async def abyss_use_probability(floor):
 
 @cache(ttl=datetime.timedelta(hours=2), arg_key='floor')
 async def abyss_use_teams(floor):
-    if not floor.isdigit() or int(floor) < 9 or int(floor) > 12:
-        return '仅支持9-12层数据'
     data = await get_abyss_data(floor=floor)
     best_data_len = 3
-
-    def get_cards(ids):
-        avatar_cards = []
-        for char_ids in ids:
-            for c_id in char_ids.split('_'):
-                card: PngImagePlugin.PngImageFile = Image.open(assets_dir / "chara_card" / f'{c_id}.png')
-                card = card.crop((0, 0, card.size[0], card.size[1] - 55))
-                avatar_cards.append(card)
-        temp_size = avatar_cards[0].size
-        bg = Image.new('RGB', ((temp_size[0] + 10) * 4, temp_size[1] * best_data_len), '#f0ece3')
-        return image_array(bg, avatar_cards, 4, 10, 0).convert('RGBA')
-
-    space = 120
     chara_bg = None
     for i in [1, 2, 3]:
-        avatar_a = get_cards(list(data['best_%s_a' % i])[0:best_data_len])
-        avatar_b = get_cards(list(data['best_%s_b' % i])[0:best_data_len])
+        avatar_a = list(data['best_%s_a' % i])[0:best_data_len]
+        avatar_b = list(data['best_%s_b' % i])[0:best_data_len]
 
-        row_item = Image.new('RGB', (avatar_a.size[0] * 2 + space, avatar_a.size[1]), '#f0ece3')
-        easy_paste(row_item, avatar_a, (0, 0))
-        easy_paste(row_item, avatar_b, (avatar_a.size[0] + space, 0))
-
-        team_space = 100
-        if not chara_bg:
-            chara_bg = Image.new('RGB', (
-                avatar_a.size[0] * 2 + space,
-                row_item.size[1] * 3 + team_space * 3),
-                                 '#f0ece3')
-
-        team_item_y = (i - 1) * (row_item.size[1] + team_space) + team_space
-        title_y = team_item_y - (team_space * 0.8)
-        draw_text_by_line(chara_bg, (0, title_y), f'第{i}间', get_font(50), '#475463', 1000, True)
-        easy_paste(chara_bg, row_item.convert('RGBA'), (0, team_item_y))
+        chara_bg = await use_teams_card(avatar_a, avatar_b, i, best_data_len, chara_bg)
 
     info_card = Image.new('RGB', (chara_bg.size[0], chara_bg.size[1] + 120), '#f0ece3')
     floor = '深境螺旋[第%s层] 上间/下间 阵容推荐' % data.floor
@@ -127,3 +96,68 @@ async def abyss_use_teams(floor):
 
     info_card.thumbnail((info_card.size[0] * 0.7, info_card.size[1] * 0.7))
     return pil2b64(info_card)
+
+
+def sort_char_ids(ids):
+    char = []
+    for _id in list(filter(None, ids.split('_'))):
+        data = {'id': _id}
+        data.update(character[_id])
+        char.append(data)
+    char.sort(key=lambda x: (-x['rarity'], -int(x['id'])))
+    return [x['id'] for x in char]
+
+
+async def use_teams_card(team_a, team_b, i, data_len=3, chara_bg=None, space=120, crop=True, avatars=None):
+    """
+    生成一个队伍列表图
+    @param team_a: 左边队伍
+    @param team_b: 右边队伍
+    @param i: 第几层
+    @param data_len: 最大能生成几行数据
+    @param chara_bg: 贴在那个对象上
+    @param space: 左边和右边的间隔为多少
+    @param crop: 是否不显示等级
+    @param avatars: 输入的人物列表 对应填入等级框
+    @return:
+    """
+
+    def get_cards(ids):
+        avatar_cards = []
+        for char_ids in ids:
+            for c_id in sort_char_ids(char_ids):
+                if not c_id:
+                    continue
+                card: PngImagePlugin.PngImageFile = Image.open(assets_dir / "chara_card" / f'{c_id}.png')
+                if crop:
+                    card = card.crop((0, 0, card.size[0], card.size[1] - 55))
+                if avatars:
+                    avatar_data = avatars[int(c_id)]
+                    draw_text_by_line(card, (0, 235), f'Lv.{avatar_data.level}', get_font(35), '#475463', 226, True)
+                    i_con = Image.open(assets_dir / "player_info" / f'命之座{avatar_data.actived_constellation_num}.png')
+                    card = easy_alpha_composite(card, i_con, (160, -5))
+
+                avatar_cards.append(card)
+        temp_size = avatar_cards[0].size
+        crop_space = crop and 0 or 30
+        bg = Image.new('RGB', ((temp_size[0] + 10) * 4, temp_size[1] * data_len + crop_space), '#f0ece3')
+        return image_array(bg, avatar_cards, 4, 10, 0).convert('RGBA')
+
+    team_a = get_cards(team_a)
+    team_b = get_cards(team_b)
+    row_item = Image.new('RGB', (team_a.size[0] * 2 + space, team_a.size[1]), '#f0ece3')
+    easy_paste(row_item, team_a, (0, 0))
+    easy_paste(row_item, team_b, (team_a.size[0] + space, 0))
+
+    team_space = 100
+    if not chara_bg:
+        chara_bg = Image.new('RGB', (
+            team_a.size[0] * 2 + space,
+            row_item.size[1] * 3 + team_space * 3),
+                             '#f0ece3')
+
+    team_item_y = (i - 1) * (row_item.size[1] + team_space) + team_space
+    title_y = team_item_y - (team_space * 0.8)
+    draw_text_by_line(chara_bg, (0, title_y), f'第{i}间', get_font(50), '#475463', 1000, True)
+    easy_paste(chara_bg, row_item.convert('RGBA'), (0, team_item_y))
+    return chara_bg

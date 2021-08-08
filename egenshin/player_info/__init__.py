@@ -35,7 +35,7 @@ async def main(bot, ev):
             await bot.finish(ev, '请在原有指令后面输入游戏uid,只需要输入一次就会记住下次直接使用{comm}获取就好\n例如:{comm}105293904'.format(
                 comm='ys#'))
 
-    raw_data = await query.info(uid)
+    raw_data = await query.info(uid=uid)
 
     if isinstance(raw_data, str):
         await bot.finish(ev, raw_data)
