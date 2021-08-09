@@ -49,6 +49,7 @@ class gacha_log:
         self.authkey = authkey
         self.size = size
         self.region = region
+        self.history_player_uid = ''
 
     async def get_api(self,
                       service='getGachaLog',
@@ -166,7 +167,9 @@ class gacha_log:
             clist = (await self.get_api(gacha_type=GACHA_TYPE.activity.value)).list
             if not clist:
                 return None
-        return clist[0]['uid']
+        if not self.history_player_uid:
+            self.history_player_uid = clist[0]['uid']
+        return self.history_player_uid
 
     async def update_xlsx(self, is_expired_authkey=False):
         user = db.get(self.qq, {})
@@ -201,7 +204,7 @@ class gacha_log:
             if not user_uid:
                 user_uid = await self.get_player_uid(user_gacha)
                 if gacha_data_uid != user_uid:
-                    raise Exception('UID于导入的卡池记录不符 上传的UID:%s 服务器UID:%s' % (gacha_data_uid, user_uid))
+                    raise Exception('UID与导入的卡池记录不符 上传的UID:%s 服务器UID:%s' % (gacha_data_uid, user_uid))
             # 如果没有卡池数据 则直接增加
             if not user_gacha:
                 user[gacha_type] = data
