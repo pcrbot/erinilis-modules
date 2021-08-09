@@ -83,24 +83,26 @@ class gacha_log:
         _flag = False
         end_id = 0
         add_history = False
-        history_player_uid = ""
-        if history:
-            history_player_uid = await self.get_player_uid(history)
+        if not history:
+            history = db[self.qq].get(str(gacha_type), [])
+
+        history_player_uid = await self.get_player_uid(history)
         for page in range(1, 9999):
             if add_history:
                 break
-            clist = (await self.get_api(page=page, gacha_type=gacha_type, end_id=end_id)).list
+            if end_id == -1:
+                break
+            clist = (await self.get_api(page=page, gacha_type=gacha_type, end_id=end_id)).list or history
             if not clist:
-                item_list = item_list + history
                 break
 
             player_uid = await self.get_player_uid(clist)
             if history_player_uid != player_uid:  # 如果 历史记录不匹配 则不使用之前的记录
                 history = None
 
-            end_id = clist[-1]['id']
+            end_id = clist[-1].get('id', -1)
             for data in clist:
-                if history and history[0]['id'] == data['id']:
+                if not _filter and history[0].get('id') == data.get('id'):
                     item_list = item_list + history
                     add_history = True
                     break
@@ -114,7 +116,7 @@ class gacha_log:
         return item_list
 
     async def last5star(self, gacha_type):
-        item_list = await self.get_logs(gacha_type, lambda item_info: item_info['rank_type'] == '5')
+        item_list = await self.get_logs(gacha_type, lambda item_info: int(item_info['rank_type']) == 5)
         if not item_list:
             return '还没有抽过'
         return '距离上一个%s一共抽了%s发' % (item_list[-1:][0]['name'], len(item_list) - 1)
