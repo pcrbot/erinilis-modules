@@ -91,6 +91,7 @@ class gacha_log:
                 break
             clist = (await self.get_api(page=page, gacha_type=gacha_type, end_id=end_id)).list
             if not clist:
+                item_list = item_list + history
                 break
 
             player_uid = await self.get_player_uid(clist)
