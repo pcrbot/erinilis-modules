@@ -102,7 +102,7 @@ class gacha_log:
 
             end_id = clist[-1].get('id', -1)
             for data in clist:
-                if not _filter and history[0].get('id') == data.get('id'):
+                if not _filter and history and history[0].get('id') == data.get('id'):
                     item_list = item_list + history
                     add_history = True
                     break
