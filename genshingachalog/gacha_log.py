@@ -78,7 +78,7 @@ class gacha_log:
             return False
         return res.data
 
-    async def get_logs(self, gacha_type, _filter=None, history=None):
+    async def get_logs(self, gacha_type, _filter=None, history=None, req_history=True):
         item_list = []
         _flag = False
         end_id = 0
@@ -92,7 +92,8 @@ class gacha_log:
                 break
             if end_id == -1:
                 break
-            clist = (await self.get_api(page=page, gacha_type=gacha_type, end_id=end_id)).list or history
+            clist = (await self.get_api(page=page, gacha_type=gacha_type, end_id=end_id)).list or \
+                    (req_history and history)
             if not clist:
                 break
 
@@ -116,7 +117,8 @@ class gacha_log:
         return item_list
 
     async def last5star(self, gacha_type):
-        item_list = await self.get_logs(gacha_type, lambda item_info: int(item_info['rank_type']) == 5)
+        item_list = await self.get_logs(gacha_type, lambda item_info: int(item_info['rank_type']) == 5,
+                                        req_history=False)
         if not item_list:
             return '还没有抽过'
         return '距离上一个%s一共抽了%s发' % (item_list[-1:][0]['name'], len(item_list) - 1)
