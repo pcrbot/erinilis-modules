@@ -54,20 +54,11 @@ async def draw_info_card(uid, qid, nickname, raw_data):
 
     char_data = raw_data.avatars
 
-    five_star_char = ["神里绫华", "琴", "迪卢克", "温迪", "魈", "可莉", "钟离", "达达利亚", "七七", "甘雨", "阿贝多", "莫娜", "刻晴", "胡桃", "枫原万叶",
-                      "优菈"]
-    four_star_char = ["丽莎", "芭芭拉", "凯亚", "雷泽", "安柏", "香菱", "北斗", "行秋", "凝光", "菲谢尔", "班尼特", "诺艾尔", "重云", "迪奥娜", "砂糖",
-                      "辛焱", "罗莎莉亚", "烟绯", "旅行者"]
-
     for k in raw_data.avatars:
-        if k['name'] in five_star_char:
-            k['star'] = 5
-        if k['name'] in four_star_char:
-            k['star'] = 4
         if k['name'] == '旅行者':
-            k['star'] = 3
+            k['rarity'] = 3
 
-    char_data.sort(key=lambda x: (-x['star'], -x['actived_constellation_num'], -x['level']))  # , -x['fetter']
+    char_data.sort(key=lambda x: (-x['rarity'], -x['actived_constellation_num'], -x['level']))  # , -x['fetter']
 
     # 头像
     if QQ_Avatar:
