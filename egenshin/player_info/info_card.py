@@ -50,6 +50,9 @@ async def draw_info_card(uid, qid, nickname, raw_data):
     stats = query.stats(raw_data.stats, True)
     world_explorations = {}
     for w in raw_data.world_explorations:
+        w.exploration_percentage = str(w['exploration_percentage'] / 10)
+        if w.exploration_percentage == '100.0':
+            w.exploration_percentage = '100'
         world_explorations[w.name] = w
 
     char_data = raw_data.avatars
@@ -97,21 +100,21 @@ async def draw_info_card(uid, qid, nickname, raw_data):
     text_draw.text((860, 1197), stats.luxurious_chest.__str__(), '#caae93', get_font(36))
     # 蒙德
     world = world_explorations['蒙德']
-    text_draw.text((370, 1370), str(world.exploration_percentage / 10) + '%', '#d4aa6b', get_font(32))
+    text_draw.text((370, 1370), str(world.exploration_percentage) + '%', '#d4aa6b', get_font(32))
     text_draw.text((370, 1414), 'Lv.' + str(world.level), '#d4aa6b', get_font(32))
     text_draw.text((370, 1456), stats.anemoculus.__str__(), '#d4aa6b', get_font(32))
     # 璃月
     world = world_explorations['璃月']
-    text_draw.text((896, 1370), str(world.exploration_percentage / 10) + '%', '#d4aa6b', get_font(32))
+    text_draw.text((896, 1370), str(world.exploration_percentage) + '%', '#d4aa6b', get_font(32))
     text_draw.text((896, 1414), 'Lv.' + str(world.level), '#d4aa6b', get_font(32))
     text_draw.text((896, 1456), stats.geoculus.__str__(), '#d4aa6b', get_font(32))
     # 雪山
     world = world_explorations['龙脊雪山']
-    text_draw.text((350, 1555), str(world.exploration_percentage / 10) + '%', '#d4aa6b', get_font(32))
+    text_draw.text((350, 1555), str(world.exploration_percentage) + '%', '#d4aa6b', get_font(32))
     text_draw.text((350, 1612), 'Lv.' + str(world.level), '#d4aa6b', get_font(32))
     # 稻妻
     world = world_explorations['稻妻']
-    text_draw.text((880, 1543), str(world.exploration_percentage / 10) + '%', '#d4aa6b', get_font(24))
+    text_draw.text((880, 1543), str(world.exploration_percentage) + '%', '#d4aa6b', get_font(24))
     text_draw.text((880, 1576), 'Lv.' + str(world.level), '#d4aa6b', get_font(24))
     text_draw.text((880, 1606), 'Lv.' + str(world.offerings[0].level), '#d4aa6b', get_font(24))
     text_draw.text((880, 1639), stats.electroculus.__str__(), '#d4aa6b', get_font(24))
