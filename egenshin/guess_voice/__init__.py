@@ -12,21 +12,21 @@ sv_help = '''
 '''.strip()
 
 sv = Service(
-    name = '原神猜语音',  #功能名
-    use_priv = priv.NORMAL, #使用权限   
-    manage_priv = priv.ADMIN, #管理权限
-    visible = True, #可见性
-    enable_on_default = True, #默认启用
-    bundle = '娱乐', #分组归类
-    help_ = sv_help #帮助说明
-    )
+    name='原神猜语音',  # 功能名
+    use_priv=priv.NORMAL,  # 使用权限
+    manage_priv=priv.ADMIN,  # 管理权限
+    visible=True,  # 可见性
+    enable_on_default=True,  # 默认启用
+    # bundle = '娱乐', #分组归类
+    help_=sv_help  # 帮助说明
+)
 
-setting_time = 30   # 游戏持续时间
+setting_time = 30  # 游戏持续时间
 
 dir_name = os.path.join(os.path.dirname(__file__), 'voice')
 
 
-async def download_voice(bot,ev):
+async def download_voice(bot, ev):
     if not os.path.exists(dir_name):
         os.makedirs(dir_name)
         await bot.send(ev, '资源尚未初始化，现在开始下载资源，这需要较长的时间，请耐心等待')
@@ -36,23 +36,24 @@ async def download_voice(bot,ev):
 
 @sv.on_prefix('原神猜语音')
 async def guess_genshin_voice(bot, ev):
-    await download_voice(bot,ev)
+    await download_voice(bot, ev)
     keyword = ev.message.extract_plain_text().strip()
     guess = Guess(ev['group_id'], time=setting_time)
     if keyword == '排行榜':
         await bot.finish(ev, await guess.get_rank(bot, ev))
-    if keyword in ['中','中国','汉语','中文','中国话','Chinese','cn'] or not keyword:
+    if keyword in ['中', '中国', '汉语', '中文', '中国话', 'Chinese', 'cn'] or not keyword:
         keyword = '中'
-    elif keyword in ['日','日本','日语','霓虹','日本语','Japanese','jp']:
+    elif keyword in ['日', '日本', '日语', '霓虹', '日本语', 'Japanese', 'jp']:
         keyword = '日'
-    elif keyword in ['韩','韩国','韩语','棒子','南朝鲜','南朝鲜语']:
+    elif keyword in ['韩', '韩国', '韩语', '棒子', '南朝鲜', '南朝鲜语']:
         keyword = '韩'
-    elif keyword in ['英','英文','英语','洋文','English','en']:
+    elif keyword in ['英', '英文', '英语', '洋文', 'English', 'en']:
         keyword = '英'
     else:
         await bot.finish(ev, f'没有找到{keyword}的语音')
     if guess.is_start():
         await bot.finish(ev, '游戏正在进行中哦')
+    guess.set_start()
     await bot.send(ev, f'即将发送一段原神语音,将在{setting_time}秒后公布答案')
     await asyncio.sleep(1)
     await bot.send(ev, guess.start(keyword.split()))
@@ -74,7 +75,7 @@ async def get_genshin_voice(bot, ev):
         name = name[1:]
     else:
         language = '中'
-    await download_voice(bot,ev)
+    await download_voice(bot, ev)
     path = get_random_voice(name, language)
     if not path:
         await bot.finish(ev, f'没有找到{name}的语音呢')

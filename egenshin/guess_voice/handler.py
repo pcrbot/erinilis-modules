@@ -79,6 +79,9 @@ class Guess:
             return False
         return self.group['start']
 
+    def set_start(self):
+        process[self.group_id] = {'start': True}
+
     def start(self, language: List[str] = None):
         if not language:
             language = ['中']
@@ -156,7 +159,7 @@ class Guess:
 
     # 只添加正确的答案
     async def add_answer(self, qq: int, msg: str):
-        if char_name_by_name(msg) == self.group['answer']:
+        if self.group.get('answer') and char_name_by_name(msg) == self.group['answer']:
             process[self.group_id]['ok'].add(qq)
             job_id = str(self.group_id)
             if scheduler.get_job(job_id, 'default'):
