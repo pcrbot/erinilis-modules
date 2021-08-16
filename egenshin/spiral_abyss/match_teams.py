@@ -8,21 +8,24 @@ def get_best_list_ids(key_str):
     return list(map(int, filter(None, key_str.split('_'))))
 
 
-def find_list_in_avatar(list_key, avatar_data, match_len=4):
+def find_list_in_avatar(list_key, avatar_data, match_len=4, min_lvl=60):
     self_char = list(avatar_data.keys())
     match_team = []
     for team in list_key:
-        match = set(get_best_list_ids(team)) & set(self_char)
-        if len(match) == match_len:
-            match_team.append(team)
+        match_ids = set(get_best_list_ids(team))
+        match = match_ids & set(self_char)
+        if len(match) >= match_len and len(match_ids) == len(match):
+            # 判断是否有练度
+            if all([avatar_data[x].level > min_lvl for x in match_ids]):
+                match_team.append(team)
     return match_team
 
 
-def find_best_team(list_a, list_b, avatar_data, match_len=4):
+def find_best_team(list_a, list_b, avatar_data, match_len=1, min_lvl=60):
     match_team = []
 
-    match_a = find_list_in_avatar(list_a, avatar_data, match_len)
-    match_b = find_list_in_avatar(list_b, avatar_data, match_len)
+    match_a = find_list_in_avatar(list_a, avatar_data, match_len, min_lvl)
+    match_b = find_list_in_avatar(list_b, avatar_data, match_len, min_lvl)
 
     team_b_index_list = []
     for team_a in match_a:
@@ -37,7 +40,7 @@ def find_best_team(list_a, list_b, avatar_data, match_len=4):
     return match_team
 
 
-async def recommend_team(floor, avatars, recommend_len=3):
+async def recommend_team(floor, avatars, recommend_len=4):
     abyss_data = await get_abyss_data(floor=floor)
     avatar_data = {}
     avatars.sort(key=lambda x: (-x['level'],))
@@ -50,10 +53,12 @@ async def recommend_team(floor, avatars, recommend_len=3):
         best_b = abyss_data['best_%s_b' % i]
         match_team = find_best_team(best_a, best_b, avatar_data)
         if not match_team:
-            raise Exception('配队失败,匹配不到对应阵容')
+            match_team = find_best_team(best_a, best_b, avatar_data, min_lvl=0)
+            if not match_team:
+                raise Exception('配队失败,匹配不到对应阵容')
         find_team_a, find_team_b = zip(*match_team[0:recommend_len])
 
-        chara_bg = await use_teams_card(find_team_a, find_team_b, i, recommend_len, chara_bg,
+        chara_bg = await use_teams_card(floor, find_team_a, find_team_b, i, recommend_len, chara_bg,
                                         crop=False,
                                         avatars=avatar_data)
 

@@ -1,11 +1,13 @@
 import datetime
 import json
 import math
+import re
+from io import BytesIO
 from pathlib import Path
 
 from PIL import Image, PngImagePlugin
 
-from ..util import Dict, cache, get_path, get_font, pil2b64
+from ..util import Dict, cache, get_path, get_font, pil2b64, require_file
 from ..imghandler import draw_text_by_line, image_array, easy_paste, easy_alpha_composite
 from hoshino import aiorequests
 from bs4 import BeautifulSoup
@@ -17,9 +19,13 @@ s = 'no3yz5{q9kvxs6:,_-ODGW4AtiPj7mZerQXMBpabU1Jlfg}CNHY0VFRc"SEdI28KTwuLh'
 b64char = 'dAHBGOQNv"Cg,WPrU:fX93kJK-{bDVjLESs}oqMRmy0Til4nt_8c1pIZFYa6euwx5z72h'
 
 assets_dir = Path(get_path('assets'))
+enemies_img = assets_dir / 'spiral_abyss' / 'enemies'
 
 with open(assets_dir / 'character.json', 'r', encoding="utf-8") as f:
     character: dict = json.loads(f.read(), object_hook=Dict)
+
+with open(assets_dir / 'spiral_abyss' / 'enemies.json', 'r', encoding="utf-8") as f:
+    enemies: dict = json.loads(f.read(), object_hook=Dict)['2.0']
 
 
 async def decode(raw_data):
@@ -32,10 +38,29 @@ async def decode(raw_data):
     return json.loads(ret, object_hook=Dict)
 
 
+@cache(ttl=datetime.timedelta(hours=12), arg_key='page')
+async def __get_html_soup__(page=''):
+    res = await aiorequests.get(BASE_URL + page, timeout=10)
+    return BeautifulSoup(await res.content, 'lxml')
+
+
+async def __get_enemies__(floor='12'):
+    pass
+    # build_id = await __get_build_id__()
+    # res = await aiorequests.get(BASE_URL + f'/_next/static/{build_id}/_buildManifest.js', timeout=10)
+    # res = await res.text
+    # links = re.findall(r"\(\"\S+\"\)", res)[0][1:-1].split(',')
+    # for link in links:
+    #     link = link.replace("'", '').replace('"', '')
+    #     res = await aiorequests.get(BASE_URL + '/_next/' + link, timeout=10)
+    #     res = await res.text
+    #     if re.search(r'2\.0', res):
+    #         print(link)
+
+
 @cache(ttl=datetime.timedelta(hours=12))
 async def __get_build_id__():
-    res = await aiorequests.get(BASE_URL, timeout=10)
-    soup = BeautifulSoup(await res.content, 'lxml')
+    soup = await __get_html_soup__()
     data = soup.find('script', {"id": "__NEXT_DATA__"}).next
     data = json.loads(data, object_hook=Dict)
     # floorDataRaw = await decode(data.props.pageProps.floorDataRaw)
@@ -87,7 +112,7 @@ async def abyss_use_teams(floor):
         avatar_a = list(data['best_%s_a' % i])[0:best_data_len]
         avatar_b = list(data['best_%s_b' % i])[0:best_data_len]
 
-        chara_bg = await use_teams_card(avatar_a, avatar_b, i, best_data_len, chara_bg)
+        chara_bg = await use_teams_card(floor, avatar_a, avatar_b, i, best_data_len, chara_bg)
 
     info_card = Image.new('RGB', (chara_bg.size[0], chara_bg.size[1] + 120), '#f0ece3')
     floor = '深境螺旋[第%s层] 上间/下间 阵容推荐' % data.floor
@@ -108,7 +133,7 @@ def sort_char_ids(ids):
     return [x['id'] for x in char]
 
 
-async def use_teams_card(team_a, team_b, i, data_len=3, chara_bg=None, space=120, crop=True, avatars=None):
+async def use_teams_card(floor, team_a, team_b, i, data_len=3, chara_bg=None, space=120, crop=True, avatars=None):
     """
     生成一个队伍列表图
     @param team_a: 左边队伍
@@ -140,14 +165,43 @@ async def use_teams_card(team_a, team_b, i, data_len=3, chara_bg=None, space=120
                 avatar_cards.append(card)
         temp_size = avatar_cards[0].size
         crop_space = crop and 0 or 30
-        bg = Image.new('RGB', ((temp_size[0] + 10) * 4, temp_size[1] * data_len + crop_space), '#f0ece3')
+        bg = Image.new('RGB', ((temp_size[0] + 10) * 4, temp_size[1] * data_len + crop_space + 84), '#f0ece3')
         return image_array(bg, avatar_cards, 4, 10, 0).convert('RGBA')
+
+    async def get_enemy_img():
+        enemy_a_list = []
+        enemy_b_list = []
+        floor_i = f'{floor}-{i}'
+        enemy_resource = 'https://gim.appsample.net/enemies/'
+        for enemy_name in enemies[floor_i].a:
+            enemy_filename = enemy_name + '.png'
+            pic = Image.open(
+                BytesIO(await require_file(enemies_img / enemy_filename, url=enemy_resource + enemy_filename)))
+            enemy_a_list.append(pic.convert("RGBA"))
+        for enemy_name in enemies[floor_i].b:
+            enemy_filename = enemy_name + '.png'
+            pic = Image.open(BytesIO(await require_file(enemies_img / enemy_filename, url=enemy_resource + enemy_filename)))
+            enemy_b_list.append(pic.convert("RGBA"))
+
+        enemy_bg = Image.new('RGBA', (780, pic.height), '#f0ece3')
+        enemy_bg_b = Image.new('RGBA', (780, pic.height), '#f0ece3')
+        enemy_a_img = image_array(enemy_bg, enemy_a_list, 10)
+        enemy_b_img = image_array(enemy_bg_b, enemy_b_list, 10)
+        return enemy_a_img, enemy_b_img
+
+    enemy_a, enemy_b = await get_enemy_img()
 
     team_a = get_cards(team_a)
     team_b = get_cards(team_b)
+
     row_item = Image.new('RGB', (team_a.size[0] * 2 + space, team_a.size[1]), '#f0ece3')
-    easy_paste(row_item, team_a, (0, 0))
-    easy_paste(row_item, team_b, (team_a.size[0] + space, 0))
+    easy_paste(row_item, enemy_a, (0, 0))
+    easy_paste(row_item, enemy_b, (team_a.size[0] + space, 0))
+
+    easy_paste(row_item, team_a, (0, 74 + 10))
+    easy_paste(row_item, team_b, (team_a.size[0] + space, 74 + 10))
+
+
 
     team_space = 100
     if not chara_bg:

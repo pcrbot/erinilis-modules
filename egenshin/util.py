@@ -8,7 +8,7 @@ import json
 import os
 import re
 from io import BytesIO
-
+from hoshino import aiorequests
 from PIL import ImageFont
 from sqlitedict import SqliteDict
 from pathlib import Path
@@ -131,3 +131,32 @@ def cache(ttl=datetime.timedelta(hours=1), arg_key=None):
         return wrapped
 
     return wrap
+
+
+async def require_file(file=None, r_mode='rb', encoding=None, url=None, use_cache=True, w_mode='wb', timeout=30):
+    async def read():
+        with open(file, r_mode, encoding=encoding) as f:
+            return f.read()
+
+    if not any([file, url]):
+        raise ValueError('file or url not null')
+
+    file = file and Path(file)
+
+    if file and file.exists() and use_cache:
+        return await read()
+
+    if not url:
+        raise ValueError('url not null')
+
+    try:
+        res = await aiorequests.get(url, timeout=timeout)
+        content = await res.content
+    except aiorequests.exceptions.ConnectionError:
+        raise
+
+    if file:
+        os.makedirs(os.path.dirname(file), exist_ok=True)
+        with open(file, w_mode) as f:
+            f.write(content)
+    return await read()
