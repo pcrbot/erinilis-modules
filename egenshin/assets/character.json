@@ -172,9 +172,19 @@
     "rarity": 4,
     "element": "Pyro"
   },
+  "10000049": {
+    "name": "宵宫",
+    "rarity": 5,
+    "element": "Pyro"
+  },
   "10000051": {
     "name": "优菈",
     "rarity": 5,
     "element": "Cryo"
+  },
+  "10000053": {
+    "name": "早柚",
+    "rarity": 4,
+    "element": "Anemo"
   }
 }
