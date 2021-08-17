@@ -21,7 +21,7 @@ def find_list_in_avatar(list_key, avatar_data, match_len=4, min_lvl=60):
     return match_team
 
 
-def find_best_team(list_a, list_b, avatar_data, match_len=1, min_lvl=60):
+def find_best_team(list_a, list_b, avatar_data, match_len=4, min_lvl=60):
     match_team = []
 
     match_a = find_list_in_avatar(list_a, avatar_data, match_len, min_lvl)
