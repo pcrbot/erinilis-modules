@@ -14,7 +14,7 @@ info_bg = Image.open(assets_dir / 'player_info' / "原神资料卡.png")
 
 QQ_Avatar = True  # 是否使用QQ头像
 
-MAX_CHARA = 12  # 最大允许显示角色数量
+# MAX_CHARA = 12  # 最大允许显示角色数量
 
 CHARA_CARD = assets_dir / "chara_card"
 CHARA = assets_dir / 'player_info'
@@ -41,8 +41,8 @@ async def avatar_card(avatar_id, level, constellation, fetter):
     return card
 
 
-@cache(ttl=datetime.timedelta(minutes=30), arg_key='uid')
-async def draw_info_card(uid, qid, nickname, raw_data):
+# @cache(ttl=datetime.timedelta(minutes=30), arg_key='uid')
+async def draw_info_card(uid, qid, nickname, raw_data, max_chara=None):
     '''
     绘制玩家资料卡
     '''
@@ -50,9 +50,10 @@ async def draw_info_card(uid, qid, nickname, raw_data):
     stats = query.stats(raw_data.stats, True)
     world_explorations = {}
     for w in raw_data.world_explorations:
-        w.exploration_percentage = str(w['exploration_percentage'] / 10)
-        if w.exploration_percentage == '100.0':
-            w.exploration_percentage = '100'
+        if isinstance(w['exploration_percentage'], int):
+            w.exploration_percentage = str(w['exploration_percentage'] / 10)
+            if w.exploration_percentage == '100.0':
+                w.exploration_percentage = '100'
         world_explorations[w.name] = w
 
     char_data = raw_data.avatars
@@ -65,7 +66,7 @@ async def draw_info_card(uid, qid, nickname, raw_data):
 
     # 头像
     if QQ_Avatar:
-        url = f'https://q1.qlogo.cn/g?b=qq&nk={qid}&s=640'
+        url = f'http://q.qlogo.cn/headimg_dl?dst_uin={qid}&spec=640&img_type=jpg'
         avatar = await get_pic(url, (256, 256))
     else:
         cid = char_data[0]['id']
@@ -121,7 +122,7 @@ async def draw_info_card(uid, qid, nickname, raw_data):
 
     avatar_cards = []
 
-    for chara in char_data[:MAX_CHARA]:
+    for chara in char_data[:max_chara or len(char_data)]:
         card = await avatar_card(chara['id'], chara["level"], chara["actived_constellation_num"], chara["fetter"])
         avatar_cards.append(card)
 

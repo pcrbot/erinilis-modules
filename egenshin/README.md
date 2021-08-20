@@ -75,6 +75,7 @@
 ys#UID  | 查询一个UID信息 | ys#105293904
 ys#@xxx | 查询群友的UID,必须能@到人 | ys#@xxx
 ys#  | 查询用户上一次查询的UID信息 | ys#
+ysa#  | 和ys#一样 但是显示全部角色 | ysa#
 
 <details>
 <summary>示例</summary>

@@ -37,6 +37,8 @@ async def request_data(uid, api='index', character_ids=None):
     server = 'cn_gf01'
     if uid[0] == "5":
         server = 'cn_qd01'
+    if config.use_cookie_index == len(cookies):
+            return 'all cookie(%s) has limited' % len(cookies)
     cookie = cookies[config.use_cookie_index]
     print('use cookie index: %s' % config.use_cookie_index)
 
@@ -85,6 +87,7 @@ async def request_data(uid, api='index', character_ids=None):
     return json_data
 
 
+@cache(ttl=datetime.timedelta(minutes=30), arg_key='uid')
 async def info(uid):
     return await request_data(uid)
 
