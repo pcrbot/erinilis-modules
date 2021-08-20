@@ -151,6 +151,7 @@ async def answer(ctx, _reg_flag=False):
     ans_list = db.get(msg, [])
     _is_reg = False
     if not ans_list or _reg_flag:
+        msg = str(ctx['message']).strip()
         reg_msg = util.get_message_str(msg, True)
         reg_list = list(filter(None, map(lambda x: re.search(x, reg_msg) and reg_db[x] or None, reg_db.keys())))
         if not reg_list:
