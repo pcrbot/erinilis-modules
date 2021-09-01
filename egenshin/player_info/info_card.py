@@ -63,6 +63,8 @@ async def draw_info_card(uid, qid, nickname, raw_data, max_chara=None):
     for k in raw_data.avatars:
         if k['name'] == '旅行者':
             k['rarity'] = 3
+        if k['name'] == '埃洛伊':
+            k['rarity'] = 3
 
     char_data.sort(key=lambda x: (-x['rarity'], -x['actived_constellation_num'], -x['level']))  # , -x['fetter']
 
