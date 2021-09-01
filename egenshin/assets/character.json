@@ -182,9 +182,19 @@
     "rarity": 5,
     "element": "Cryo"
   },
+  "10000052": {
+    "name": "雷电将军",
+    "rarity": 5,
+    "element": "Electro"
+  },
   "10000053": {
     "name": "早柚",
     "rarity": 4,
     "element": "Anemo"
+  },
+  "10000056": {
+    "name": "九条裟罗",
+    "rarity": 4,
+    "element": "Electro"
   }
 }

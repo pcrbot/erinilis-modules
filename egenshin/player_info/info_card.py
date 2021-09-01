@@ -34,9 +34,11 @@ async def avatar_card(avatar_id, level, constellation, fetter):
     '''
     card = Image.open(os.path.join(CHARA_CARD, f'{avatar_id}.png'))
     draw_text_by_line(card, (0, 235), f'Lv.{level}', get_font(35), '#475463', 226, True)
-    i_con = Image.open(os.path.join(CHARA, f'命之座{constellation}.png'))
+    if constellation > 0:
+        i_con = Image.open(os.path.join(CHARA, f'命之座{constellation}.png'))
+        card = easy_alpha_composite(card, i_con, (160, -5))
+    
     i_fet = Image.open(os.path.join(CHARA, f'好感度{fetter}.png'))
-    card = easy_alpha_composite(card, i_con, (160, -5))
     card = easy_alpha_composite(card, i_fet, (0, 165))
     return card
 
