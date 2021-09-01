@@ -196,5 +196,10 @@
     "name": "九条裟罗",
     "rarity": 4,
     "element": "Electro"
+  },
+  "10000062": {
+    "name": "埃洛伊",
+    "rarity": 5,
+    "element": "Cryo"
   }
 }
