@@ -8,7 +8,7 @@ from urllib.parse import urlencode
 from ..util import get_config, get_next_day, Dict, init_db, cache
 
 config = get_config()
-mhyVersion = "2.7.0"
+mhyVersion = "2.10.1"
 config.use_cookie_index = 0
 config.runtime = get_next_day()
 cookies = config.setting.cookies
@@ -21,7 +21,7 @@ def __md5__(text):
 
 
 def __get_ds__():
-    n = "14bmu1mz0yuljprsfgpvjh3ju2ni468r"
+    n = "4a8knnbk5pbjqsrudp3dq484m9axoc5g"
     i = str(int(time.time()))
     r = ''.join(random.sample(string.ascii_lowercase + string.digits, 6))
     c = __md5__("salt=" + n + "&t=" + i + "&r=" + r)
