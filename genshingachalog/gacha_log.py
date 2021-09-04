@@ -86,7 +86,7 @@ class gacha_log:
         if not history:
             history = db[self.qq].get(str(gacha_type), [])
 
-        history_player_uid = await self.get_player_uid(history)
+        history_player_uid = await self.get_player_uid(history[0].get('uid') and history)
         for page in range(1, 9999):
             if add_history:
                 break
