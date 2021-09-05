@@ -3,12 +3,12 @@ import string
 import random
 import hashlib
 import time
+import json
 from hoshino import aiorequests
 from urllib.parse import urlencode
 from ..util import get_config, get_next_day, Dict, init_db, cache
 
 config = get_config()
-mhyVersion = "2.10.1"
 config.use_cookie_index = 0
 config.runtime = get_next_day()
 cookies = config.setting.cookies
@@ -20,11 +20,12 @@ def __md5__(text):
     return _md5.hexdigest()
 
 
-def __get_ds__():
-    n = "4a8knnbk5pbjqsrudp3dq484m9axoc5g"
+def __get_ds__(query, body=None):
+    n = "xV8v4Qu54lUKrEYFZkJhB8cuOh9Asafs"
     i = str(int(time.time()))
     r = ''.join(random.sample(string.ascii_lowercase + string.digits, 6))
-    c = __md5__("salt=" + n + "&t=" + i + "&r=" + r)
+    q = '&'.join([f'{k}={v}' for k, v in query.items()])
+    c = __md5__("salt=" + n + "&t=" + i + "&r=" + r + '&b=' + (body or '') + '&q=' + q)
     return i + "," + r + "," + c
 
 
@@ -38,44 +39,45 @@ async def request_data(uid, api='index', character_ids=None):
     if uid[0] == "5":
         server = 'cn_qd01'
     if config.use_cookie_index == len(cookies):
-            return 'all cookie(%s) has limited' % len(cookies)
+        return 'all cookie(%s) has limited' % len(cookies)
     cookie = cookies[config.use_cookie_index]
     print('use cookie index: %s' % config.use_cookie_index)
 
     headers = {
         'Accept': 'application/json, text/plain, */*',
-        'DS': __get_ds__(),
-        'Origin': 'https://webstatic.mihoyo.com',
-        'x-rpc-app_version': mhyVersion,
-        'User-Agent': 'Mozilla/5.0 (Linux; Android 9; Unspecified Device) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/39.0.0.0 Mobile Safari/537.36 miHoYoBBS/2.2.0',
-        'x-rpc-client_type': '5',
-        'Referer': 'https://webstatic.mihoyo.com/app/community-game-records/index.html?v=6',
-        'Accept-Encoding': 'gzip, deflate',
-        'Accept-Language': 'zh-CN,en-US;q=0.8',
-        'X-Requested-With': 'com.mihoyo.hyperion',
+        "User-Agent":
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBS/2.11.1",
+        "Referer": "https://webstatic.mihoyo.com/",
+        "x-rpc-app_version": "2.11.1",
+        "x-rpc-client_type": '5',
+        "DS": "",
         'Cookie': cookie
     }
 
-    params = {"server": server, "role_id": uid}
+    params = {"role_id": uid, "server": server}
 
     json_data = None
     fn = aiorequests.get
-    base_url = 'https://api-takumi.mihoyo.com/game_record/genshin/api/%s'
+    base_url = 'https://api-takumi.mihoyo.com/game_record/app/genshin/api/%s'
     url = base_url % api + '?'
     if api == 'index':
         url += urlencode(params)
     elif api == 'spiralAbyss':
-        params['schedule_type'] = 1
+        params['schedule_type'] = '1'
         url += urlencode(params)
     elif api == 'character':
         fn = aiorequests.post
         params.update({"character_ids": character_ids})
         json_data = params
+        params = {}
 
+    headers['DS'] = __get_ds__(
+        params, json_data and json.dumps(json_data, separators=(',', ':')))
     res = await fn(url=url, headers=headers, json=json_data)
     json_data = await res.json(object_hook=Dict)
     if json_data.retcode == 10103:
-        print('error cookie [%s] (%s) !' % (config.use_cookie_index, cookies[config.use_cookie_index]))
+        print('error cookie [%s] (%s) !' %
+              (config.use_cookie_index, cookies[config.use_cookie_index]))
         next_cookie = True
     if json_data.retcode == 10101 or next_cookie:
         print('cookie [%s] is limited!' % config.use_cookie_index)
