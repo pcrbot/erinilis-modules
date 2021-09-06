@@ -101,6 +101,8 @@ async def update_voice_data():
     char_list = await get_character_list()
     for char in char_list:
         info = await get_voice_info(char)
+        if not info:
+            continue
         data = []
         for v in info:
             chn = ''
