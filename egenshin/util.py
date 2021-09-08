@@ -33,7 +33,9 @@ def dict_to_object(dict_obj):
 
 # 获取配置
 def get_config(name='config.yml'):
-    file = open(os.path.join(os.path.dirname(__file__), str(Path(name))), 'r', encoding="utf-8")
+    file = open(os.path.join(os.path.dirname(__file__), str(Path(name))),
+                'r',
+                encoding="utf-8")
     return dict_to_object(yaml.load(file.read(), Loader=yaml.FullLoader))
 
 
@@ -76,7 +78,8 @@ def init_db(db_dir, db_name='db.sqlite', tablename='unnamed') -> SqliteDict:
 # 寻找MessageSegment里的某个关键字的位置
 def find_ms_str_index(ms, keyword, is_first=False):
     for index, item in enumerate(ms):
-        if item['type'] == 'text' and re.search(format_reg(keyword, is_first), item['data']['text']):
+        if item['type'] == 'text' and re.search(format_reg(keyword, is_first),
+                                                item['data']['text']):
             return index
     return -1
 
@@ -90,11 +93,13 @@ def is_group_admin(ctx):
 
 
 def get_next_day():
-    return time.mktime((datetime.date.today() + datetime.timedelta(days=+1)).timetuple()) + 1000
+    return time.mktime((datetime.date.today() +
+                        datetime.timedelta(days=+1)).timetuple()) + 1000
 
 
 def get_font(size):
-    return ImageFont.truetype(get_path('assets', 'font', 'HYWenHei 85W.ttf'), size=size)
+    return ImageFont.truetype(get_path('assets', 'font', 'HYWenHei 85W.ttf'),
+                              size=size)
 
 
 def pil2b64(data):
@@ -122,9 +127,12 @@ def cache(ttl=datetime.timedelta(hours=1), arg_key=None):
 
             now = datetime.datetime.now()
             if not data['time'] or now - data['time'] > ttl:
-                data['value'] = await func(*args, **kw)
-                data['time'] = now
-                cache_data[ins_key] = data
+                try:
+                    data['value'] = await func(*args, **kw)
+                    data['time'] = now
+                    cache_data[ins_key] = data
+                except Exception as e:
+                    raise e
 
             return data['value']
 
@@ -133,7 +141,13 @@ def cache(ttl=datetime.timedelta(hours=1), arg_key=None):
     return wrap
 
 
-async def require_file(file=None, r_mode='rb', encoding=None, url=None, use_cache=True, w_mode='wb', timeout=30):
+async def require_file(file=None,
+                       r_mode='rb',
+                       encoding=None,
+                       url=None,
+                       use_cache=True,
+                       w_mode='wb',
+                       timeout=30):
     async def read():
         with open(file, r_mode, encoding=encoding) as f:
             return f.read()
@@ -160,3 +174,31 @@ async def require_file(file=None, r_mode='rb', encoding=None, url=None, use_cach
         with open(file, w_mode) as f:
             f.write(content)
     return await read()
+
+
+running = {}
+
+
+class process:
+    def __init__(self, key, timeout=0):
+        self.key = key
+        self.timeout = timeout
+
+    def get(self):
+        return running.get(self.key, {})
+
+    def start(self):
+        running[self.key] = {'run': True, 'start_time': time.time()}
+        return self
+
+    def ok(self):
+        del running[self.key]
+
+    def is_run(self):
+        run = self.get()
+        if not run:
+            return False
+        if run.get('start_time') + self.timeout < time.time() and not self.timeout == 0:
+            self.ok()
+            return False
+        return bool(run.get('run'))

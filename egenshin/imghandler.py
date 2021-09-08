@@ -1,7 +1,9 @@
-from PIL import Image, ImageDraw, ImageFont, ImageOps
 import math
+from prettytable import PrettyTable
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 from hoshino import aiorequests
 from io import BytesIO
+from .util import get_font
 
 
 async def get_pic(url, size=None, *args, **kwargs) -> Image:
@@ -36,7 +38,10 @@ def easy_paste(im: Image, im_paste: Image, pos=(0, 0), direction="lt"):
     im.paste(im_paste, (x, y, x + size_x, y + size_y), im_paste)
 
 
-def easy_alpha_composite(im: Image, im_paste: Image, pos=(0, 0), direction="lt") -> Image:
+def easy_alpha_composite(im: Image,
+                         im_paste: Image,
+                         pos=(0, 0),
+                         direction="lt") -> Image:
     '''
     透明图像快速粘贴
     '''
@@ -46,7 +51,14 @@ def easy_alpha_composite(im: Image, im_paste: Image, pos=(0, 0), direction="lt")
     return base
 
 
-def draw_text_by_line(img, pos, text, font, fill, max_length, center=False, line_space=None):
+def draw_text_by_line(img,
+                      pos,
+                      text,
+                      font,
+                      fill,
+                      max_length,
+                      center=False,
+                      line_space=None):
     """
     在图片上写长段文字, 自动换行
     max_length单行最大长度, 单位像素
@@ -60,7 +72,7 @@ def draw_text_by_line(img, pos, text, font, fill, max_length, center=False, line
         y_add = math.ceil(h + line_space)
     draw = ImageDraw.Draw(img)
     row = ""  # 存储本行文字
-    length = 0  # 记录本行长度  
+    length = 0  # 记录本行长度
     for character in text:
         w, h = font.getsize(character)  # 获取当前字符的宽度
         if length + w * 2 <= max_length:
@@ -122,5 +134,23 @@ def image_array(canvas, image_list, col, space=0, top=0):
         easy_paste(list_canvas, image, (x, y))
         if column == col:
             column = 0
-    easy_paste(canvas, list_canvas, (math.ceil((canvas.size[0] - list_canvas.size[0]) / 2), 0))
+    easy_paste(canvas, list_canvas, (math.ceil(
+        (canvas.size[0] - list_canvas.size[0]) / 2), 0))
     return canvas
+
+
+async def create_text_img(rows):
+    tab = PrettyTable(header=False, border=False, align='c')
+    tab.add_rows(rows)
+    tab_info = str(tab)
+    space = 5
+    im = Image.new('RGB', (10, 10), '#FFFFFF')
+    draw = ImageDraw.Draw(im, "RGB")
+    img_size = draw.multiline_textsize(tab_info, font=get_font(20))
+    im_new = im.resize((img_size[0] + space * 2, img_size[1] + space * 2))
+    draw = ImageDraw.Draw(im_new, 'RGB')
+    draw.multiline_text((space, space),
+                        tab_info,
+                        fill='#000000',
+                        font=get_font(20))
+    return im_new

@@ -1,4 +1,3 @@
-from tkinter import N
 from hoshino import Service, priv, MessageSegment
 from ..util import get_config
 from . import query, info_card
@@ -21,6 +20,9 @@ config = get_config()
 
 async def handle(bot, ev):
     uid = ev.message.extract_plain_text().strip()
+    if uid and not uid.isdigit():
+        await bot.finish(ev, '游戏UID不合法')
+        
     qid = ev.user_id
     nickname = ev['sender']['nickname']
     m = ev.message

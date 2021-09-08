@@ -7,7 +7,8 @@
 > pip install pyyaml -i https://pypi.tuna.tsinghua.edu.cn/simple
 >
 > pip install sqlitedict -i https://pypi.tuna.tsinghua.edu.cn/simple
-
+>
+> pip install prettytable -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 ---
 
@@ -110,5 +111,56 @@ ysa#  | 和ys#一样 但是显示全部角色 | ysa#
 ![image](./doc/abyss_use_teams.jpeg)
 
 ![image](./doc/abyss_use_probability.jpeg)
+
+</details>
+
+
+## 原神成就
+
+<details>
+<summary>使用须知</summary>
+
+需要申请[百度OCR](https://cloud.baidu.com/product/ocr)
+拿到`API_KEY`和`SECRET_KEY` 配置到`config.yml`文件里的
+```yaml
+  baidu_ocr:
+    API_KEY: ********
+    SECRET_KEY: ********
+```
+
+</details>
+
+原神成就查漏功能 (用ys#绑定 切换号直接查询另一个就好)<br>
+不获取游戏内任何数据,仅仅只是记录玩家完成的成就<br>
+方便查看还有什么隐藏成就尚未完成<br>
+只有未完成的成就数量小于100时才有界面<br>
+
+使用方法:<br>
+
+(方法1): 可以直接使用命令后跟n张游戏内的截图来进行更新,例如<br>
+原神成就[完成的成就截图1][完成的成就截图2][完成的成就截图3]
+
+(方法2): 可以上传图床然后使用命令跟n个上传的图片地址更新,例如<br>
+原神成就<br>
+https://imgtu.com/i/h5Rq6x<br>
+https://imgtu.com/i/h5RHpR<br>
+https://imgtu.com/i/h5Rb11<br>
+
+支持的图床有<br>
+https://imgtu.com/<br>
+https://ibb.co/<br>
+
+
+命令  | 说明 | 例
+------------- | ------------- | -------------
+原神成就? | 查看功能帮助 | 原神成就?
+原神成就 | 查看未完成的成就列表 | 原神成就
+原神成就[游戏截图1][游戏截图2]  | 添加已完成的成就 | -
+
+
+<details>
+<summary>返回示例</summary>
+
+![image](./doc/achievements.jpeg)
 
 </details>
