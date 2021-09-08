@@ -1,5 +1,6 @@
 import copy
 import re
+import zhconv
 from dataclasses import dataclass, field
 from typing import List
 
@@ -26,8 +27,10 @@ FIX_WORD = {
     'SWORDFISⅢ': 'SWORDFISH Ⅱ',
     '家里最好的剑': '冢里最好的剑',
     '是时候征服海衹岛了!': '是时候征服海祇岛了!',
+    '除了时间什么都没丢': '除了时间什么也没丢',
     'ela vu': 'DejaVu'
 }
+WORD_REPLACE = {}
 
 
 class achievement:
@@ -36,7 +39,7 @@ class achievement:
 
     def __init__(self, qq):
         self.qq = str(qq)
-        
+
         if process(self.qq).is_run():
             raise Exception('正在处理中...')
         uid = get_uid_by_qid(self.qq)
@@ -44,9 +47,9 @@ class achievement:
             raise Exception('请先使用查询游戏UID功能进行绑定')
 
         info = db.get(self.qq, {}).get(uid)
-        
+
         self.info = info and Info(**info) or Info(uid=uid)
-    
+
     async def form_img_list(self, img_list):
         run = process(self.info.uid).start()
 
@@ -60,9 +63,10 @@ class achievement:
 
                 for word in result.words_result:
                     word = word.words.strip()
+                    word = zhconv.convert(word, 'zh-hans').strip('“”')
                     word = FIX_WORD.get(word, word)
                     word = remove_special_char(word)
-                    
+
                     if len(word) == 1:
                         continue
 
@@ -74,19 +78,22 @@ class achievement:
                     if match_count or match_date:
                         continue
 
+                    for v in WORD_REPLACE.items():
+                        word = word.replace(*v)
+
                     word_filter = list(filter(lambda s: word in s, all_keys))
                     if word_filter:
                         completed.add(all_achievement[word_filter[0]]['name'])
 
             self.info.completed = list(completed)
-            
+
             if not db.get(self.qq):
                 db[self.qq] = {self.info.uid: self.info.__dict__}
             else:
                 new_data = db[self.qq]
                 new_data[self.info.uid] = self.info.__dict__
                 db[self.qq] = new_data
-                
+
             run.ok()
         except Exception as e:
             run.ok()
