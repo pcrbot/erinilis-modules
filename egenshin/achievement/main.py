@@ -26,7 +26,7 @@ FIX_WORD = {
     'SWORDFISⅢ': 'SWORDFISH Ⅱ',
     '家里最好的剑': '冢里最好的剑',
     '是时候征服海衹岛了!': '是时候征服海祇岛了!',
-    'D': 'DejaVu'
+    'ela vu': 'DejaVu'
 }
 
 
@@ -62,6 +62,9 @@ class achievement:
                     word = word.words.strip()
                     word = FIX_WORD.get(word, word)
                     word = remove_special_char(word)
+                    
+                    if len(word) == 1:
+                        continue
 
                     if word == '达成':
                         continue
