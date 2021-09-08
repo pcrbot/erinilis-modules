@@ -50,6 +50,17 @@ class achievement:
 
         self.info = info and Info(**info) or Info(uid=uid)
 
+    async def save_data(self, data):
+            if not db.get(self.qq):
+                db[self.qq] = {self.info.uid: data}
+            else:
+                new_data = db[self.qq]
+                new_data[self.info.uid] = data
+                db[self.qq] = new_data
+
+    async def clear_data(self):
+        await self.save_data({})
+
     async def form_img_list(self, img_list):
         run = process(self.info.uid).start()
 
@@ -87,12 +98,7 @@ class achievement:
 
             self.info.completed = list(completed)
 
-            if not db.get(self.qq):
-                db[self.qq] = {self.info.uid: self.info.__dict__}
-            else:
-                new_data = db[self.qq]
-                new_data[self.info.uid] = self.info.__dict__
-                db[self.qq] = new_data
+            await self.save_data(self.info.__dict__)
 
             run.ok()
         except Exception as e:

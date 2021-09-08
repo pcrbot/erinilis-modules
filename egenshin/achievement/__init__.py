@@ -13,6 +13,9 @@ sv_help = '''
 方便查看还有什么隐藏成就尚未完成
 只有未完成的成就数量小于100时才有界面
 
+如果要删除现有的成就请使用 重置原神成就
+重置仅仅是ys#绑定的成就
+
 使用方法:
 
 (方法1): 可以直接使用命令后跟n张游戏内的截图来进行更新,例如
@@ -89,6 +92,16 @@ async def main(bot, ev):
             await bot.send(ev, MessageSegment.image(pil2b64(im)), at_sender=True)
 
 
+    except Exception as e:
+        await bot.send(ev, e.args[0], at_sender=True)
+        raise e
+
+@sv.on_prefix(('重置' + prefix + '成就', ))
+async def main(bot, ev):
+    try:
+        achi = achievement(ev.user_id)
+        await achi.clear_data()
+        await bot.send(ev, '重置成功', at_sender=True)
     except Exception as e:
         await bot.send(ev, e.args[0], at_sender=True)
         raise e
