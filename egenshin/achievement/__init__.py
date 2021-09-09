@@ -52,7 +52,6 @@ async def main(bot, ev):
         await bot.finish(ev, sv_help, at_sender=True)
 
     try:
-        achi = achievement(ev.user_id)
         img_list = []
         proxy_url = []
 
@@ -67,6 +66,14 @@ async def main(bot, ev):
                     if re.search(r'https?://', text):
                         proxy_url.append(text)
 
+        m = ev.message
+        user_id = ev.user_id
+        if m and m[0]['type'] == 'at':
+            user_id = m[0]['data']['qq']
+            if any([img_list, proxy_url]):
+                raise Exception('你不能帮别人添加成就...')
+
+        achi = achievement(user_id)
         if img_list:
             await bot.send(ev, '更新当前成就中...', at_sender=True)
             await achi.form_img_list(img_list)
@@ -89,12 +96,14 @@ async def main(bot, ev):
                 f"({v['version']}) {v['name']}": v['description']
                 for i, v in enumerate(result)
             }.items())
-            await bot.send(ev, MessageSegment.image(pil2b64(im)), at_sender=True)
-
+            await bot.send(ev,
+                           MessageSegment.image(pil2b64(im)),
+                           at_sender=True)
 
     except Exception as e:
         await bot.send(ev, e.args[0], at_sender=True)
         raise e
+
 
 @sv.on_prefix(('重置' + prefix + '成就', ))
 async def main(bot, ev):

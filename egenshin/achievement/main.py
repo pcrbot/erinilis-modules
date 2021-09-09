@@ -53,6 +53,8 @@ class achievement:
 
         self.info = info and Info(**info) or Info(uid=uid)
 
+        self.run = process(self.info.uid).start()
+
     async def save_data(self, data):
         if not db.get(self.qq):
             db[self.qq] = {self.info.uid: data}
@@ -65,7 +67,7 @@ class achievement:
         await self.save_data({})
 
     async def form_img_list(self, img_list):
-        run = process(self.info.uid).start()
+
 
         try:
             all_achievement = await all_achievements()
@@ -78,17 +80,17 @@ class achievement:
                 for word in result.words_result:
                     word = word.words.strip()
                     word = zhconv.convert(word, 'zh-hans').strip('“”') # 转换简体字
-                    
-                    
+
+
                     local_fix = FIX_WORD.get(word)
-                    
+
                     if not local_fix: # 如果本地没有修复的词, 就使用github上的
                         gh_fix = await gh_fix_word()
                         word = gh_fix.get(word, word)
                     else:
                         word = local_fix
-                        
-                    
+
+
                     word = remove_special_char(word)
 
                     if len(word) == 1:
@@ -113,13 +115,12 @@ class achievement:
 
             await self.save_data(self.info.__dict__)
 
-            run.ok()
+            self.run.ok()
         except Exception as e:
-            run.ok()
+            self.run.ok()
             raise e
 
     async def from_proxy_url(self, url_list):
-        run = process(self.info.uid).start()
         try:
             img_list, failed_list = await proxy_url(url_list)
 
@@ -127,17 +128,21 @@ class achievement:
 
             return failed_list
         except Exception as e:
-            run.ok()
+            self.run.ok()
             raise e
 
     @property
     async def unfinished(self):
-        all_achievement = copy.copy(await all_achievements())
-        all_keys = all_achievement.keys()
+        try:
+            all_achievement = copy.copy(await all_achievements())
+            all_keys = all_achievement.keys()
 
-        for name in self.info.completed:
-            name = remove_special_char(name)
-            if name in all_keys:
-                del all_achievement[name]
-
-        return all_achievement.values()
+            for name in self.info.completed:
+                name = remove_special_char(name)
+                if name in all_keys:
+                    del all_achievement[name]
+            self.run.ok()
+            return all_achievement.values()
+        except Exception as e:
+            self.run.ok()
+            raise e
