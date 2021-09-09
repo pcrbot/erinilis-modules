@@ -197,6 +197,17 @@ async def require_file(file=None,
     return await read()
 
 
+@cache(ttl=datetime.timedelta(hours=24))
+async def get_game_version():
+    url = 'https://sdk-static.mihoyo.com/hk4e_cn/mdk/launcher/api/resource?key=eYd89JmJ&launcher_id=18'
+    res = await aiorequests.get(url, timeout=10)
+    json_data = await res.json(object_hook=Dict)
+    if json_data.retcode != 0:
+        raise Exception(json_data.message)
+    latest = json_data.data.game.latest
+    return latest.version
+
+
 running = {}
 
 

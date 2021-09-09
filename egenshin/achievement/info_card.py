@@ -1,12 +1,14 @@
 from pathlib import Path
+from pkg_resources import parse_version
 
 from ..imghandler import *
-from ..util import  get_font, get_path, pil2b64
+from ..util import get_font, get_game_version, get_path, pil2b64
 
-assets_dir = Path(get_path('assets'))
+assets_dir = Path(get_path('assets')) / 'achievement'
 
-list_bg = Image.open(assets_dir / 'achievement' / "list_bg.png")
-list_bg_line = Image.open(assets_dir / 'achievement' / "list_version_line.png")
+list_bg = Image.open(assets_dir / "list_bg.png")
+list_bg_line = Image.open(assets_dir / "list_version_line.png")
+list_bg_line_red = Image.open(assets_dir / "list_version_line_red.png")
 list_bg_w, list_bg_h = list_bg.size
 
 
@@ -20,8 +22,8 @@ async def item_img(name, description, reward, version):
     draw_text_by_line(new_bg, (reward_index, 85), reward, get_font(21), '#ffffff', 100)
     return new_bg
 
-async def item_line(text):
-    new_bg = list_bg_line.copy()
+async def item_line(text, red=False):
+    new_bg = red and list_bg_line_red.copy() or list_bg_line.copy()
     draw_text_by_line(new_bg, (0, 0), text, get_font(28), '#535250', 881, True)
     return new_bg
 
@@ -42,9 +44,12 @@ async def draw_info_card(achievement):
     bg_h = list_bg_h * len(achievement) + (list_bg_line.size[1] * len(data))
     bg = Image.new('RGB', (list_bg_w + 40, bg_h),'#f1ece6')
 
+    game_version = parse_version(await get_game_version())
     item_index = 0
     for version in sorted(data, key=str):
-        easy_paste(bg, await item_line(version), (20, item_index))
+        red = parse_version(version) > game_version
+
+        easy_paste(bg, await item_line(version, red), (20, item_index))
         item_index += list_bg_line.size[1]
 
         for info in data[version]:
