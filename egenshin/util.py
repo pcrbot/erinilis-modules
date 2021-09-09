@@ -141,6 +141,27 @@ def cache(ttl=datetime.timedelta(hours=1), arg_key=None):
     return wrap
 
 
+async def github(path):
+    try:
+        url = f'https://cdn.jsdelivr.net/gh/{path}'
+        res = await aiorequests.get(url, timeout=10)
+        return await res.content
+    except aiorequests.exceptions.ConnectionError:
+        raise
+
+
+gh_end_point = 'pcrbot/erinilis-modules/egenshin/'
+
+
+async def gh_json(file_path):
+    return json.loads(await github(gh_end_point + file_path), object_hook=Dict)
+
+
+async def gh_file(file_path, **kw):
+    kw['url'] = gh_end_point + file_path
+    return await require_file(**kw)
+
+
 async def require_file(file=None,
                        r_mode='rb',
                        encoding=None,
@@ -192,13 +213,15 @@ class process:
         return self
 
     def ok(self):
-        del running[self.key]
+        if running.get(self.key):
+            del running[self.key]
 
     def is_run(self):
         run = self.get()
         if not run:
             return False
-        if run.get('start_time') + self.timeout < time.time() and not self.timeout == 0:
+        if run.get('start_time') + self.timeout < time.time(
+        ) and not self.timeout == 0:
             self.ok()
             return False
         return bool(run.get('run'))

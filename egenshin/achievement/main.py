@@ -1,17 +1,30 @@
 import copy
+import json
 import re
-import zhconv
 from dataclasses import dataclass, field
+from datetime import timedelta
+from pathlib import Path
 from typing import List
+
+import zhconv
 
 from ..baidu_ocr import ocr_text
 from ..player_info.query import get_uid_by_qid
-from ..util import get_config, init_db, process
+from ..util import cache, get_config, get_path, gh_json, init_db, process
 from .achievements import all_achievements, remove_special_char
 from .proxy_url import proxy_url
 
 config = get_config()
 db = init_db(config.cache_dir, 'achievement.sqlite')
+local_dir = Path(get_path('achievement'))
+
+with open(local_dir / 'fix_word.json', 'r', encoding="utf-8") as fp:
+    FIX_WORD = json.load(fp)
+
+
+@cache(ttl=timedelta(hours=2))
+async def gh_fix_word():
+    return await gh_json('achievement/fix_word.json')
 
 
 @dataclass
@@ -20,16 +33,6 @@ class Info:
     completed: List[str] = field(default_factory=list)
 
 
-FIX_WORD = {
-    '碰··碰': '碰·一·碰',
-    'SWORDFISHⅡ': 'SWORDFISH Ⅱ',
-    'SWORDFISH II': 'SWORDFISH Ⅱ',
-    'SWORDFISⅢ': 'SWORDFISH Ⅱ',
-    '家里最好的剑': '冢里最好的剑',
-    '是时候征服海衹岛了!': '是时候征服海祇岛了!',
-    '除了时间什么都没丢': '除了时间什么也没丢',
-    'ela vu': 'DejaVu'
-}
 WORD_REPLACE = {}
 
 
@@ -51,12 +54,12 @@ class achievement:
         self.info = info and Info(**info) or Info(uid=uid)
 
     async def save_data(self, data):
-            if not db.get(self.qq):
-                db[self.qq] = {self.info.uid: data}
-            else:
-                new_data = db[self.qq]
-                new_data[self.info.uid] = data
-                db[self.qq] = new_data
+        if not db.get(self.qq):
+            db[self.qq] = {self.info.uid: data}
+        else:
+            new_data = db[self.qq]
+            new_data[self.info.uid] = data
+            db[self.qq] = new_data
 
     async def clear_data(self):
         await self.save_data({})
@@ -74,8 +77,18 @@ class achievement:
 
                 for word in result.words_result:
                     word = word.words.strip()
-                    word = zhconv.convert(word, 'zh-hans').strip('“”')
-                    word = FIX_WORD.get(word, word)
+                    word = zhconv.convert(word, 'zh-hans').strip('“”') # 转换简体字
+                    
+                    
+                    local_fix = FIX_WORD.get(word)
+                    
+                    if not local_fix: # 如果本地没有修复的词, 就使用github上的
+                        gh_fix = await gh_fix_word()
+                        word = gh_fix.get(word, word)
+                    else:
+                        word = local_fix
+                        
+                    
                     word = remove_special_char(word)
 
                     if len(word) == 1:
