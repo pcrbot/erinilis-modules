@@ -1,9 +1,7 @@
 import re
 
 from hoshino import MessageSegment, Service, priv
-
-from ..imghandler import create_text_img
-from ..util import pil2b64
+from ..player_info import handle as player_info
 from .info_card import draw_info_card
 from .main import achievement
 
@@ -89,17 +87,12 @@ async def main(bot, ev):
         result = await achi.unfinished
 
         if len(result) < 100:
-            im = await draw_info_card(result)
+            player = await player_info(bot, ev)
+            
+            im = await draw_info_card(player, result)
             await bot.send(ev, MessageSegment.image(im), at_sender=True)
         else:
             await bot.send(ev, f'你还有{len(result)}个成就尚未完成,你可以发送 原神成就? 查看如何使用', at_sender=True)
-            # im = await create_text_img({
-            #     f"({v['version']}) {v['name']}": v['description']
-            #     for i, v in enumerate(result)
-            # }.items())
-            # await bot.send(ev,
-            #                MessageSegment.image(pil2b64(im)),
-            #                at_sender=True)
 
     except Exception as e:
         await bot.send(ev, e.args[0], at_sender=True)
