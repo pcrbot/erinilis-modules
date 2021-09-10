@@ -22,7 +22,7 @@ with open(local_dir / 'fix_word.json', 'r', encoding="utf-8") as fp:
     FIX_WORD = json.load(fp)
 
 
-@cache(ttl=timedelta(hours=2))
+@cache(ttl=timedelta(hours=10))
 async def gh_fix_word():
     return await gh_json('achievement/fix_word.json')
 

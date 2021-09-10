@@ -1,18 +1,20 @@
 # -*- coding: UTF-8 -*-
-import datetime
 import base64
+import datetime
 import functools
-import time
-import yaml
 import json
 import os
 import re
+import time
 from io import BytesIO
+from pathlib import Path
+
+import aiofiles
+import yaml
 from hoshino import aiorequests
+from nonebot import *
 from PIL import ImageFont
 from sqlitedict import SqliteDict
-from pathlib import Path
-from nonebot import *
 
 bot = get_bot()
 
@@ -86,6 +88,9 @@ def find_ms_str_index(ms, keyword, is_first=False):
 
 def filter_list(plist, func):
     return list(filter(func, plist))
+
+def list_split(items, n):
+    return [items[i:i + n] for i in range(0, len(items), n)]
 
 
 def is_group_admin(ctx):
@@ -170,8 +175,8 @@ async def require_file(file=None,
                        w_mode='wb',
                        timeout=30):
     async def read():
-        with open(file, r_mode, encoding=encoding) as f:
-            return f.read()
+        async with aiofiles.open(file, r_mode, encoding=encoding) as fp:
+            return await fp.read()
 
     if not any([file, url]):
         raise ValueError('file or url not null')

@@ -92,13 +92,14 @@ async def main(bot, ev):
             im = await draw_info_card(result)
             await bot.send(ev, MessageSegment.image(im), at_sender=True)
         else:
-            im = await create_text_img({
-                f"({v['version']}) {v['name']}": v['description']
-                for i, v in enumerate(result)
-            }.items())
-            await bot.send(ev,
-                           MessageSegment.image(pil2b64(im)),
-                           at_sender=True)
+            await bot.send(ev, f'你还有{len(result)}个成就尚未完成,你可以发送 原神成就? 查看如何使用', at_sender=True)
+            # im = await create_text_img({
+            #     f"({v['version']}) {v['name']}": v['description']
+            #     for i, v in enumerate(result)
+            # }.items())
+            # await bot.send(ev,
+            #                MessageSegment.image(pil2b64(im)),
+            #                at_sender=True)
 
     except Exception as e:
         await bot.send(ev, e.args[0], at_sender=True)
