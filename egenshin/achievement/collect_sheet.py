@@ -92,7 +92,7 @@ async def achievements_sheet(top_type='天地万象'):
     result = {}
     data = await request_data(*((top_type, ) + get_all_achievements_api()))
     data20 = await request_data(*((top_type, ) + get_all_achievements20_api()))
-    data21 = await request_data(*((top_type, ) + get_all_achievements20_api()))
+    data21 = await request_data(*((top_type, ) + get_all_achievements21_api()))
 
     result.update(data)
     result.update(data20)
