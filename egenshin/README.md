@@ -7,8 +7,6 @@
 > pip install pyyaml -i https://pypi.tuna.tsinghua.edu.cn/simple
 >
 > pip install sqlitedict -i https://pypi.tuna.tsinghua.edu.cn/simple
->
-> pip install prettytable -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 ---
 

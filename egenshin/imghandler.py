@@ -1,5 +1,4 @@
 import math
-from prettytable import PrettyTable
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 from hoshino import aiorequests
 from io import BytesIO
@@ -137,20 +136,3 @@ def image_array(canvas, image_list, col, space=0, top=0):
     easy_paste(canvas, list_canvas, (math.ceil(
         (canvas.size[0] - list_canvas.size[0]) / 2), 0))
     return canvas
-
-
-async def create_text_img(rows):
-    tab = PrettyTable(header=False, border=False, align='c')
-    tab.add_rows(rows)
-    tab_info = str(tab)
-    space = 5
-    im = Image.new('RGB', (10, 10), '#FFFFFF')
-    draw = ImageDraw.Draw(im, "RGB")
-    img_size = draw.multiline_textsize(tab_info, font=get_font(20))
-    im_new = im.resize((img_size[0] + space * 2, img_size[1] + space * 2))
-    draw = ImageDraw.Draw(im_new, 'RGB')
-    draw.multiline_text((space, space),
-                        tab_info,
-                        fill='#000000',
-                        font=get_font(20))
-    return im_new

@@ -11,7 +11,7 @@ import zhconv
 from ..baidu_ocr import ocr_text
 from ..player_info.query import get_uid_by_qid
 from ..util import cache, get_config, get_path, gh_json, init_db, process
-from .achievements import all_achievements, remove_special_char
+from .collect_sheet import remove_special_char, achievements_sheet
 from .proxy_url import proxy_url
 
 config = get_config()
@@ -22,7 +22,7 @@ with open(local_dir / 'fix_word.json', 'r', encoding="utf-8") as fp:
     FIX_WORD = json.load(fp)
 
 
-@cache(ttl=timedelta(hours=10))
+@cache(ttl=timedelta(hours=24))
 async def gh_fix_word():
     return await gh_json('achievement/fix_word.json')
 
@@ -70,7 +70,7 @@ class achievement:
 
 
         try:
-            all_achievement = await all_achievements()
+            all_achievement = await achievements_sheet()
             all_keys = all_achievement.keys()
             completed = set(self.info.completed)
 
@@ -109,7 +109,7 @@ class achievement:
 
                     word_filter = list(filter(lambda s: word in s, all_keys))
                     if word_filter:
-                        completed.add(all_achievement[word_filter[0]]['name'])
+                        completed.add(all_achievement[word_filter[0]].name)
 
             self.info.completed = list(completed)
 
@@ -134,7 +134,7 @@ class achievement:
     @property
     async def unfinished(self):
         try:
-            all_achievement = copy.copy(await all_achievements())
+            all_achievement = copy.copy(await achievements_sheet())
             all_keys = all_achievement.keys()
 
             for name in self.info.completed:

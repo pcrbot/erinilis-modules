@@ -4,7 +4,6 @@ from pkg_resources import parse_version
 from ..imghandler import *
 from ..util import get_font, get_game_version, get_path, pil2b64
 from .collect_sheet import achievements_sheet
-from .achievements import remove_special_char, all_achievements
 
 assets_dir = Path(get_path('assets')) / 'achievement'
 
@@ -37,26 +36,26 @@ async def gen_head(achi_len, all_achi_len, uid, qid, nickname, raw_data):
                       '#786a5d', 450)
 
     text_draw.text((362, 124), f'天地万象：{achi_len}/{all_achi_len}', '#414d65', get_font(35))
-    text_draw.text((910, 66), f'总成就\n  {achievement_number}', '#414d65', get_font(35))
+    text_draw.text((910, 66), f'总成就', '#414d65', get_font(35))
+    text_draw.text((930, 105), f'{achievement_number}', '#414d65', get_font(35))
 
     return new_head_img
 
 
-async def item_img(name, description, reward, version):
+async def item_img(info):
     sheet_data = await achievements_sheet()
 
     new_bg = list_bg.copy()
-    draw_text_by_line(new_bg, (220, 25), name, get_font(28), '#535250', 851)
-    draw_text_by_line(new_bg, (220, 70), description, get_font(25), '#b99e8b',
-                      851)
+    draw_text_by_line(new_bg, (220, 25), info.name, get_font(28), '#535250', 851)
+    draw_text_by_line(new_bg, (220, 70), info.desc, get_font(25), '#b99e8b',851)
     reward_index = 1115
-    if len(reward) == 2:
+    if len(info.reward) == 2:
         reward_index -= 5
-    draw_text_by_line(new_bg, (reward_index, 85), reward, get_font(21),
+    draw_text_by_line(new_bg, (reward_index, 85), info.reward, get_font(21),
                       '#ffffff', 100)
 
     quest_icon = None
-    data_info = sheet_data.get(remove_special_char(name))
+    data_info = sheet_data.get(str(info))
     quest_icon_pos = (160, 18)
     if data_info:
         if data_info.is_daily_quest:  # 是否是每日任务
@@ -96,9 +95,10 @@ async def item_line(text, red=False):
 async def handle(achievement):
     new_data = {}
     for info in achievement:
-        new_list = new_data.get(info['version'], [])
+        version = '%.1f' % float(info.version or '0')
+        new_list = new_data.get(version, [])
         new_list.append(info)
-        new_data[info['version']] = new_list
+        new_data[version] = new_list
 
     return new_data
 
@@ -112,7 +112,7 @@ async def draw_info_card(player, achievement):
     bg = Image.new('RGB', (list_bg_w + 40, item_index + bg_h), '#f1ece6')
 
     
-    all_achi_len = len(await all_achievements())
+    all_achi_len = len(await achievements_sheet())
     unachi_len = 0
     game_version = parse_version(await get_game_version())
     for version in sorted(data, key=str):
@@ -124,7 +124,7 @@ async def draw_info_card(player, achievement):
         item_index += list_bg_line.size[1]
 
         for info in data[version]:
-            easy_paste(bg, await item_img(**info), (20, item_index))
+            easy_paste(bg, await item_img(info), (20, item_index))
             item_index += list_bg_h
             
     all_achi_len -= unachi_len
