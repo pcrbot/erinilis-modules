@@ -1,6 +1,6 @@
 import re
 
-from hoshino import MessageSegment, Service, priv
+from hoshino import MessageSegment, Service, priv, Message
 from ..player_info import handle as player_info
 from .info_card import draw_info_card
 from .main import achievement
@@ -16,18 +16,10 @@ sv_help = '''
 
 使用方法:
 
-(方法1): 可以直接使用命令后跟n张游戏内的截图来进行更新,例如
+可以直接使用命令后跟n张游戏内的截图来进行更新,例如
 原神成就[完成的成就截图1][完成的成就截图2][完成的成就截图3]
 
-(方法2): 可以上传图床然后使用命令跟n个上传的图片地址更新,例如
-原神成就
-https://imgtu.com/i/h5Rq6x
-https://imgtu.com/i/h5RHpR
-https://imgtu.com/i/h5Rb11
-
-支持的图床有
-https://imgtu.com/
-https://ibb.co/
+原神成就a 则显示带攻略的成就
 '''.strip()
 
 sv = Service(
@@ -46,6 +38,8 @@ prefix = '原神'
 @sv.on_prefix((prefix + '成就', ))
 async def main(bot, ev):
     text = ev.message.extract_plain_text().strip()
+    detail = text in ['全', 'a']
+    
     if text in ['help', '帮助', '?', '？']:
         await bot.finish(ev, sv_help, at_sender=True)
 
@@ -87,14 +81,17 @@ async def main(bot, ev):
         result = await achi.unfinished
 
         if len(result) < 100:
+            ev.message = Message(str(ev.message)[1:])
             player = await player_info(bot, ev)
             
-            im = await draw_info_card(player, result)
+            im = await draw_info_card(player, result, detail)
             await bot.send(ev, MessageSegment.image(im), at_sender=True)
         else:
             await bot.send(ev, f'你还有{len(result)}个成就尚未完成,你可以发送 原神成就? 查看如何使用', at_sender=True)
 
     except Exception as e:
+        if 'HoshinoBot finished' in e.args[0]:
+            return
         await bot.send(ev, e.args[0], at_sender=True)
         raise e
 

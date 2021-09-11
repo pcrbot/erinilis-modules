@@ -1,5 +1,6 @@
 from pathlib import Path
 from pkg_resources import parse_version
+from functools import reduce
 
 from ..imghandler import *
 from ..util import get_font, get_game_version, get_path, pil2b64
@@ -13,6 +14,7 @@ list_bg_line_red = Image.open(assets_dir / "list_version_line_red.png")
 list_bg_w, list_bg_h = list_bg.size
 
 head_img = Image.open(assets_dir / "head.png")
+remark_img = Image.open(assets_dir / "remark.png")
 daily_quest_icon = Image.open(assets_dir / "daily_quest.png")  # 每日
 main_quest_icon = Image.open(assets_dir / "main_quest.png")  # 魔神
 world_quest_icon = Image.open(assets_dir / "world_quest.png")  # 世界
@@ -42,12 +44,13 @@ async def gen_head(achi_len, all_achi_len, uid, qid, nickname, raw_data):
     return new_head_img
 
 
-async def item_img(info):
+async def item_img(info, item_space, detail):
     sheet_data = await achievements_sheet()
 
-    new_bg = list_bg.copy()
-    draw_text_by_line(new_bg, (220, 25), info.name, get_font(28), '#535250', 851)
-    draw_text_by_line(new_bg, (220, 70), info.desc, get_font(25), '#b99e8b',851)
+    new_bg = Image.new('RGBA', (list_bg.size[0], list_bg.size[1] + item_space), '#f1ece6')
+    easy_paste(new_bg, list_bg.copy(), (0, 0))
+    draw_text_by_line(new_bg, (220, 25), info.name, get_font(28), '#535250', 861)
+    draw_text_by_line(new_bg, (220, 70), info.desc, get_font(25), '#b99e8b',1200)
     reward_index = 1115
     if len(info.reward) == 2:
         reward_index -= 5
@@ -83,6 +86,16 @@ async def item_img(info):
         if quest_icon:
             easy_paste(new_bg, quest_icon, quest_icon_pos)
 
+
+    if info.remark and detail:
+        bg = Image.new('RGBA', (new_bg.size[0], new_bg.size[1] + remark_img.size[1]), '#f1ece6')
+        easy_paste(bg, new_bg, (0, 0))
+        easy_paste(bg, remark_img, (0, new_bg.size[1] - item_space))
+        draw_text_by_line(bg, (170, 140), info.remark.replace('\n', '..'), get_font(24), '#b99e8b',860)
+
+        new_bg = bg
+
+
     return new_bg
 
 
@@ -102,32 +115,47 @@ async def handle(achievement):
 
     return new_data
 
-
-async def draw_info_card(player, achievement):
-    achievement = list(achievement)
-    data = await handle(achievement)
-
-    item_index = head_img.size[1] + 40
-    bg_h = list_bg_h * len(achievement) + (list_bg_line.size[1] * len(data))
-    bg = Image.new('RGB', (list_bg_w + 40, item_index + bg_h), '#f1ece6')
-
+async def gen_item_img(data, detail=False):
+    item_space = detail and 5 or 0
     
-    all_achi_len = len(await achievements_sheet())
-    unachi_len = 0
+    result = []
     game_version = parse_version(await get_game_version())
+
     for version in sorted(data, key=str):
         red = parse_version(version) > game_version
-        if red:
-            unachi_len += len(data[version])
 
-        easy_paste(bg, await item_line(f'{version} ({len(data[version])})', red), (20, item_index))
-        item_index += list_bg_line.size[1]
+        remark_h = detail and len(list(filter(lambda x : x.remark, data[version]))) * remark_img.height or 0
+        bg_height = (list_bg_h + item_space) * len(data[version])
+        bg = Image.new('RGBA', (list_bg_w, list_bg_line.height + bg_height + remark_h), '#f1ece6')
 
-        for info in data[version]:
-            easy_paste(bg, await item_img(info), (20, item_index))
-            item_index += list_bg_h
-            
-    all_achi_len -= unachi_len
-    easy_paste(bg, await gen_head(*((all_achi_len - len(achievement), all_achi_len) + player)), (20, 20))
+        easy_paste(bg, await item_line(f'{version} ({len(data[version])})', red), (20, 0))
+
+        item_index = list_bg_line.height
+
+        for info in sorted(data[version], key=lambda x : x.remark):
+            item = await item_img(info, item_space, detail)
+            easy_paste(bg, item, (20, item_index))
+            item_index += list_bg_h + item.height - list_bg_h
+
+        result.append(bg)
+
+    return result
+
+async def draw_info_card(player, achievement, detail=False):
+    achievement = list(achievement)
+    data = await handle(achievement)
     
+    item_img_list = await gen_item_img(data, detail)
+
+    item_index = head_img.size[1] + 40
+    bg_h = item_index + reduce(lambda x, y : x + y, [i.height for i in item_img_list])
+    bg = Image.new('RGB', (list_bg_w + 40,  bg_h), '#f1ece6')
+
+    for item in item_img_list:
+        easy_paste(bg, item, (20, item_index))
+        item_index += item.height
+
+    all_achi_len = len(await achievements_sheet())
+    easy_paste(bg, await gen_head(*((all_achi_len - len(achievement), all_achi_len) + player)), (20, 20))
+
     return pil2b64(bg)

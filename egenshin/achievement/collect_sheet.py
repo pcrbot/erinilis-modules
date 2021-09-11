@@ -52,7 +52,7 @@ def get_row_value(row):
     return str(row['2'][1])
 
 
-# @cache(ttl=timedelta(hours=24), arg_key='url')
+@cache(ttl=timedelta(hours=24), arg_key='url')
 async def request_raw_data(url):
     res = await aiorequests.get(url)
     json_data = await res.json(object_hook=Dict)
