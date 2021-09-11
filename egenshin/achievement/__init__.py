@@ -19,7 +19,7 @@ sv_help = '''
 可以直接使用命令后跟n张游戏内的截图来进行更新,例如
 原神成就[完成的成就截图1][完成的成就截图2][完成的成就截图3]
 
-原神成就a 则显示带攻略的成就
+a原神成就 则显示带攻略的成就
 '''.strip()
 
 sv = Service(
@@ -36,10 +36,10 @@ prefix = '原神'
 
 
 @sv.on_prefix((prefix + '成就', ))
-async def main(bot, ev):
+async def achievement_main(bot, ev):
     text = ev.message.extract_plain_text().strip()
-    detail = text in ['全', 'a']
-    
+    detail = ev.get('detail', False)
+
     if text in ['help', '帮助', '?', '？']:
         await bot.finish(ev, sv_help, at_sender=True)
 
@@ -81,9 +81,8 @@ async def main(bot, ev):
         result = await achi.unfinished
 
         if len(result) < 100:
-            ev.message = Message(str(ev.message)[1:])
             player = await player_info(bot, ev)
-            
+
             im = await draw_info_card(player, result, detail)
             await bot.send(ev, MessageSegment.image(im), at_sender=True)
         else:
@@ -105,3 +104,8 @@ async def main(bot, ev):
     except Exception as e:
         await bot.send(ev, e.args[0], at_sender=True)
         raise e
+
+@sv.on_prefix(('a' + prefix + '成就', ))
+async def main(bot, ev):
+    ev['detail'] = True
+    await achievement_main(bot, ev)
