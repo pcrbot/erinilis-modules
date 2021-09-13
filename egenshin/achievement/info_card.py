@@ -1,3 +1,4 @@
+import time
 from pathlib import Path
 from pkg_resources import parse_version
 from functools import reduce
@@ -14,6 +15,7 @@ list_bg_line_red = Image.open(assets_dir / "list_version_line_red.png")
 list_bg_w, list_bg_h = list_bg.size
 
 head_img = Image.open(assets_dir / "head.png")
+bottom_img = Image.open(assets_dir / "bottom.png")
 remark_img = Image.open(assets_dir / "remark.png")
 daily_quest_icon = Image.open(assets_dir / "daily_quest.png")  # 每日
 main_quest_icon = Image.open(assets_dir / "main_quest.png")  # 魔神
@@ -141,6 +143,12 @@ async def gen_item_img(data, detail=False):
 
     return result
 
+async def gen_bottom():
+    new_bg = bottom_img.convert('RGBA').copy()
+    now = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+    draw_text_by_line(new_bg, (690, 118), now, get_font(24), '#101820', 1200)
+    return new_bg
+
 async def draw_info_card(player, achievement, detail=False):
     achievement = list(achievement)
     data = await handle(achievement)
@@ -149,13 +157,16 @@ async def draw_info_card(player, achievement, detail=False):
 
     item_index = head_img.size[1] + 40
     bg_h = item_index + reduce(lambda x, y : x + y, [i.height for i in item_img_list])
-    bg = Image.new('RGB', (list_bg_w + 40,  bg_h), '#f1ece6')
+    bg = Image.new('RGB', (list_bg_w + 40,  bg_h + bottom_img.height), '#f1ece6')
 
     for item in item_img_list:
         easy_paste(bg, item, (20, item_index))
         item_index += item.height
-
+        
     all_achi_len = len(await achievements_sheet())
     easy_paste(bg, await gen_head(*((all_achi_len - len(achievement), all_achi_len) + player)), (20, 20))
+    
+    easy_paste(bg, await gen_bottom(), (20, item_index))
+    
 
     return pil2b64(bg)

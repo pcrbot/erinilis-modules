@@ -9,17 +9,18 @@ sv_help = '''
 原神成就查漏功能 (用ys#绑定 切换号直接查询另一个就好)
 不获取游戏内任何数据,仅仅只是记录玩家完成的成就
 方便查看还有什么隐藏成就尚未完成
-只有未完成的成就数量小于100时才有界面
+仅限天地万象!!
 
 如果要删除现有的成就请使用 重置原神成就
 重置仅仅是ys#绑定的成就
+如果要查看带有攻略请使用 a原神成就
 
 使用方法:
 
 可以直接使用命令后跟n张游戏内的截图来进行更新,例如
 原神成就[完成的成就截图1][完成的成就截图2][完成的成就截图3]
 
-a原神成就 则显示带攻略的成就
+
 '''.strip()
 
 sv = Service(
@@ -76,7 +77,7 @@ async def achievement_main(bot, ev):
             if failed:
                 await bot.send(ev, f'获取失败的图片链接:\n{failed}', at_sender=True)
 
-        await bot.send(ev, '正在生成未完成的成就列表...', at_sender=True)
+        # await bot.send(ev, '正在生成未完成的成就列表...', at_sender=True)
 
         result = await achi.unfinished
 
