@@ -67,21 +67,18 @@ class achievement:
         await self.save_data({})
 
     async def form_img_list(self, img_list):
-
-
         try:
             all_achievement = await achievements_sheet()
             all_keys = all_achievement.keys()
             completed = set(self.info.completed)
-
+            old_completed_len = len(completed)
+            ocr_success = []
             for img_url in img_list:
                 result = await ocr_text(img_url=img_url)
-
+                ocr_count = 0
                 for word in result.words_result:
                     word = word.words.strip()
                     word = zhconv.convert(word, 'zh-hans').strip('“”') # 转换简体字
-
-
                     local_fix = FIX_WORD.get(word)
 
                     if not local_fix: # 如果本地没有修复的词, 就使用github上的
@@ -89,7 +86,6 @@ class achievement:
                         word = gh_fix.get(word, word)
                     else:
                         word = local_fix
-
 
                     word = remove_special_char(word)
 
@@ -109,13 +105,15 @@ class achievement:
 
                     word_filter = list(filter(lambda s: word in s, all_keys))
                     if word_filter:
+                        ocr_count += 1
                         completed.add(all_achievement[word_filter[0]].name)
-
+                ocr_success.append(ocr_count)
             self.info.completed = list(completed)
 
             await self.save_data(self.info.__dict__)
 
             self.run.ok()
+            return ocr_success, old_completed_len - len(self.info.completed)
         except Exception as e:
             self.run.ok()
             raise e
@@ -123,10 +121,8 @@ class achievement:
     async def from_proxy_url(self, url_list):
         try:
             img_list, failed_list = await proxy_url(url_list)
-
-            await self.form_img_list(img_list)
-
-            return failed_list
+            ocr_success, added_len = await self.form_img_list(img_list)
+            return failed_list, ocr_success, added_len
         except Exception as e:
             self.run.ok()
             raise e

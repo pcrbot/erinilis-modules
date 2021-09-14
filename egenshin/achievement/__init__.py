@@ -20,8 +20,9 @@ sv_help = '''
 可以直接使用命令后跟n张游戏内的截图来进行更新,例如
 原神成就[完成的成就截图1][完成的成就截图2][完成的成就截图3]
 
+*第一次需要全部截完 不用一个个发,可以一次性发完
 
-'''.strip()
+'''.rstrip()
 
 sv = Service(
     name='原神成就',  # 功能名
@@ -66,18 +67,25 @@ async def achievement_main(bot, ev):
             if any([img_list, proxy_url]):
                 raise Exception('你不能帮别人添加成就...')
 
+        ocr_success = []
         achi = achievement(user_id)
         if img_list:
             await bot.send(ev, '更新当前成就中...', at_sender=True)
-            await achi.form_img_list(img_list)
+            ocr_success, added_len = await achi.form_img_list(img_list)
 
         if proxy_url:
             await bot.send(ev, '正在获取图片,以及更新成就...', at_sender=True)
-            failed = '\n'.join(await achi.from_proxy_url(proxy_url))
+            failed_list, ocr_success, added_len = await achi.from_proxy_url(proxy_url)
+            failed = '\n'.join(failed_list)
             if failed:
                 await bot.send(ev, f'获取失败的图片链接:\n{failed}', at_sender=True)
 
-        # await bot.send(ev, '正在生成未完成的成就列表...', at_sender=True)
+        if ocr_success:
+            ocr_success_msg = ' '.join([f'{i + 1}({x})' for i, x in enumerate(ocr_success)])
+            await bot.send(ev,
+                           f'本次识别结果增加了{added_len}个记录 过程:图片顺序(识别到的成就个数)\n' +
+                           ocr_success_msg,
+                           at_sender=True)
 
         result = await achi.unfinished
 
@@ -87,7 +95,10 @@ async def achievement_main(bot, ev):
             im = await draw_info_card(player, result, detail)
             await bot.send(ev, MessageSegment.image(im), at_sender=True)
         else:
-            await bot.send(ev, f'你还有{len(result)}个成就尚未完成,你可以发送 原神成就? 查看如何使用', at_sender=True)
+            await bot.send(
+                ev,
+                f'绑定的UID[{achi.info.uid}]记录的成就太少,请补充成就后再查看,发送 原神成就? 查看如何使用',
+                at_sender=True)
 
     except Exception as e:
         if 'HoshinoBot finished' in e.args[0]:
