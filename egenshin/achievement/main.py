@@ -113,7 +113,7 @@ class achievement:
             await self.save_data(self.info.__dict__)
 
             self.run.ok()
-            return ocr_success, old_completed_len - len(self.info.completed)
+            return ocr_success, len(self.info.completed) - old_completed_len
         except Exception as e:
             self.run.ok()
             raise e
