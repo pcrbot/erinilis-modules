@@ -10,8 +10,8 @@ sv_help = '''
 [原神十连] 一次10连抽卡
 [原神一单] 50连抽卡
 
-[原神十连武器] 50连武器抽卡
-[原神十连常驻] 50连常驻抽卡
+[原神十连武器] 10连武器抽卡
+[原神十连常驻] 10连常驻抽卡
 '''.strip()
 
 sv = Service(
@@ -25,8 +25,6 @@ sv = Service(
 )
 
 prefix = '原神'
-
-gacha_info_data = {'runtime': get_next_day()}
 
 # @sv.on_prefix('原神单抽')
 # async def gacha(bot, ev):
