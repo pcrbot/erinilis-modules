@@ -1,6 +1,7 @@
 import json
 import base64
 import aiofiles
+import asyncio
 from hoshino import aiorequests
 from urllib.parse import urlencode
 from .util import Dict, get_config
@@ -45,5 +46,13 @@ async def ocr_text(img_path=None, img_url=None):
 
     post_data = urlencode({'image': base64.b64encode(file_content)})
     result = await aiorequests.post(image_url, post_data, timeout=10)
+    json_data = await result.json(object_hook=Dict)
+    err = json_data.get('error_code')
+    if err and err == 18:  # QPS
+        await asyncio.sleep(1)
+        return await ocr_text(img_path=img_path, img_url=img_url)
+    elif err:
+        # https://cloud.baidu.com/doc/OCR/s/dk3h7y5vr
+        raise Exception(json_data.error_msg)
 
-    return await result.json(object_hook=Dict)
+    return json_data
