@@ -73,4 +73,5 @@ async def main(bot, ev):
         await bot.send(ev, "请求数据失败,请稍后再试", at_sender=True)
         raise e
     except Exception as e:
-        await bot.finish(ev, e.args[0], at_sender=True)
+        await bot.send(ev, str(e), at_sender=True)
+        raise e

@@ -25,7 +25,7 @@ with open(assets_dir / 'character.json', 'r', encoding="utf-8") as f:
     character: dict = json.loads(f.read(), object_hook=Dict)
 
 with open(assets_dir / 'spiral_abyss' / 'enemies.json', 'r', encoding="utf-8") as f:
-    enemies: dict = json.loads(f.read(), object_hook=Dict)['2.0']
+    enemies: dict = json.loads(f.read(), object_hook=Dict)['2.1']
 
 
 async def decode(raw_data):
