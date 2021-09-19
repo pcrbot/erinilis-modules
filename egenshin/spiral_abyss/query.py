@@ -15,8 +15,8 @@ from bs4 import BeautifulSoup
 BASE_URL = 'https://spiral-abyss.appsample.com'
 
 oLookup = {}
-s = 'no3yz5{q9kvxs6:,_-ODGW4AtiPj7mZerQXMBpabU1Jlfg}CNHY0VFRc"SEdI28KTwuLh'
-b64char = 'dAHBGOQNv"Cg,WPrU:fX93kJK-{bDVjLESs}oqMRmy0Til4nt_8c1pIZFYa6euwx5z72h'
+s = 'E8SB{nyYN5HZoPGfRzum9Ccv,Ig7}Q6Ad_2lFVt"xX-skLKaep4U:hOTbJ1ji0DWwr3qM'
+b64char = '6{}m23rLthApyWswdzS9kTQbZ_PBGM:CD1fHEXV70JKxo-"NjnFO4q8gaR,lYUcui5Ive'
 
 assets_dir = Path(get_path('assets'))
 enemies_img = assets_dir / 'spiral_abyss' / 'enemies'
@@ -73,7 +73,7 @@ async def get_abyss_data(floor):
     json_url = '%s/_next/data/%s/zh/floor-%s.json' % (BASE_URL, await __get_build_id__(), floor or '12')
     res = await aiorequests.get(json_url, timeout=10)
     json_data = await res.json(object_hook=Dict)
-    return await decode(json_data.pageProps.floorDataRaw)
+    return await decode(json_data.pageProps.FDR)
 
 
 @cache(ttl=datetime.timedelta(hours=2), arg_key='floor')
