@@ -201,6 +201,7 @@ async def answer(ctx, _reg_flag=False):
         if _msg['type'] == 'text' and _msg['data']['text'][:1] == config['str']['cmd_head_str']:
             ctx['raw_message'] = _msg['data']['text'][1:]
             ctx['message'] = Message(ctx['raw_message'])
+            ctx['to_me'] = True
             _bot.on_message(ctx)
             return False
     if _is_reg and _msg['type'] == 'text' and _msg['data']['text'][:1] == config['str']['reg_match_cmd']:
