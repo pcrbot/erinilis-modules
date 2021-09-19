@@ -171,10 +171,10 @@ async def answer(ctx, _reg_flag=False):
         x['user_id'] in admins if super_admin_is_all_group else False))
 
     # 木有在这群
-    if not ans_list:
-        return await answer(ctx, True)
-    elif not ans_list and _reg_flag:
+    if not ans_list and _reg_flag:
         return False
+    elif not ans_list:
+        return await answer(ctx, True)
 
     # 是否优先自己的回答 是的话则选择自己的列表
     if priority_self_answer:
