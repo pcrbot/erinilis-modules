@@ -201,5 +201,10 @@
     "name": "埃洛伊",
     "rarity": 5,
     "element": "Cryo"
+  },
+  "10000054": {
+    "name": "珊瑚宫心海",
+    "rarity": 5,
+    "element": "Hydro"
   }
 }

@@ -57,6 +57,8 @@ async def request_raw_data(url):
     res = await aiorequests.get(url)
     json_data = await res.json(object_hook=Dict)
     text = json_data.clientVars.collab_client_vars.initialAttributedText.text
+    if not text:
+        raise Exception('获取数据失败, 很可能是数据源缓存问题, 请稍后再试')
     sheet = text[0][-1][0]['c'][1]
     return [i for i in sheet.values()]
 
