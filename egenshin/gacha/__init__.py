@@ -63,7 +63,7 @@ async def handle_msg(bot, ev):
 @cache(ttl=timedelta(hours=24), arg_key='gacha_type')
 async def gacha_pool(gacha_type):
     data = await gacha_info_list()
-    gacha_data = filter_list(data, lambda x: x.gacha_type == gacha_type)[-1]
+    gacha_data = filter_list(data, lambda x: x.gacha_type == gacha_type)[0]
     gacha_id = gacha_data.gacha_id
     gacha_name = gacha_data.gacha_name
     gacha_type = gacha_data.gacha_type
