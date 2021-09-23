@@ -1,26 +1,31 @@
 # 以下界面来自明见佬
 
-import os
 import datetime
-
+import os
+from io import BytesIO
 from pathlib import Path
-from ..util import pil2b64, get_path, cache, get_font
+
 from ..imghandler import *
+from ..util import cache, get_font, get_path, pil2b64, require_file
 from . import query
 
 assets_dir = Path(get_path('assets'))
 
 info_bg = Image.open(assets_dir / 'player_info' / "原神资料卡.png")
+weapon_bg = Image.open(assets_dir / 'player_info' / "weapon_bg.png")
+weapon_icon_dir = assets_dir / 'player_info' / 'weapon'
+weapon_card_bg = {}
+for i in range(1 ,6):
+    weapon_card_bg[i] = Image.open(assets_dir / 'player_info' / f"{i}星武器.png")
+
 
 QQ_Avatar = True  # 是否使用QQ头像
-
-# MAX_CHARA = 12  # 最大允许显示角色数量
 
 CHARA_CARD = assets_dir / "chara_card"
 CHARA = assets_dir / 'player_info'
 
 
-async def avatar_card(avatar_id, level, constellation, fetter):
+async def avatar_card(avatar_id, level, constellation, fetter, detail_info):
     '''
     生成角色缩略信息卡
 
@@ -37,10 +42,55 @@ async def avatar_card(avatar_id, level, constellation, fetter):
     if constellation > 0:
         i_con = Image.open(os.path.join(CHARA, f'命之座{constellation}.png'))
         card = easy_alpha_composite(card, i_con, (160, -5))
-    
+
     i_fet = Image.open(os.path.join(CHARA, f'好感度{fetter}.png'))
     card = easy_alpha_composite(card, i_fet, (0, 165))
+
+    # 显示详细信息
+    if detail_info:
+        # 武器信息
+        weapon_info = detail_info.weapon
+        new_card = Image.new("RGBA", (card.width, card.height + weapon_bg.height))
+        new_card = easy_alpha_composite(new_card, card, (0, 0))
+
+        # 武器背景
+        weapon_card = weapon_bg.copy()
+        new_weapon_card_bg = weapon_card_bg[weapon_info.rarity].copy()
+        # 武器等级
+        
+        
+        weapon_card = easy_alpha_composite(weapon_card, new_weapon_card_bg, (4, 3))
+        # 获取武器图标
+        file_url = weapon_info.icon
+        file_name = Path(file_url).name
+        weapon_icon_img = await require_file(file=weapon_icon_dir / file_name, url=file_url)
+        weapon_icon = Image.open(BytesIO(weapon_icon_img)).convert("RGBA").resize((56, 65), Image.LANCZOS)
+        weapon_card = easy_alpha_composite(weapon_card, weapon_icon, (9, 6))
+        
+        # 武器名称 精炼
+        name_img = Image.new("RGBA", (weapon_bg.width - new_weapon_card_bg.width, weapon_bg.height))
+        draw_text_by_line(name_img, (96.86, 9.71), weapon_info.name, get_font(18), '#475463', 226, True)
+        
+        draw_text_by_line(name_img, (132.48, 34.01), f'Lv.{weapon_info.level}', get_font(14), '#475463', 226, True)
+        
+        affix_name = weapon_info.affix_level == 5 and 'MAX' or f'{weapon_info.affix_level}阶'
+        draw_text_by_line(name_img, (120, 53.39), f'精炼{affix_name}', get_font(18), '#cc9966', 226, True)
+        
+        weapon_card = easy_alpha_composite(weapon_card, name_img, (new_weapon_card_bg.width, 0))
+        
+        
+        # 复制到新的卡片上
+        new_card = easy_alpha_composite(new_card, weapon_card, (0, card.height))
+        
+        card = new_card
+
+
     return card
+
+async def gen_detail_info(uid ,character_ids):
+    info = await query.character(uid=uid, character_ids=character_ids)
+    return {x.id: x for x in info.data.avatars}
+
 
 
 # @cache(ttl=datetime.timedelta(minutes=30), arg_key='uid')
@@ -72,6 +122,7 @@ async def draw_info_card(uid, qid, nickname, raw_data, max_chara=None):
     if QQ_Avatar:
         url = f'http://q.qlogo.cn/headimg_dl?dst_uin={qid}&spec=640&img_type=jpg'
         avatar = await get_pic(url, (256, 256))
+        # url = f'http://q1.qlogo.cn/g?b=qq&nk={qid}&s=640'
     else:
         cid = char_data[0]['id']
         avatar = Image.open(assets_dir / "avatar" / f"{cid}.png")
@@ -124,13 +175,22 @@ async def draw_info_card(uid, qid, nickname, raw_data, max_chara=None):
     text_draw.text((880, 1606), 'Lv.' + str(world.offerings[0].level), '#d4aa6b', get_font(24))
     text_draw.text((880, 1639), stats.electroculus.__str__(), '#d4aa6b', get_font(24))
 
+    detail_info = None
+    detail_info_height = 0
+    if max_chara == None:
+        detail_info = await gen_detail_info(uid, [x.id for x in raw_data.avatars])
+        detail_info_height = weapon_bg.height
+
     avatar_cards = []
-
     for chara in char_data[:max_chara or len(char_data)]:
-        card = await avatar_card(chara['id'], chara["level"], chara["actived_constellation_num"], chara["fetter"])
+        card = await avatar_card(chara['id'], chara["level"],
+                                 chara["actived_constellation_num"],
+                                 chara["fetter"], detail_info
+                                 and detail_info[chara['id']])
         avatar_cards.append(card)
-
-    chara_bg = Image.new('RGB', (1080, math.ceil(len(avatar_cards) / 4) * 315), '#f0ece3')
+        
+    chara_bg = Image.new('RGB', (1080, math.ceil(len(avatar_cards) / 4) *
+                                 (315 + detail_info_height)), '#f0ece3')
     chara_img = image_array(chara_bg, avatar_cards, 4, 35, 0)
 
     info_card = Image.new('RGBA', (1080, card_bg.size[1] + chara_img.size[1]))

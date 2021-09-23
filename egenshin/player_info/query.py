@@ -63,16 +63,15 @@ async def request_data(uid, api='index', character_ids=None):
     if api == 'index':
         url += urlencode(params)
     elif api == 'spiralAbyss':
-        params['schedule_type'] = '1'
+        params = {"role_id": uid, "schedule_type": 1, "server": server}
         url += urlencode(params)
     elif api == 'character':
         fn = aiorequests.post
-        params.update({"character_ids": character_ids})
-        json_data = params
+        json_data = {"character_ids": character_ids}
+        json_data.update(params)
         params = {}
 
-    headers['DS'] = __get_ds__(
-        params, json_data and json.dumps(json_data, separators=(',', ':')))
+    headers['DS'] = __get_ds__(params, json_data and json.dumps(json_data))
     res = await fn(url=url, headers=headers, json=json_data)
     json_data = await res.json(object_hook=Dict)
     if json_data.retcode == 10103:
@@ -94,10 +93,12 @@ async def info(uid):
     return await request_data(uid)
 
 
+@cache(ttl=datetime.timedelta(minutes=30), arg_key='uid')
 async def spiralAbyss(uid):
     return await request_data(uid, 'spiralAbyss')
 
 
+@cache(ttl=datetime.timedelta(minutes=30), arg_key='uid')
 async def character(uid, character_ids):
     return await request_data(uid, 'character', character_ids)
 
