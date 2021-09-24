@@ -23,6 +23,12 @@ for i in range(1 ,6):
 
 QQ_Avatar = True  # 是否使用QQ头像
 
+# 以下2个选项控制显示深渊星数 已经角色武器信息, 可能会使用额外的cookie次数
+# 已知每个cookie能查询30次, 查询基本信息为一次, 深渊信息为一次, 武器信息为一次
+# 下列2个变量都为True时 查询次数为3次
+SHOW_SPIRAL_ABYSS_STAR = True # 是否显示深渊信息
+SHOW_WEAPON_INFO = True # 是否显示武器信息
+
 CHARA_CARD = assets_dir / "chara_card"
 CHARA = assets_dir / 'player_info'
 
@@ -100,10 +106,6 @@ async def draw_info_card(uid, qid, nickname, raw_data, max_chara=None):
     '''
     绘制玩家资料卡
     '''
-    abyss_info = await query.spiralAbyss(uid=uid)
-    if abyss_info.retcode !=0 :
-        raise Exception(abyss_info.message)
-    
     stats = query.stats(raw_data.stats, True)
     world_explorations = {}
     for w in raw_data.world_explorations:
@@ -181,14 +183,19 @@ async def draw_info_card(uid, qid, nickname, raw_data, max_chara=None):
     text_draw.text((880, 1639), stats.electroculus.__str__(), '#d4aa6b', get_font(24))
     
     # 深渊星数
-    new_abyss_star_bg = abyss_star_bg.copy()
-    draw_text_by_line(new_abyss_star_bg, (0, 60), str(abyss_info.data.total_star), get_font(36), '#78818b', 64, True)
-    card_bg = easy_alpha_composite(card_bg.convert('RGBA'), new_abyss_star_bg, (925, 710))
+    if SHOW_SPIRAL_ABYSS_STAR:
+        abyss_info = await query.spiralAbyss(uid=uid)
+        if abyss_info.retcode !=0 :
+            raise Exception(abyss_info.message)
+        
+        new_abyss_star_bg = abyss_star_bg.copy()
+        draw_text_by_line(new_abyss_star_bg, (0, 60), str(abyss_info.data.total_star), get_font(36), '#78818b', 64, True)
+        card_bg = easy_alpha_composite(card_bg.convert('RGBA'), new_abyss_star_bg, (925, 710))
     
 
     detail_info = None
     detail_info_height = 0
-    if max_chara == None:
+    if max_chara == None and SHOW_WEAPON_INFO:
         detail_info = await gen_detail_info(uid, [x.id for x in raw_data.avatars])
         detail_info_height = weapon_bg.height
 
