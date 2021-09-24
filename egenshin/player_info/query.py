@@ -41,7 +41,7 @@ async def request_data(uid, api='index', character_ids=None):
     if config.use_cookie_index == len(cookies):
         return 'all cookie(%s) has limited' % len(cookies)
     cookie = cookies[config.use_cookie_index]
-    print('use cookie index: %s' % config.use_cookie_index)
+    print('原神UID查询账号池序号: %s (%s)' % (config.use_cookie_index + 1, api))
 
     headers = {
         'Accept': 'application/json, text/plain, */*',

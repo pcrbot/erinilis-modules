@@ -14,6 +14,8 @@ assets_dir = Path(get_path('assets'))
 info_bg = Image.open(assets_dir / 'player_info' / "原神资料卡.png")
 weapon_bg = Image.open(assets_dir / 'player_info' / "weapon_bg.png")
 weapon_icon_dir = assets_dir / 'player_info' / 'weapon'
+abyss_star_bg = Image.open(assets_dir / 'player_info' / "深渊星数.png").convert('RGBA')
+
 weapon_card_bg = {}
 for i in range(1 ,6):
     weapon_card_bg[i] = Image.open(assets_dir / 'player_info' / f"{i}星武器.png")
@@ -98,7 +100,10 @@ async def draw_info_card(uid, qid, nickname, raw_data, max_chara=None):
     '''
     绘制玩家资料卡
     '''
-
+    abyss_info = await query.spiralAbyss(uid=uid)
+    if abyss_info.retcode !=0 :
+        raise Exception(abyss_info.message)
+    
     stats = query.stats(raw_data.stats, True)
     world_explorations = {}
     for w in raw_data.world_explorations:
@@ -174,6 +179,12 @@ async def draw_info_card(uid, qid, nickname, raw_data, max_chara=None):
     text_draw.text((880, 1576), 'Lv.' + str(world.level), '#d4aa6b', get_font(24))
     text_draw.text((880, 1606), 'Lv.' + str(world.offerings[0].level), '#d4aa6b', get_font(24))
     text_draw.text((880, 1639), stats.electroculus.__str__(), '#d4aa6b', get_font(24))
+    
+    # 深渊星数
+    new_abyss_star_bg = abyss_star_bg.copy()
+    draw_text_by_line(new_abyss_star_bg, (0, 60), str(abyss_info.data.total_star), get_font(36), '#78818b', 64, True)
+    card_bg = easy_alpha_composite(card_bg.convert('RGBA'), new_abyss_star_bg, (925, 710))
+    
 
     detail_info = None
     detail_info_height = 0
