@@ -103,8 +103,8 @@ def get_next_day():
                         datetime.timedelta(days=+1)).timetuple()) + 1000
 
 
-def get_font(size):
-    return ImageFont.truetype(get_path('assets', 'font', 'HYWenHei 85W.ttf'),
+def get_font(size, w='85'):
+    return ImageFont.truetype(get_path('assets', 'font', f'HYWenHei {w}W.ttf'),
                               size=size)
 
 

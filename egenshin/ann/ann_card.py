@@ -22,7 +22,7 @@ async def ann_list_card():
 
     bg = Image.new('RGBA',
                    (list_head.width,
-                    list_head.height + list_item.height * height_len + 20),
+                    list_head.height + list_item.height * height_len + 20 + 30),
                    '#f9f6f2')
     easy_paste(bg, list_head, (0 ,0))
 
@@ -40,6 +40,9 @@ async def ann_list_card():
 
             bg = easy_alpha_composite(bg, new_item, (x, list_head.height + (index * new_item.height)))
 
+    tip = '*可以使用 原神公告#0000(右上角ID) 来查看详细内容, 例子: 原神公告#2434'
+    draw_text_by_line(bg, (0, bg.height - 35), tip, get_font(18), '#767779', 1000, True)
+    
     return pil2b64(bg)
 
 async def ann_detail_card(ann_id):
@@ -89,7 +92,7 @@ async def ann_detail_card(ann_id):
         else:
             drow_duanluo, drow_note_height, drow_line_height, drow_height = split_text(msg)
             for duanluo, line_count in drow_duanluo:
-                draw.text((x, y), duanluo, fill=(0, 0, 0), font=get_font(16))
+                draw.text((x, y), duanluo, fill=(0, 0, 0), font=get_font(16, w=65))
                 y += drow_line_height * line_count
 
     return pil2b64(im)
@@ -122,7 +125,7 @@ def get_duanluo(text):
     # 行高
     line_height = 0
     for char in text:
-        width, height = draw.textsize(char, get_font(16))
+        width, height = draw.textsize(char, get_font(16, w=65))
         sum_width += width
         if sum_width > max_width: # 超过预设宽度就修改段落 以及当前行数
             line_count += 1
