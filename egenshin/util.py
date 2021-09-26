@@ -89,6 +89,7 @@ def find_ms_str_index(ms, keyword, is_first=False):
 def filter_list(plist, func):
     return list(filter(func, plist))
 
+
 def list_split(items, n):
     return [items[i:i + n] for i in range(0, len(items), n)]
 
@@ -200,6 +201,12 @@ async def require_file(file=None,
         with open(file, w_mode) as f:
             f.write(content)
     return await read()
+
+
+@cache(ttl=datetime.timedelta(minutes=30), arg_key='url')
+async def cache_request_json(url):
+    res = await aiorequests.get(url, timeout=10)
+    return await res.json(object_hook=Dict)
 
 
 @cache(ttl=datetime.timedelta(hours=24))

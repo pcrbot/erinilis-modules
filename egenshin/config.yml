@@ -2,14 +2,6 @@ cache_dir: ./data/
 
 
 comm:
-
-  ann_list: 原神公告
-  ann_detail: 原神公告#
-  sub_ann: 订阅原神公告
-  unsub_ann: 取消订阅原神公告
-
-  consume_remind: 原神取消红点#
-
   material: 收集材料#
   show_material: 查看材料#
 
@@ -23,6 +15,10 @@ setting:
     - 1263
     - 495
     - 1957
+    - 2522
+    - 2388
+    - 2516
+    - 2476
   # 是否开启原神公告推送
   ann_cron_enable: true
   # 是否只允许非群员开启
@@ -34,12 +30,13 @@ setting:
   # ------------ 查询玩家UID使用的cookie列表 ------------
   #必须设置才能使用 可以登录米游社 获取cookie 主要内容为 account_id=******; cookie_token=*********;
   cookies:
-    - account_id=******; cookie_token=*********;
-    - account_id=******; cookie_token=*********;
-    - account_id=******; cookie_token=*********;
+    - account_id=000000000; cookie_token=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX;
+    - account_id=000000000; cookie_token=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX;
+    - account_id=000000000; cookie_token=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX;
+
 
 
   # ----------------------------------------------------
   baidu_ocr:
-    API_KEY: ******
-    SECRET_KEY: ******
+    API_KEY: ''
+    SECRET_KEY: ''
