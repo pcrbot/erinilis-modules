@@ -179,7 +179,9 @@ async def check_ann_state():
 
     detail_list = []
     for ann_id in new_ann:
-        img = await ann_detail_card(int(ann_id))
+        if ann_id in config.config.setting.ann_block:
+            continue
+        img = await ann_detail_card(ann_id)
         detail_list.append(MessageSegment.image(img))
 
     # print('推送完毕, 更新数据库')
