@@ -179,7 +179,7 @@ async def check_ann_state():
 
     detail_list = []
     for ann_id in new_ann:
-        if ann_id in config.config.setting.ann_block:
+        if ann_id in config.setting.ann_block:
             continue
         img = await ann_detail_card(ann_id)
         detail_list.append(MessageSegment.image(img))
