@@ -71,7 +71,7 @@ async def ann_detail_card(ann_id):
     for msg in msg_list:
         if msg.endswith(('jpg', 'png')):
             img = await get_pic(msg)
-            drow_height += img.size[1] + 50
+            drow_height += img.size[1] + 40
         else:
             x_drow_duanluo, x_drow_note_height, x_drow_line_height, x_drow_height = split_text(msg)
             drow_height += x_drow_height
@@ -84,7 +84,7 @@ async def ann_detail_card(ann_id):
         if msg.endswith(('jpg', 'png')):
             img = await get_pic(msg)
             easy_paste(im, img)
-            y += img.size[1] + 50
+            y += img.size[1] + 40
         else:
             drow_duanluo, drow_note_height, drow_line_height, drow_height = split_text(msg)
             for duanluo, line_count in drow_duanluo:
