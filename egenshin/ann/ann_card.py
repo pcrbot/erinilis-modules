@@ -12,6 +12,8 @@ assets_dir = Path(get_path('assets')) / 'ann'
 list_head = Image.open(assets_dir / "list.png")
 list_item = Image.open(assets_dir / "item.png").resize((384, 96)).convert("RGBA")
 
+w65 = get_font(26, w=65)
+
 
 async def ann_list_card():
     ann_list = await ann().get_ann_list()
@@ -69,31 +71,29 @@ async def ann_detail_card(ann_id):
     for msg in msg_list:
         if msg.endswith(('jpg', 'png')):
             img = await get_pic(msg)
-            size = img.size
-            sf_height = math.ceil(size[1]/(size[0]/550))
-            drow_height += sf_height + 20
+            drow_height += img.size[1] + 50
         else:
             x_drow_duanluo, x_drow_note_height, x_drow_line_height, x_drow_height = split_text(msg)
             drow_height += x_drow_height
 
-    im = Image.new("RGB", (800, drow_height), '#f9f6f2')
+    im = Image.new("RGB", (1080, drow_height), '#f9f6f2')
     draw = ImageDraw.Draw(im)
     # 左上角开始
     x, y = 0, 0
     for msg in msg_list:
         if msg.endswith(('jpg', 'png')):
             img = await get_pic(msg)
-            size = img.size
-            sf_height = math.ceil(size[1]/(size[0]/550))
-            box = (int(im.width / 2 - 550 / 2), y + 10)
-            img = img.resize((550, sf_height))
-            im.paste(img, box)
-            y += sf_height + 20
+            easy_paste(im, img)
+            y += img.size[1] + 50
         else:
             drow_duanluo, drow_note_height, drow_line_height, drow_height = split_text(msg)
             for duanluo, line_count in drow_duanluo:
-                draw.text((x, y), duanluo, fill=(0, 0, 0), font=get_font(16, w=65))
+                draw.text((x, y), duanluo, fill=(0, 0, 0), font=w65)
                 y += drow_line_height * line_count
+
+    _x, _y = w65.getsize("囗")
+    padding = (_x, _y, _x, _y)
+    im = ImageOps.expand(im, padding, '#f9f6f2')
 
     return pil2b64(im)
 
@@ -117,7 +117,7 @@ def get_duanluo(text):
     draw = ImageDraw.Draw(txt)
     # 所有文字的段落
     duanluo = ""
-    max_width = 800
+    max_width = 1080
     # 宽度总和
     sum_width = 0
     # 几行
@@ -125,7 +125,7 @@ def get_duanluo(text):
     # 行高
     line_height = 0
     for char in text:
-        width, height = draw.textsize(char, get_font(16, w=65))
+        width, height = draw.textsize(char, w65)
         sum_width += width
         if sum_width > max_width: # 超过预设宽度就修改段落 以及当前行数
             line_count += 1
