@@ -26,9 +26,11 @@ async def ann_(bot, ev):
     ann_id = ev.message.extract_plain_text().strip()
     if not ann_id:
         img = await ann_list_card()
-        await bot.finish(ev, MessageSegment.image(img), at_sender=True)
+        await bot.send(ev, MessageSegment.image(img), at_sender=True)
+        return
+    
     if not ann_id.isdigit():
-        await bot.finish(ev, "公告ID不正确")
+        raise Exception("公告ID不正确")
     try:
         img = await ann_detail_card(int(ann_id))
         await bot.send(ev, MessageSegment.image(img), at_sender=True)
@@ -39,7 +41,7 @@ async def ann_(bot, ev):
 @sv.on_fullmatch(f'订阅{prefix}公告')
 async def sub_ann(bot, ev):
     if not priv.check_priv(ev, priv.ADMIN):
-        await bot.finish(ev, "你没有权限开启原神公告推送")
+        raise Exception("你没有权限开启原神公告推送")
     try:
         await bot.send(ev, sub_ann(ev.group_id))
     except Exception as e:
@@ -49,7 +51,7 @@ async def sub_ann(bot, ev):
 @sv.on_fullmatch((f'取消订阅{prefix}公告', f'取消{prefix}公告', f'退订{prefix}公告'))
 async def unsub_ann(bot, ev):
     if not priv.check_priv(ev, priv.ADMIN):
-        await bot.finish(ev, "你没有权限取消原神公告推送")
+        raise Exception("你没有权限取消原神公告推送")
     try:
         await bot.send(ev, unsub_ann(ev.group_id))
     except Exception as e:
