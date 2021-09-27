@@ -6,6 +6,7 @@ import time
 import json
 from hoshino import aiorequests
 from urllib.parse import urlencode
+from http.cookies import SimpleCookie
 from ..util import get_config, get_next_day, Dict, init_db, cache
 
 config = get_config()
@@ -28,7 +29,7 @@ def __get_ds__(query, body=None):
     c = __md5__("salt=" + n + "&t=" + i + "&r=" + r + '&b=' + (body or '') + '&q=' + q)
     return i + "," + r + "," + c
 
-
+last = {'current': 0, 'last': 0, 'all': 0}
 async def request_data(uid, api='index', character_ids=None):
     next_cookie = False
     now = datetime.datetime.now().timestamp()
@@ -41,7 +42,9 @@ async def request_data(uid, api='index', character_ids=None):
     if config.use_cookie_index == len(cookies):
         return 'all cookie(%s) has limited' % len(cookies)
     cookie = cookies[config.use_cookie_index]
-    print('use cookie index: %s' % config.use_cookie_index)
+    account_id = SimpleCookie(cookie)['account_id'].value
+    print('原神UID:(%s) 当前已查询%s次, 上一个账号查询%s次, 当前第%s个账号(%s), 一共%s个账号, 调用API-> %s' %
+          (last['all'], last['current'] + 1, last['last'], config.use_cookie_index + 1, account_id, len(cookies), api))
 
     headers = {
         'Accept': 'application/json, text/plain, */*',
@@ -63,16 +66,15 @@ async def request_data(uid, api='index', character_ids=None):
     if api == 'index':
         url += urlencode(params)
     elif api == 'spiralAbyss':
-        params['schedule_type'] = '1'
+        params = {"role_id": uid, "schedule_type": 1, "server": server}
         url += urlencode(params)
     elif api == 'character':
         fn = aiorequests.post
-        params.update({"character_ids": character_ids})
-        json_data = params
+        json_data = {"character_ids": character_ids}
+        json_data.update(params)
         params = {}
 
-    headers['DS'] = __get_ds__(
-        params, json_data and json.dumps(json_data, separators=(',', ':')))
+    headers['DS'] = __get_ds__(params, json_data and json.dumps(json_data))
     res = await fn(url=url, headers=headers, json=json_data)
     json_data = await res.json(object_hook=Dict)
     if json_data.retcode == 10103:
@@ -82,10 +84,14 @@ async def request_data(uid, api='index', character_ids=None):
     if json_data.retcode == 10101 or next_cookie:
         print('cookie [%s] is limited!' % config.use_cookie_index)
         config.use_cookie_index += 1
+        last['last'] = last['current']
+        last['current'] = 0
         if config.use_cookie_index == len(cookies):
             return 'all cookie(%s) has limited' % len(cookies)
         return await request_data(uid, api=api, character_ids=character_ids)
 
+    last['current'] += 1
+    last['all'] += 1
     return json_data
 
 
@@ -94,10 +100,12 @@ async def info(uid):
     return await request_data(uid)
 
 
+@cache(ttl=datetime.timedelta(minutes=30), arg_key='uid')
 async def spiralAbyss(uid):
     return await request_data(uid, 'spiralAbyss')
 
 
+@cache(ttl=datetime.timedelta(minutes=30), arg_key='uid')
 async def character(uid, character_ids):
     return await request_data(uid, 'character', character_ids)
 

@@ -9,7 +9,7 @@ __all__ = [
 
 
 def remove_special_char(s):
-    special_char = r'[ 「」…！!，,。.、？?《》·♬Ⅱ—“”-]'
+    special_char = r'[+ 「」…！!，,。.、？?《》·♬Ⅱ—“”-]'
     return re.sub(special_char, '', s)
 
 
