@@ -21,70 +21,47 @@ sv = Service(
 prefix = '原神'
 
 
-@sv.on_prefix(prefix + '公告')
+@sv.on_prefix((f'{prefix}公告#', f'{prefix}公告'))
 async def ann_(bot, ev):
-    try:
+    ann_id = ev.message.extract_plain_text().strip()
+    if not ann_id:
         img = await ann_list_card()
-        await bot.send(ev, MessageSegment.image(img), at_sender=True)
-    except Exception as e:
-        await bot.send(ev, str(e), at_sender=True)
-        raise e
-
-
-@sv.on_prefix(prefix + '公告#')
-async def ann_(bot, ev):
+        await bot.finish(ev, MessageSegment.image(img), at_sender=True)
+    if not ann_id.isdigit():
+        await bot.finish(ev, "公告ID不正确")
     try:
-        ann_id = ev.message.extract_plain_text().strip()
-        if not ann_id.isdigit():
-            raise Exception('公告ID不正确')
         img = await ann_detail_card(int(ann_id))
         await bot.send(ev, MessageSegment.image(img), at_sender=True)
     except Exception as e:
-        await bot.send(ev, str(e), at_sender=True)
-        raise e
+        sv.logger.error(e)
 
 
-@sv.on_prefix('订阅' + prefix + '公告')
-async def ann_(bot, ev):
+@sv.on_fullmatch(f'订阅{prefix}公告')
+async def sub_ann(bot, ev):
+    if not priv.check_priv(ev, priv.ADMIN):
+        await bot.finish(ev, "你没有权限开启原神公告推送")
     try:
-        is_super_admin = ev.user_id in bot.config.SUPERUSERS
-        is_admin = is_group_admin(ev) or is_super_admin
-
-        if not config.setting.ann_enable_only_admin:
-            await bot.send(ev, sub_ann(ev.group_id))
-        elif is_admin:
-            await bot.send(ev, sub_ann(ev.group_id))
-        else:
-            await bot.send(ev, '你没有权限开启原神公告推送')
+        await bot.send(ev, sub_ann(ev.group_id))
     except Exception as e:
-        await bot.send(ev, str(e), at_sender=True)
-        raise e
+        sv.logger.error(e)
 
 
-@sv.on_prefix('取消订阅' + prefix + '公告')
-async def ann_(bot, ev):
+@sv.on_fullmatch((f'取消订阅{prefix}公告', f'取消{prefix}公告', f'退订{prefix}公告'))
+async def unsub_ann(bot, ev):
+    if not priv.check_priv(ev, priv.ADMIN):
+        await bot.finish(ev, "你没有权限取消原神公告推送")
     try:
-        is_super_admin = ev.user_id in bot.config.SUPERUSERS
-        is_admin = is_group_admin(ev) or is_super_admin
-
-        if not config.setting.ann_enable_only_admin:
-            await bot.send(ev, unsub_ann(ev.group_id))
-        elif is_admin:
-            await bot.send(ev, unsub_ann(ev.group_id))
-        else:
-            await bot.send(ev, '你没有权限取消原神公告推送')
+        await bot.send(ev, unsub_ann(ev.group_id))
     except Exception as e:
-        await bot.send(ev, str(e), at_sender=True)
-        raise e
+        sv.logger.error(e)
 
-@sv.on_prefix('取消' + prefix + '公告红点#')
+
+@sv.on_prefix(f'取消{prefix}公告红点#')
 async def ann_(bot, ev):
     try:
         uid = ev.message.extract_plain_text().strip()
         if not uid.isdigit():
-            raise Exception('uid不正确')
-
+            await bot.finish(ev, "uid不正确")
         await bot.send(ev, await consume_remind(int(uid)), at_sender=True)
     except Exception as e:
-        await bot.send(ev, str(e), at_sender=True)
-        raise e
+        sv.logger.error(e)
