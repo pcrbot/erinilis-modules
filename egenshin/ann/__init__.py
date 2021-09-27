@@ -1,7 +1,7 @@
 from hoshino import Service, priv, MessageSegment
-from ..util import is_group_admin, config
 from .main import consume_remind
-from .ann_card import ann_list_card, ann_detail_card, sub_ann, unsub_ann, check_ann_state
+from ..player_info.query import get_uid_by_qid
+from .ann_card import ann_list_card, ann_detail_card, sub_ann, unsub_ann
 
 sv_help = '''
 原神公告
@@ -33,7 +33,7 @@ async def ann_(bot, ev):
         img = await ann_detail_card(int(ann_id))
         await bot.send(ev, MessageSegment.image(img), at_sender=True)
     except Exception as e:
-        sv.logger.error(e)
+        await bot.finish(ev, str(e))
 
 
 @sv.on_fullmatch(f'订阅{prefix}公告')
@@ -43,7 +43,7 @@ async def sub_ann(bot, ev):
     try:
         await bot.send(ev, sub_ann(ev.group_id))
     except Exception as e:
-        sv.logger.error(e)
+        await bot.finish(ev, str(e))
 
 
 @sv.on_fullmatch((f'取消订阅{prefix}公告', f'取消{prefix}公告', f'退订{prefix}公告'))
@@ -53,15 +53,18 @@ async def unsub_ann(bot, ev):
     try:
         await bot.send(ev, unsub_ann(ev.group_id))
     except Exception as e:
-        sv.logger.error(e)
+        await bot.finish(ev, str(e))
 
 
 @sv.on_prefix(f'取消{prefix}公告红点#')
 async def ann_(bot, ev):
     try:
         uid = ev.message.extract_plain_text().strip()
+        if not uid:
+            uid = str(get_uid_by_qid(ev.user_id)) or ''
+
         if not uid.isdigit():
             await bot.finish(ev, "uid不正确")
-        await bot.send(ev, await consume_remind(int(uid)), at_sender=True)
+        await bot.send(ev, await consume_remind(uid), at_sender=True)
     except Exception as e:
-        sv.logger.error(e)
+        await bot.finish(ev, str(e))
