@@ -39,7 +39,7 @@ async def ann_(bot, ev):
 
 
 @sv.on_fullmatch(f'订阅{prefix}公告')
-async def sub_ann(bot, ev):
+async def sub_ann_(bot, ev):
     if not priv.check_priv(ev, priv.ADMIN):
         raise Exception("你没有权限开启原神公告推送")
     try:
@@ -49,7 +49,7 @@ async def sub_ann(bot, ev):
 
 
 @sv.on_fullmatch((f'取消订阅{prefix}公告', f'取消{prefix}公告', f'退订{prefix}公告'))
-async def unsub_ann(bot, ev):
+async def unsub_ann_(bot, ev):
     if not priv.check_priv(ev, priv.ADMIN):
         raise Exception("你没有权限取消原神公告推送")
     try:
@@ -59,7 +59,7 @@ async def unsub_ann(bot, ev):
 
 
 @sv.on_prefix(f'取消{prefix}公告红点#')
-async def ann_(bot, ev):
+async def consume_remind_(bot, ev):
     try:
         uid = ev.message.extract_plain_text().strip()
         if not uid:
