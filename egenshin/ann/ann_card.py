@@ -53,7 +53,7 @@ async def ann_detail_card(ann_id):
         raise Exception('获取游戏公告失败,请检查接口是否正常')
     content = filter_list(ann_list, lambda x: x['ann_id'] == ann_id)
     if not content:
-        raise Exception('没有找到对应的公告ID')
+        raise Exception('没有找到对应的公告ID :%s' % ann_id)
     soup = BeautifulSoup(content[0]['content'], 'lxml')
     banner = content[0]['banner']
     ann_img = banner if banner else ''
@@ -182,7 +182,10 @@ async def check_ann_state():
     for ann_id in new_ann:
         if ann_id in config.setting.ann_block:
             continue
-        img = await ann_detail_card(ann_id)
+        try:
+            img = await ann_detail_card(ann_id)
+        except Exception as e:
+            print(str(e))
         detail_list.append(MessageSegment.image(img))
 
     # print('推送完毕, 更新数据库')
