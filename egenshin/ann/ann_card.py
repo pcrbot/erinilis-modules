@@ -184,9 +184,10 @@ async def check_ann_state():
             continue
         try:
             img = await ann_detail_card(ann_id)
+            detail_list.append(MessageSegment.image(img))
         except Exception as e:
             print(str(e))
-        detail_list.append(MessageSegment.image(img))
+            
 
     # print('推送完毕, 更新数据库')
     ann_db['ids'] = new_ids
