@@ -4,7 +4,7 @@ from pathlib import Path
 from . import util
 from .verify_user import is_in_group
 
-switcher = Blueprint('switcher', __name__)
+switcher = Blueprint('genshin_gacha_log', __name__)
 
 config = util.get_config()
 db = util.init_db(config.cache_dir)
