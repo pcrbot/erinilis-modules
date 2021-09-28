@@ -37,9 +37,11 @@ async def gachalog_main(*params):
     if isinstance(keyword, str):
         await gacha_statistics(ctx)
 
-    keyword = util.get_msg_keyword(config.comm.bind, msg, True)
-    if keyword:
-        await _bot.send(ctx, await bind(ctx.user_id, keyword).save(), at_sender=True)
+
+@sv.on_prefix(f'原神卡池绑定')
+async def main(bot, ev):
+    msg = ev.message.extract_plain_text().strip()
+    await bot.send(ev, await bind(ev.user_id, msg).save(), at_sender=True)
 
 
 async def check_bind(ctx) -> gacha_log:
@@ -57,7 +59,8 @@ async def get_log(ctx):
     if not log:
         return
     if not await log.check_authkey():
-        await _bot.send(ctx, '凭证已过期,请重新获取\n' + bind_help.format(comm=config.comm.bind))
+        await _bot.send(
+            ctx, '凭证已过期,请重新获取\n' + bind_help.format(comm=config.comm.bind))
         return
     await _bot.send(ctx, await log.current(), at_sender=True)
 
@@ -94,7 +97,9 @@ async def main(session: NoticeSession):
 
     gacha_data = sum(json_data.result, [])
     keys = ['time', 'name', 'item_type', 'rank_type']
-    raw_data = list(map(lambda x: list(reversed([dict(zip(keys, i)) for i in x])), gacha_data[1::2]))
+    raw_data = list(
+        map(lambda x: list(reversed([dict(zip(keys, i)) for i in x])),
+            gacha_data[1::2]))
 
     gacha_data = dict(zip(gacha_data[::2], raw_data))
 
@@ -103,10 +108,7 @@ async def main(session: NoticeSession):
         region = 'cn_gf01'
         if json_data.uid[0] == "5":
             region = 'cn_qd01'
-        gacha_data = {
-            'authkey': "",
-            'region': region
-        }
+        gacha_data = {'authkey': "", 'region': region}
         gacha_data.update(gacha_data)
         db[uid] = gacha_data
         await session.send('导入成功~', at_sender=True)
