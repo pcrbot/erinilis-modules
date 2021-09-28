@@ -58,13 +58,14 @@ async def ann_detail_card(ann_id):
     banner = content[0]['banner']
     ann_img = banner if banner else ''
     for a in soup.find_all('a'):
-        href = a.get('href')
-        a.string += ' (%s)' % re.search(r'https?.+', re.sub(r'[;()\']', '', href)).group()
+        # href = a.get('href')
+        # a.string += ' (%s)' % re.search(r'https?.+', re.sub(r'[;()\']', '', href)).group()
+        a.string = ''
 
     for img in soup.find_all('img'):
         img.string = img.get('src')
 
-    msg_list = [BeautifulSoup(x.get_text('\n').replace('<<', ''), 'lxml').get_text() for x in soup.find_all('p')]
+    msg_list = [BeautifulSoup(x.get_text('').replace('<<', ''), 'lxml').get_text() + '\n' for x in soup.find_all('p')]
     msg_list.insert(0,ann_img)
 
     drow_height = 0
