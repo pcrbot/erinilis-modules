@@ -198,8 +198,9 @@ async def require_file(file=None,
 
     if file:
         os.makedirs(os.path.dirname(file), exist_ok=True)
-        with open(file, w_mode) as f:
-            f.write(content)
+        async with aiofiles.open(file, w_mode, encoding=encoding) as fp:
+            await fp.write(content)
+            return content
     return await read()
 
 
