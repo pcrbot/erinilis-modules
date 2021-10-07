@@ -67,13 +67,16 @@ async def main(bot, ev):
 
 @sv.on_prefix('ysa#')
 async def main(bot, ev):
-    uid, qid, nickname, raw_data = await handle(bot, ev)
+    try:
+        uid, qid, nickname, raw_data = await handle(bot, ev)
 
-    im = await info_card.draw_info_card(uid=uid,
-                                        qid=qid,
-                                        nickname=nickname,
-                                        raw_data=raw_data.data,
-                                        max_chara=None)
+        im = await info_card.draw_info_card(uid=uid,
+                                            qid=qid,
+                                            nickname=nickname,
+                                            raw_data=raw_data.data,
+                                            max_chara=None)
 
-    await bot.send(ev, MessageSegment.image(im), at_sender=True)
-    query.save_uid_by_qid(qid, uid)
+        await bot.send(ev, MessageSegment.image(im), at_sender=True)
+        query.save_uid_by_qid(qid, uid)
+    except Exception as e:
+        await bot.send(ev, str(e), at_sender=True)

@@ -97,6 +97,8 @@ async def avatar_card(avatar_id, level, constellation, fetter, detail_info):
 
 async def gen_detail_info(uid ,character_ids):
     info = await query.character(uid=uid, character_ids=character_ids)
+    if info.retcode == 10102:
+        raise Exception("武器信息读取失败, 请打开米游社,我的-个人主页-管理-公开信息")
     return {x.id: x for x in info.data.avatars}
 
 
