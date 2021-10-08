@@ -1,11 +1,11 @@
 import os
-import requests
+from hoshino import aiorequests
 from . import util
 
 setting = util.get_config().setting
 
 # 下载网络图片到本地
-def get_img(url, save_dir='img', cache=True, headers=None):
+async def get_img(url, save_dir='img', cache=True, headers=None):
     file_name = os.path.basename(url)
     save_dir = util.get_path('data', save_dir)
     path = os.path.join(save_dir, file_name)
@@ -23,8 +23,9 @@ def get_img(url, save_dir='img', cache=True, headers=None):
             "https": setting.proxy_url
         }
     try:
-        content = requests.get(url, timeout=30, headers=headers, proxies=proxy).content
-    except requests.exceptions.ConnectionError:
+        content = await aiorequests.get(url, timeout=30, headers=headers, proxies=proxy)
+        content = await content.content
+    except aiorequests.exceptions.ConnectionError:
         return False
     if len(content) == 204:  # 404页面
         return False

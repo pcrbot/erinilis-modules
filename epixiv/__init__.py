@@ -41,7 +41,7 @@ async def epixiv_main(*params):
     if keyword:
         comm, footer = util.get_msg_keyword(config.comm.get_image_footer, keyword)
         keyword = await search(ctx, footer + comm)
-        await ptag(ctx, keyword)
+        # await ptag(ctx, keyword)
     # 显示全部页面
     keyword = util.get_msg_keyword(config.comm.show_meta_pages, msg, True)
     if keyword:
@@ -131,7 +131,7 @@ async def search(ctx, keyword: str):
         search_db[page_flag] = 1
         db[db_key] = search_db
 
-    data = epixiv.download_illusts_img(illusts)
+    data = await epixiv.download_illusts_img(illusts)
     ps.running('处理消息中...')
     await print_illusts(ctx, data)
     ps.done()
@@ -139,18 +139,37 @@ async def search(ctx, keyword: str):
 
 
 async def print_illusts(ctx, illusts):
+    self_info = await _bot.call_action(action='get_login_info')
+    msg_node = []
     for illust in illusts:
         image_urls = illust.image_urls
         show_image_comm = '此图有%s张, 使用下面的命令查看剩下的图\n全部图片#%s'
         original = short_url.short(image_urls.original) if config.setting.short_url_enable else image_urls.original
-        msg = {
-            'title': illust.title,
-            'id': illust.id,
-            'original': show_image_comm % (len(illust.meta_pages), illust.id) if illust.meta_pages else original,
-            'recommend': '相同口味#%s' % illust.id,
-            'img': MessageSegment.image(illust.local_img)
-        }
-        await _bot.send(ctx, config.str.print.format(**msg))
+        # msg = {
+        #     'title': illust.title,
+        #     'id': illust.id,
+        #     'original': show_image_comm % (len(illust.meta_pages), illust.id) if illust.meta_pages else original,
+        #     'recommend': '相同口味#%s' % illust.id,
+        #     'img': MessageSegment.image(illust.local_img)
+        # }
+        # msg_text = MessageSegment.text(config.str.print.format(**msg))
+        msg_text = []
+        msg_text.append(MessageSegment.text('标题：' + illust.title + '\n'))
+        msg_text.append(MessageSegment.text('p站：https://pixiv.net/i/%s\n' % illust.id))
+        msg_text.append(MessageSegment.text('原图：%s\n' % (show_image_comm % (len(illust.meta_pages), illust.id) if illust.meta_pages else original)))
+        msg_text.append(MessageSegment.text('推荐：相同口味#%s\n' % illust.id))
+        msg_text.append(MessageSegment.image(illust.local_img))
+
+        msg_node.append(
+            dict(type='node',
+                 data=dict(name=self_info['nickname'],
+                           uin=self_info['user_id'],
+                           content=msg_text)))
+
+    await _bot.call_action(action='send_group_forward_msg',
+                           group_id=ctx.group_id,
+                           messages=msg_node)
+
 
 
 async def show_meta_pages(ctx, keyword: str):
@@ -174,16 +193,31 @@ async def show_meta_pages(ctx, keyword: str):
         return ''
 
     ps.running('解密中..')
-    local_list = list(map(lambda x: download.get_img(x), images))
-
+    local_list = [] 
+    for img in images:
+        local_list.append(await download.get_img(img))
+        
+    msg_node = []
+    self_info = await _bot.call_action(action='get_login_info')
     for index, value in enumerate(images):
         original = short_url.short(value) if config.setting.short_url_enable else value
-        msg = {
-            'original': original,
-            'img': MessageSegment.image(local_list[index])
-        }
-        await _bot.send(ctx, config.str.show_meta_pages.format(**msg))
+        # msg = {
+        #     'original': original,
+        #     'img': MessageSegment.image(local_list[index])
+        # }
+        # await _bot.send(ctx, config.str.show_meta_pages.format(**msg))
+        msg_text = []
+        msg_text.append(MessageSegment.text('原图: %s\n' % original))
+        msg_text.append(MessageSegment.image(local_list[index]))
+        msg_node.append(
+            dict(type='node',
+                 data=dict(name=self_info['nickname'],
+                           uin=self_info['user_id'],
+                           content=msg_text)))
 
+    await _bot.call_action(action='send_group_forward_msg',
+                           group_id=ctx.group_id,
+                           messages=msg_node)
     ps.done()
 
 
@@ -221,7 +255,7 @@ async def recommend(ctx, keyword: str):
         rc_db.illusts = illusts
         db_recommend[keyword] = rc_db
     ps.running('下载图片中...')
-    data = epixiv.download_illusts_img(illusts[:rules.show_image_count])
+    data = await epixiv.download_illusts_img(illusts[:rules.show_image_count])
     await print_illusts(ctx, data)
     ps.done()
     return ''
@@ -232,7 +266,7 @@ async def ptag(ctx, keyword: str):
     # 关键字补全
     ac = epixiv.auto_complete(keyword)
     if ac:
-        tag_info = epixiv.get_tag_img(ac[0]['text'])
+        tag_info = await epixiv.get_tag_img(ac[0]['text'])
         if not tag_info:
             await _bot.send(ctx, '没有搜索到标签信息呢')
             return

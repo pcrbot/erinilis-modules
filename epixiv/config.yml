@@ -2,8 +2,6 @@ cache_dir: ./data/
 
 # p站账号密码
 pixiv:
-  username: ''
-  password: ''
   refresh_token: ''
 
 # 触发的命令

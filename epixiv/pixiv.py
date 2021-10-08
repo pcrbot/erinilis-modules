@@ -1,5 +1,6 @@
 import requests
 import math
+import asyncio
 from functools import reduce
 from urllib.parse import urlparse
 from urllib import parse
@@ -51,16 +52,16 @@ def get_img_urls(illust):
     return util.dict_to_object(info)
 
 
-def download_illust_image(illust, retry=3):
+async def download_illust_image(illust, retry=3):
     img_urls = get_img_urls(illust)
     url = img_urls.medium
     illust['local_img'] = ''
     try:
-        illust['local_img'] = download.get_img(url)
+        illust['local_img'] = await download.get_img(url)
     except TimeoutError:
         print('time out retry: %s' % retry)
         if not --retry == 0:
-            return download_illust_image(illust, retry)
+            return await download_illust_image(illust, retry)
         else:
             print('time error. url: %s' % url)
             return illust
@@ -163,16 +164,24 @@ class epixiv(ByPassSniApi):
         return data
 
     @staticmethod
-    def download_illusts_img(illusts):
-        pool = ThreadPoolExecutor(max_workers=len(illusts))
-        futures = []
+    async def download_illusts_img(illusts):
+        # with ThreadPoolExecutor(max_workers=len(illusts)) as executor: 
+        #     futures = []
+        #     data = []
+        #     for i in illusts:
+        #         futures.append(executor.submit(download_illust_image, util.dict_to_object(i)))
+        #         # data.append(await download_illust_image(util.dict_to_object(i)))
+        #     for x in as_completed(futures):
+        #         data.append(x.result())
+        tasks = []
         for i in illusts:
-            futures.append(pool.submit(download_illust_image, util.dict_to_object(i)))
-
+            tasks.append(download_illust_image(util.dict_to_object(i)))
+        
         data = []
-
-        for x in as_completed(futures):
+        futures = await asyncio.wait(tasks)
+        for x in futures[0]:
             data.append(x.result())
+        
         return sorted(data, key=lambda item: item.total_view, reverse=True)
 
     def auto_complete(self, keyword=None):
@@ -181,31 +190,31 @@ class epixiv(ByPassSniApi):
             return []
         data = []
 
-        url = 'https://jsonp.afeld.me/?url=https://www.pixiv.net/rpc/cps.php?keyword=%s&lang=zh' % parse.quote(keyword)
-        ac = util.dict_to_object(requests.get(url, headers={'referer': 'https://www.pixiv.net/'}, timeout=30).json())
-        for word in ac.candidates:
-            word = util.dict_to_object(word)
-            data.append({
-                'text': word.tag_name,
-                'translation': word.tag_translation or ''
-            })
-        # url = '%s/v1/search/autocomplete' % self.hosts
-        # r = self.no_auth_requests_call('GET', url, params={'word': keyword})
-        # ac = self.parse_result(r).search_auto_complete_keywords
-        # for word in ac:
+        # url = 'https://jsonp.afeld.me/?url=https://www.pixiv.net/rpc/cps.php?keyword=%s&lang=zh' % parse.quote(keyword)
+        # ac = util.dict_to_object(requests.get(url, headers={'referer': 'https://www.pixiv.net/'}, timeout=30).json())
+        # for word in ac.candidates:
+        #     word = util.dict_to_object(word)
         #     data.append({
-        #         'text': '',
-        #         'translation': word
+        #         'text': word.tag_name,
+        #         'translation': word.tag_translation or ''
         #     })
+        url = '%s/v1/search/autocomplete' % self.hosts
+        r = self.no_auth_requests_call('GET', url, params={'word': keyword})
+        ac = self.parse_result(r).search_auto_complete_keywords
+        for word in ac:
+            data.append({
+                'text': word,
+                'translation': word
+            })
 
         if len(data) < config.rules.auto_complete_count:
             data += util.filter_list(pixiv_tran, lambda x: keyword in x['translation'])
 
-        data = reduce(lambda x, y: x if y in x else x + [y], [[], ] + data)
+        # data = reduce(lambda x, y: x if y in x else x + [y], [[], ] + data)
 
         return data[:config.rules.auto_complete_count]
 
-    def get_tag_img(self, keyword=None):
+    async def get_tag_img(self, keyword=None):
         keyword = keyword if keyword else self.keyword
         if not keyword:
             return None
@@ -216,7 +225,7 @@ class epixiv(ByPassSniApi):
             return None
 
         img_url = tag.body.pixpedia.image
-        local_img = download.get_img(img_proxy(img_url))
+        local_img = await download.get_img(img_proxy(img_url))
 
         pixpedia = tag.body.pixpedia
         translation = tag.body.tagTranslation[tag.body.tag] if tag.body.tagTranslation else util.Dict({})
