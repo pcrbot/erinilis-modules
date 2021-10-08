@@ -44,7 +44,7 @@ async def ann_list_card():
 
     tip = '*可以使用 原神公告#0000(右上角ID) 来查看详细内容, 例子: 原神公告#2434'
     draw_text_by_line(bg, (0, bg.height - 35), tip, get_font(18), '#767779', 1000, True)
-    
+
     return pil2b64(bg)
 
 async def ann_detail_card(ann_id):
@@ -65,14 +65,18 @@ async def ann_detail_card(ann_id):
     for img in soup.find_all('img'):
         img.string = img.get('src')
 
-    msg_list = [BeautifulSoup(x.get_text('').replace('<<', ''), 'lxml').get_text() + '\n' for x in soup.find_all('p')]
-    msg_list.insert(0,ann_img)
+    msg_list = [ann_img]
+    msg_list += [BeautifulSoup(x.get_text('').replace('<<', ''), 'lxml').get_text() + '\n' for x in soup.find_all('p')]
+
 
     drow_height = 0
     for msg in msg_list:
-        if msg.endswith(('jpg', 'png')):
-            img = await get_pic(msg)
-            drow_height += img.size[1] + 40
+        if msg.strip().endswith(('jpg', 'png')):
+            img = await get_pic(msg.strip())
+            img_height = img.size[1]
+            if img.width > 1080:
+                img_height = int(img.height * 0.6)
+            drow_height += img_height + 40
         else:
             x_drow_duanluo, x_drow_note_height, x_drow_line_height, x_drow_height = split_text(msg)
             drow_height += x_drow_height
@@ -82,9 +86,11 @@ async def ann_detail_card(ann_id):
     # 左上角开始
     x, y = 0, 0
     for msg in msg_list:
-        if msg.endswith(('jpg', 'png')):
-            img = await get_pic(msg)
-            easy_paste(im, img)
+        if msg.strip().endswith(('jpg', 'png')):
+            img = await get_pic(msg.strip())
+            if img.width > im.width:
+                img = img.resize((int(img.width * 0.6), int(img.height * 0.6)))
+            easy_paste(im, img, (0, y))
             y += img.size[1] + 40
         else:
             drow_duanluo, drow_note_height, drow_line_height, drow_height = split_text(msg)
@@ -187,7 +193,7 @@ async def check_ann_state():
             detail_list.append(MessageSegment.image(img))
         except Exception as e:
             print(str(e))
-            
+
 
     # print('推送完毕, 更新数据库')
     ann_db['ids'] = new_ids
