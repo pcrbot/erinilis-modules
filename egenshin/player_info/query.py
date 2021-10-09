@@ -77,6 +77,9 @@ async def request_data(uid, api='index', character_ids=None):
     headers['DS'] = __get_ds__(params, json_data and json.dumps(json_data))
     res = await fn(url=url, headers=headers, json=json_data)
     json_data = await res.json(object_hook=Dict)
+    if json_data.retcode == 10001:
+        print('账号已失效 可能被修改密码, 请检查')
+        next_cookie = True
     if json_data.retcode == 10103:
         print('error cookie [%s] (%s) !' %
               (config.use_cookie_index, cookies[config.use_cookie_index]))
