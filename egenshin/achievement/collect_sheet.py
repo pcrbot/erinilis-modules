@@ -44,6 +44,12 @@ def get_all_achievements21_api():
     keep_row = 1
     return end_point('zc19mx'), keep_head, keep_row, 12, 0, Achievements21_Info
 
+# 2.2新增
+def get_all_achievements22_api():
+    keep_head = 2
+    keep_row = 1
+    return end_point('ctb4sr'), keep_head, keep_row, 12, 0, Achievements22_Info
+
 
 def get_row_value(row):
     info = row.get('2')
@@ -95,9 +101,11 @@ async def achievements_sheet(top_type='天地万象'):
     data = await request_data(*((top_type, ) + get_all_achievements_api()))
     data20 = await request_data(*((top_type, ) + get_all_achievements20_api()))
     data21 = await request_data(*((top_type, ) + get_all_achievements21_api()))
+    data22 = await request_data(*((top_type, ) + get_all_achievements22_api()))
 
     result.update(data)
     result.update(data20)
     result.update(data21)
+    result.update(data22)
 
     return result
