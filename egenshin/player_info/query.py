@@ -15,6 +15,10 @@ config.runtime = get_next_day()
 cookies = config.setting.cookies
 
 
+class Account_Error(Exception):
+    pass
+
+
 def __md5__(text):
     _md5 = hashlib.md5()
     _md5.update(text.encode())
@@ -26,11 +30,15 @@ def __get_ds__(query, body=None):
     i = str(int(time.time()))
     r = ''.join(random.sample(string.ascii_lowercase + string.digits, 6))
     q = '&'.join([f'{k}={v}' for k, v in query.items()])
-    c = __md5__("salt=" + n + "&t=" + i + "&r=" + r + '&b=' + (body or '') + '&q=' + q)
+    c = __md5__("salt=" + n + "&t=" + i + "&r=" + r + '&b=' + (body or '') +
+                '&q=' + q)
     return i + "," + r + "," + c
 
+
 last = {'current': 0, 'last': 0, 'all': 0}
-async def request_data(uid, api='index', character_ids=None):
+
+
+async def request_data(uid, api='index', character_ids=None, user_cookie=None):
     next_cookie = False
     now = datetime.datetime.now().timestamp()
     if now > config.runtime:
@@ -41,10 +49,12 @@ async def request_data(uid, api='index', character_ids=None):
         server = 'cn_qd01'
     if config.use_cookie_index == len(cookies):
         return 'all cookie(%s) has limited' % len(cookies)
-    cookie = cookies[config.use_cookie_index]
+    cookie = user_cookie or cookies[config.use_cookie_index]
     account_id = SimpleCookie(cookie)['account_id'].value
-    print('原神UID:(%s) 当前已查询%s次, 上一个账号查询%s次, 当前第%s个账号(%s), 一共%s个账号, 调用API-> %s' %
-          (last['all'], last['current'] + 1, last['last'], config.use_cookie_index + 1, account_id, len(cookies), api))
+    print(
+        '原神UID:(%s) 当前已查询%s次, 上一个账号查询%s次, 当前第%s个账号(%s), 一共%s个账号, 调用API-> %s' %
+        (last['all'], last['current'] + 1, last['last'],
+         config.use_cookie_index + 1, account_id, len(cookies), api))
 
     headers = {
         'Accept': 'application/json, text/plain, */*',
@@ -73,10 +83,16 @@ async def request_data(uid, api='index', character_ids=None):
         json_data = {"character_ids": character_ids}
         json_data.update(params)
         params = {}
+    elif api == 'dailyNote':
+        url += urlencode(params)
 
     headers['DS'] = __get_ds__(params, json_data and json.dumps(json_data))
     res = await fn(url=url, headers=headers, json=json_data)
     json_data = await res.json(object_hook=Dict)
+
+    if json_data.retcode == 10104:
+        raise Account_Error()
+
     if json_data.retcode == 10001:
         print('账号已失效 可能被修改密码, 请检查')
         next_cookie = True
@@ -85,6 +101,9 @@ async def request_data(uid, api='index', character_ids=None):
               (config.use_cookie_index, cookies[config.use_cookie_index]))
         next_cookie = True
     if json_data.retcode == 10101 or next_cookie:
+        if user_cookie:
+            print('user_cookie is limited!')
+            raise Account_Error()
         print('cookie [%s] is limited!' % config.use_cookie_index)
         config.use_cookie_index += 1
         last['last'] = last['current']
@@ -111,6 +130,10 @@ async def spiralAbyss(uid):
 @cache(ttl=datetime.timedelta(minutes=30), arg_key='uid')
 async def character(uid, character_ids):
     return await request_data(uid, 'character', character_ids)
+
+
+async def daily_note(uid, cookie):
+    return await request_data(uid, 'dailyNote', user_cookie=cookie)
 
 
 class stats:
@@ -233,19 +256,11 @@ class stats:
     @property
     def string(self):
         str_list = [
-            self.active_day_str,
-            self.achievement_str,
-            self.anemoculus_str,
-            self.geoculus_str,
-            self.electroculus_str,
-            self.avatar_str,
-            self.way_point_str,
-            self.domain_str,
-            self.spiral_abyss_str,
-            self.luxurious_chest_str,
-            self.precious_chest_str,
-            self.exquisite_chest_str,
-            self.common_chest_str
+            self.active_day_str, self.achievement_str, self.anemoculus_str,
+            self.geoculus_str, self.electroculus_str, self.avatar_str,
+            self.way_point_str, self.domain_str, self.spiral_abyss_str,
+            self.luxurious_chest_str, self.precious_chest_str,
+            self.exquisite_chest_str, self.common_chest_str
         ]
         return '\n'.join(list(filter(None, str_list)))
 
@@ -253,12 +268,25 @@ class stats:
 db = init_db(config.cache_dir, 'uid.sqlite')
 
 
+def get_db(qid):
+    return db.get(qid, {})
+
+
 def get_uid_by_qid(qid):
-    db_info = db.get(qid, {})
-    if not db_info:
-        return None
-    return db_info['uid']
+    return get_db(qid).get('uid')
 
 
 def save_uid_by_qid(qid, uid):
-    db[qid] = {'uid': uid}
+    info = get_db(qid)
+    info['uid'] = uid
+    db[qid] = info
+
+
+def get_cookie_by_qid(qid):
+    return get_db(qid).get('cookie')
+
+
+def save_cookie(qid, cookie):
+    info = get_db(qid)
+    info['cookie'] = cookie
+    db[qid] = info

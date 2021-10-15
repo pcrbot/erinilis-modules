@@ -11,7 +11,7 @@ from pathlib import Path
 
 import aiofiles
 import yaml
-from hoshino import aiorequests
+from hoshino import CanceledException, aiorequests, trigger, priv
 from nonebot import *
 from PIL import ImageFont
 from sqlitedict import SqliteDict
@@ -111,9 +111,39 @@ def get_font(size, w='85'):
 def pil2b64(data):
     bio = BytesIO()
     data = data.convert("RGB")
-    data.save(bio, format='JPEG', quality=80)
+    data.save(bio, format='JPEG', quality=75)
     base64_str = base64.b64encode(bio.getvalue()).decode()
     return 'base64://' + base64_str
+
+
+private_prefix = []
+
+
+# support private message
+@message_preprocessor
+async def handler(bot, ev, _):
+    if ev.detail_type != 'private':
+        return
+    for t in trigger.chain:
+        for service in t.find_handler(ev):
+            sv = service.sv
+            if sv in private_prefix:
+                if priv.get_user_priv(ev) >= priv.NORMAL:
+                    try:
+                        await service.func(bot, ev)
+                    except CanceledException:
+                        raise
+                    sv.logger.info(
+                        f'Private Message {ev.message_id} triggered {service.func.__name__}.'
+                    )
+
+
+def support_private(sv):
+    def wrap(func):
+        private_prefix.append(sv)
+        return func
+
+    return wrap
 
 
 def cache(ttl=datetime.timedelta(hours=1), arg_key=None):

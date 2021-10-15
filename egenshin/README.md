@@ -7,6 +7,8 @@
 > pip install pyyaml -i https://pypi.tuna.tsinghua.edu.cn/simple
 >
 > pip install sqlitedict -i https://pypi.tuna.tsinghua.edu.cn/simple
+>
+> pip install xlsxwriter -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 ---
 
@@ -132,23 +134,19 @@ ysa#  | 和ys#一样 但是显示全部角色 | ysa#
 原神成就查漏功能 (用ys#绑定 切换号直接查询另一个就好)<br>
 不获取游戏内任何数据,仅仅只是记录玩家完成的成就<br>
 方便查看还有什么隐藏成就尚未完成<br>
-只有未完成的成就数量小于100时才有界面<br>
-
+仅限天地万象!!<br>
+<br>
+如果要删除现有的成就请使用 重置原神成就<br>
+重置仅仅是ys#绑定的成就<br>
+如果要查看带有攻略请使用 a原神成就<br>
+<br>
 使用方法:<br>
-
-(方法1): 可以直接使用命令后跟n张游戏内的截图来进行更新,例如<br>
-原神成就[完成的成就截图1][完成的成就截图2][完成的成就截图3]
-
-(方法2): 可以上传图床然后使用命令跟n个上传的图片地址更新,例如<br>
-原神成就<br>
-https://imgtu.com/i/h5Rq6x<br>
-https://imgtu.com/i/h5RHpR<br>
-https://imgtu.com/i/h5Rb11<br>
-
-支持的图床有<br>
-https://imgtu.com/<br>
-https://ibb.co/<br>
-
+<br>
+可以直接使用命令后跟n张游戏内的截图来进行更新,例如<br>
+原神成就[完成的成就截图1][完成的成就截图2][完成的成就截图3]<br>
+<br>
+*第一次需要全部截完 不用一个个发,可以一次性发完<br>
+<br>
 
 命令  | 说明 | 例
 ------------- | ------------- | -------------
@@ -162,5 +160,25 @@ https://ibb.co/<br>
 <summary>返回示例</summary>
 
 ![image](./doc/achievements.jpeg)
+
+</details>
+
+## 原神实时便笺
+
+*目前测试中 <br>
+这个功能需谨慎使用, 因为涉及到获取cookie, 不想使用可以直接删除`daily_note`文件夹<br>
+
+命令  | 说明 | 例
+------------- | ------------- | -------------
+yss | - | -
+yss# | - | -
+原神状态  | - | -
+原神实时 | - | -
+原神便笺 | - | -
+
+<details>
+<summary>返回示例</summary>
+
+![image](./doc/daily_note.jpeg)
 
 </details>
