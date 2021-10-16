@@ -12,6 +12,7 @@ assets_dir = Path(get_path('assets')) / 'daily_note'
 box_bg = Image.open(assets_dir / "bg.png")
 expedition_box = Image.open(assets_dir / "expeditions_item.png")
 expedition_box_ok = Image.open(assets_dir / "expeditions_item_ok.png")
+why_not_expedition = Image.open(assets_dir / "你怎么不派遣.png")
 
 def in_time(time_str1, time_str2):
     now = datetime.datetime.now()
@@ -90,19 +91,27 @@ async def draw_info_card(info: Daily_Note_Info):
         ok = True
     draw_text_by_line(bg, (253, 452), resin_discount_str, get_font(36), ok and success_text_color or default_text_color, 881)
 
-    # 探索
-    first_expeditions_time = int(min([x['remained_time'] for x in info.expeditions]))
-    first_expeditions_time = now + datetime.timedelta(seconds=first_expeditions_time)
-    first_expeditions_time_day = first_expeditions_time.day > now.day and '明天'  or '今天'
-    first_expeditions_str = f'最快{first_expeditions_time_day} {first_expeditions_time.strftime("%H:%M:%S")} 派遣完成'
-    draw_text_by_line(bg, (600, 74), first_expeditions_str, get_font(18), default_text_color, 881)
 
-    bg = bg.convert("RGBA")
-    exp_index = 114
-    async for avatar, exp_bg in gen_expedition_items(info.expeditions):
-        bg = easy_alpha_composite(bg, avatar, (538, exp_index))
-        bg = easy_alpha_composite(bg, exp_bg, (587, exp_index))
-        
-        exp_index += 72
+
+    if info.expeditions:
+        # 探索
+        first_expeditions_time = int(min([x['remained_time'] for x in info.expeditions]))
+        first_expeditions_time = now + datetime.timedelta(seconds=first_expeditions_time)
+        first_expeditions_time_day = first_expeditions_time.day > now.day and '明天'  or '今天'
+        first_expeditions_str = f'最快{first_expeditions_time_day} {first_expeditions_time.strftime("%H:%M:%S")} 派遣完成'
+        draw_text_by_line(bg, (600, 74), first_expeditions_str, get_font(18), default_text_color, 881)
+
+        bg = bg.convert("RGBA")
+        exp_index = 114
+        async for avatar, exp_bg in gen_expedition_items(info.expeditions):
+            bg = easy_alpha_composite(bg, avatar, (538, exp_index))
+            bg = easy_alpha_composite(bg, exp_bg, (587, exp_index))
+
+            exp_index += 72
+            
+    else:
+        easy_paste(bg, why_not_expedition, (579, 125))
+
+
 
     return pil2b64(bg)
