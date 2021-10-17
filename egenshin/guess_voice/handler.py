@@ -14,11 +14,14 @@ dir_data = os.path.join(os.path.dirname(__file__), 'data')
 
 data_path = os.path.join(os.path.dirname(__file__), 'voice')
 
+data2_path = os.path.join(os.path.dirname(__file__), 'voice2')
+
 if not os.path.exists(dir_data):
     os.makedirs(dir_data)
 
 user_db = util.init_db('guess_voice/data', 'user.sqlite')
 voice_db = util.init_db('guess_voice/data', 'voice.sqlite')
+voice2_db = util.init_db('guess_voice/data', 'voice2.sqlite', tablename='voice')
 process = {}
 
 with open(os.path.join(os.path.dirname(__file__), 'character.json'), 'r', encoding="utf-8") as f:
@@ -81,6 +84,9 @@ class Guess:
 
     def set_start(self):
         process[self.group_id] = {'start': True}
+        
+    def set_end(self):
+        process[self.group_id] = {}
 
     def start(self, language: List[str] = None):
         if not language:
@@ -110,7 +116,7 @@ class Guess:
             'ok': set()
         }
 
-        job_id = str(self.group_id)
+        job_id = str(self.group_id) + '_guess_voice'
         if scheduler.get_job(job_id, 'default'):
             scheduler.remove_job(job_id, 'default')
 
@@ -124,6 +130,54 @@ class Guess:
                           max_instances=1)
 
         path = os.path.join(data_path, voice_path)
+
+        return MessageSegment.record(f'file:///{path}')
+
+    def start2(self):
+        # hard mode
+        if not os.path.exists(data2_path):
+            print('请到github下载genshin_voice压缩包解压到 ' + data2_path)
+            raise Exception('困难模式语音文件夹不存在')
+        
+        names = list(voice2_db.keys())
+        if not names:
+            raise Exception('数据库错误. 请重新下载数据库文件')
+        
+        names.remove('')
+        names.remove('派蒙')
+        names.remove('旅行者')
+        answer = random.choice(names)
+        answer_info = None
+        while True:
+            info = random.choice(voice2_db[answer])
+            if answer not in info['text']:
+                answer_info = info
+                break
+
+        if not answer_info:
+            return self.start2()
+        
+        # 记录答案
+        process[self.group_id] = {
+            'start': True,
+            'answer': answer,
+            'ok': set()
+        }
+        
+        job_id = str(self.group_id) + '_guess_voice'
+        if scheduler.get_job(job_id, 'default'):
+            scheduler.remove_job(job_id, 'default')
+
+        now = datetime.datetime.now()
+        notify_time = now + datetime.timedelta(seconds=self.time)
+        scheduler.add_job(self.end_game, trigger=DateTrigger(notify_time),
+                          id=job_id,
+                          misfire_grace_time=60,
+                          coalesce=True,
+                          jobstore='default',
+                          max_instances=1)
+
+        path = os.path.join(data2_path, answer_info['file'] + '.mp3')
 
         return MessageSegment.record(f'file:///{path}')
 

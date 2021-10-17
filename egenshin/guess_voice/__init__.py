@@ -39,6 +39,9 @@ async def guess_genshin_voice(bot, ev):
     await download_voice(bot, ev)
     keyword = ev.message.extract_plain_text().strip()
     guess = Guess(ev['group_id'], time=setting_time)
+
+    hard_mode = False
+
     if keyword == '排行榜':
         await bot.finish(ev, await guess.get_rank(bot, ev))
     if keyword in ['中', '中国', '汉语', '中文', '中国话', 'Chinese', 'cn'] or not keyword:
@@ -49,6 +52,8 @@ async def guess_genshin_voice(bot, ev):
         keyword = '韩'
     elif keyword in ['英', '英文', '英语', '洋文', 'English', 'en']:
         keyword = '英'
+    elif keyword in ['2', '难', '困难', '地狱']:
+        hard_mode = True
     else:
         await bot.finish(ev, f'没有找到{keyword}的语音')
     if guess.is_start():
@@ -56,7 +61,14 @@ async def guess_genshin_voice(bot, ev):
     guess.set_start()
     await bot.send(ev, f'即将发送一段原神语音,将在{setting_time}秒后公布答案')
     await asyncio.sleep(1)
-    await bot.send(ev, guess.start(keyword.split()))
+    if hard_mode:
+        try:
+            await bot.send(ev, guess.start2())
+        except Exception as e:
+            guess.set_end()
+            await bot.send(ev, str(e))
+    else:
+        await bot.send(ev, guess.start(keyword.split()))
 
 
 @sv.on_message('group')
