@@ -7,7 +7,7 @@ from pathlib import Path
 
 from PIL import Image, PngImagePlugin
 
-from ..util import Dict, cache, get_path, get_font, pil2b64, require_file
+from ..util import Dict, cache, get_path, get_font, pil2b64, require_file, gh_json
 from ..imghandler import draw_text_by_line, image_array, easy_paste, easy_alpha_composite
 from hoshino import aiorequests
 from bs4 import BeautifulSoup
@@ -24,8 +24,11 @@ enemies_img = assets_dir / 'spiral_abyss' / 'enemies'
 with open(assets_dir / 'character.json', 'r', encoding="utf-8") as f:
     character: dict = json.loads(f.read(), object_hook=Dict)
 
-with open(assets_dir / 'spiral_abyss' / 'enemies.json', 'r', encoding="utf-8") as f:
-    enemies: dict = json.loads(f.read(), object_hook=Dict)['2.1']
+# with open(assets_dir / 'spiral_abyss' / 'enemies.json', 'r', encoding="utf-8") as f:
+#     enemies: dict = json.loads(f.read(), object_hook=Dict)
+@cache(ttl=datetime.timedelta(hours=12))
+async def gh_enemies():
+    return await gh_json('assets/spiral_abyss/enemies.json')
 
 
 async def decode(raw_data):
@@ -169,6 +172,7 @@ async def use_teams_card(floor, team_a, team_b, i, data_len=3, chara_bg=None, sp
         return image_array(bg, avatar_cards, 4, 10, 0).convert('RGBA')
 
     async def get_enemy_img():
+        enemies = await gh_enemies()
         enemy_a_list = []
         enemy_b_list = []
         floor_i = f'{floor}-{i}'
