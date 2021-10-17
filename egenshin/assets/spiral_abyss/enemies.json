@@ -1,218 +1,168 @@
 {
-  "2.1": {
-    "9-1": {
-      "a": {
-        "Wooden Shieldwall Mitachurl": 1,
-        "Anemo Samachurl": 1,
-        "Hydro Samachurl": 1,
-        "Electro Hilichurl Shooter": 2,
-        "Cryo Hilichurl Shooter": 2,
-        "Large Hydro Slime": 8
-      },
-      "b": {
-        "Hydro Abyss Mage": 1,
-        "Crackling Axe Mitachurl": 1,
-        "Blazing Axe Mitachurl": 1,
-        "Electro Samachurl": 2
-      }
+  "9-1": {
+    "a": {
+      "Wooden Shieldwall Mitachurl": 1,
+      "Anemo Samachurl": 1,
+      "Hydro Samachurl": 1,
+      "Electro Hilichurl Shooter": 2,
+      "Cryo Hilichurl Shooter": 2,
+      "Large Hydro Slime": 8
     },
-    "9-2": {
-      "a": {
-        "Fatui Cryogunner Legionnaire": 2,
-        "Fatui Hydrogunner Legionnaire": 1,
-        "Fatui Electrohammer Vanguard": 1,
-        "Fatui Geochanter Bracer": 1,
-        "Fatui Anemoboxer Vanguard": 1
-      },
-      "b": {
-        "Treasure Hoarder Handyman": 1,
-        "Treasure Hoarder Gravedigger": 1,
-        "Treasure Hoarder Seaman": 1,
-        "Treasure Hoarder Pugilist": 3,
-        "Treasure Hoarder Crusher": 3,
-        "Treasure Hoarder Pyro Potioneer": 1,
-        "Treasure Hoarder Hydro Potioneer": 1,
-        "Treasure Hoarder Electro Potioneer": 1,
-        "Treasure Hoarder Cryo Potioneer": 1,
-        "Treasure Hoarder Marksman": 2
-      }
-    },
-    "9-3": {
-      "a": {
-        "Frostarm Lawachurl": 1,
-        "Stonehide Lawachurl": 1
-      },
-      "b": {
-        "Fatui Pyro Agent": 2,
-        "Fatui Electro Cicin Mage": 2
-      }
-    },
-    "10-1": {
-      "a": {
-        "Electro Abyss Mage": 1,
-        "Dendro Samachurl": 1,
-        "Anemo Samachurl": 1,
-        "Hydro Samachurl": 1,
-        "Blazing Axe Mitachurl": 1,
-        "Pyro Hilichurl Shooter": 2,
-        "Cryo Hilichurl Shooter": 2,
-        "Electro Hilichurl Shooter": 2
-      },
-      "b": {
-        "Stonehide Lawachurl": 1,
-        "Pyro Hilichurl Shooter": 2,
-        "Cryo Hilichurl Shooter": 2
-      }
-    },
-    "10-2": {
-      "a": {
-        "Fatui Pyro Agent": 1,
-        "Fatui Cryogunner Legionnaire": 1,
-        "Fatui Hydrogunner Legionnaire": 1,
-        "Fatui Anemoboxer Vanguard": 1
-      },
-      "b": {
-        "Fatui Electro Cicin Mage": 1,
-        "Fatui Pyroslinger Bracer": 1,
-        "Fatui Electrohammer Vanguard": 1,
-        "Fatui Geochanter Bracer": 1
-      }
-    },
-    "10-3": {
-      "a": {
-        "Abyss Lector Violet Lightning": 1,
-        "Anemo Samachurl": 1,
-        "Hydro Samachurl": 1
-      },
-      "b": {
-        "Abyss Herald Wicked Torrents": 1,
-        "Electro Samachurl": 2
-      }
-    },
-    "11-1": {
-      "a": {
-        "Blazing Axe Mitachurl": 4,
-        "Electro Hilichurl Grenadier": 8,
-        "Hilichurl Berserker": 8
-      },
-      "b": {
-        "Pyro Abyss Mage": 3,
-        "Dendro Samachurl": 3,
-        "Pyro Hilichurl Shooter": "?",
-        "Pyro Hilichurl Grenadier": "?"
-      }
-    },
-    "11-2": {
-      "a": {
-        "Fatui Pyroslinger Bracer": 3,
-        "Treasure Hoarder Gravedigger": 3,
-        "Treasure Hoarder Seaman": 3,
-        "Treasure Hoarder Scout": 6
-      },
-      "b": {
-        "Kairagi Fiery Might": 3,
-        "Treasure Hoarder Pugilist": 3,
-        "Treasure Hoarder Crusher": 3,
-        "Treasure Hoarder Electro Potioneer": 3,
-        "Treasure Hoarder Cryo Potioneer": 3
-      }
-    },
-    "11-3": {
-      "a": {
-        "Fatui Pyro Agent": 2,
-        "Fatui Cryo Cicin Mage": 2,
-        "Fatui Electro Cicin Mage": 2
-      },
-      "b": {
-        "Geovishap": 2,
-        "Large Pyro Slime": 6
-      }
-    },
-    "12-1": {
-      "a": {
-        "Nobushi Hitsukeban": 2,
-        "Nobushi Kikouban": 3,
-        "Treasure Hoarder Gravedigger": 1,
-        "Treasure Hoarder Handyman": 1,
-        "Treasure Hoarder Seaman": 1,
-        "Treasure Hoarder Pyro Potioneer": 1,
-        "Treasure Hoarder Hydro Potioneer": 1,
-        "Treasure Hoarder Electro Potioneer": 1,
-        "Treasure Hoarder Cryo Potioneer": 1
-      },
-      "b": {
-        "Stonehide Lawachurl": 1,
-        "Eye of the Storm": 1,
-        "Anemo Specter": 3,
-        "Geo Specter": 3
-      }
-    },
-    "12-2": {
-      "a": {
-        "Maguu Kenki": 1
-      },
-      "b": {
-        "Mirror Maiden": 1,
-        "Fatui Cryo Cicin Mage": 1
-      }
-    },
-    "12-3": {
-      "a": {
-        "Ruin Guard": 2
-      },
-      "b": {
-        "Perpetual Mechanical Array": 1
-      }
+    "b": {
+      "Hydro Abyss Mage": 1,
+      "Crackling Axe Mitachurl": 1,
+      "Blazing Axe Mitachurl": 1,
+      "Electro Samachurl": 2
     }
   },
-  "2.2": {
-    "9-1": {
-      "a": {},
-      "b": {}
+  "9-2": {
+    "a": {
+      "Fatui Cryogunner Legionnaire": 2,
+      "Fatui Hydrogunner Legionnaire": 1,
+      "Fatui Electrohammer Vanguard": 1,
+      "Fatui Geochanter Bracer": 1,
+      "Fatui Anemoboxer Vanguard": 1
     },
-    "9-2": {
-      "a": {},
-      "b": {}
+    "b": {
+      "Treasure Hoarder Handyman": 1,
+      "Treasure Hoarder Gravedigger": 1,
+      "Treasure Hoarder Seaman": 1,
+      "Treasure Hoarder Pugilist": 3,
+      "Treasure Hoarder Crusher": 3,
+      "Treasure Hoarder Pyro Potioneer": 1,
+      "Treasure Hoarder Hydro Potioneer": 1,
+      "Treasure Hoarder Electro Potioneer": 1,
+      "Treasure Hoarder Cryo Potioneer": 1,
+      "Treasure Hoarder Marksman": 2
+    }
+  },
+  "9-3": {
+    "a": {
+      "Frostarm Lawachurl": 1,
+      "Stonehide Lawachurl": 1
     },
-    "9-3": {
-      "a": {},
-      "b": {}
+    "b": {
+      "Fatui Pyro Agent": 2,
+      "Fatui Electro Cicin Mage": 2
+    }
+  },
+  "10-1": {
+    "a": {
+      "Electro Abyss Mage": 1,
+      "Dendro Samachurl": 1,
+      "Anemo Samachurl": 1,
+      "Hydro Samachurl": 1,
+      "Blazing Axe Mitachurl": 1,
+      "Pyro Hilichurl Shooter": 2,
+      "Cryo Hilichurl Shooter": 2,
+      "Electro Hilichurl Shooter": 2
     },
-    "10-1": {
-      "a": {},
-      "b": {}
+    "b": {
+      "Stonehide Lawachurl": 1,
+      "Pyro Hilichurl Shooter": 2,
+      "Cryo Hilichurl Shooter": 2
+    }
+  },
+  "10-2": {
+    "a": {
+      "Fatui Pyro Agent": 1,
+      "Fatui Cryogunner Legionnaire": 1,
+      "Fatui Hydrogunner Legionnaire": 1,
+      "Fatui Anemoboxer Vanguard": 1
     },
-    "10-2": {
-      "a": {},
-      "b": {}
+    "b": {
+      "Fatui Electro Cicin Mage": 1,
+      "Fatui Pyroslinger Bracer": 1,
+      "Fatui Electrohammer Vanguard": 1,
+      "Fatui Geochanter Bracer": 1
+    }
+  },
+  "10-3": {
+    "a": {
+      "Abyss Lector Violet Lightning": 1,
+      "Anemo Samachurl": 1,
+      "Hydro Samachurl": 1
     },
-    "10-3": {
-      "a": {},
-      "b": {}
+    "b": {
+      "Abyss Herald Wicked Torrents": 1,
+      "Electro Samachurl": 2
+    }
+  },
+  "11-1": {
+    "a": {
+      "Electro Abyss Mage": 1,
+      "Hydro Abyss Mage": 1,
+      "Electro Whopperflower": 6,
+      "Large Hydro Slime": 9
     },
-    "11-1": {
-      "a": {},
-      "b": {}
+    "b": {
+      "Pyro Abyss Mage": 1,
+      "Crackling Axe Mitachurl": 2,
+      "Pyro Whopperflower": 6,
+      "Large Pyro Slime": 9
+    }
+  },
+  "11-2": {
+    "a": {
+      "Fatui Electro Cicin Mage": 1,
+      "Fatui Cryo Cicin Mage": 1,
+      "Cryogunner Legionnaire": 2,
+      "Anemoboxer Vanguard": 2
     },
-    "11-2": {
-      "a": {},
-      "b": {}
+    "b": {
+      "Kairagi Dancing Thunder": 1,
+      "Kairagi Fiery Might": 1,
+      "Nobushi Hitsukeban": 1,
+      "Nobushi Kikouban": 1
+    }
+  },
+  "11-3": {
+    "a": {
+      "Hydro Hypostasis": 1
     },
-    "11-3": {
-      "a": {},
-      "b": {}
+    "b": {
+      "Pyro Hypostasis": 1
+    }
+  },
+  "12-1": {
+    "a": {
+      "Fatui Pyro Agent": 3,
+      "Nobushi Jintouban": 1,
+      "Nobushi Hitsukeban": 1,
+      "Nobushi Kikouban": 1
     },
-    "12-1": {
-      "a": {},
-      "b": {}
+    "b": {
+      "Geovishap (Electro)": 1,
+      "Geovishap (Cryo)": 1,
+      "Hydro Mimic Boar": 3,
+      "Hydro Mimic Ferret": 3
+    }
+  },
+  "12-2": {
+    "a": {
+      "Maguu Kenki": 1
     },
-    "12-2": {
-      "a": {},
-      "b": {}
+    "b": {
+      "Mirror Maiden": 1,
+      "Fatui Cryo Cicin Mage": 1,
+      "Treasure Hoarder Pyro Potioneer": 1,
+      "Treasure Hoarder Hydro Potioneer": 2,
+      "Treasure Hoarder Electro Potioneer": 1,
+      "Treasure Hoarder Cryo Potioneer": 2
+    }
+  },
+  "12-3": {
+    "a": {
+      "Ruin Guard": 1,
+      "Ruin Hunter": 1,
+      "Ruin Cruiser": 2,
+      "Ruin Destroyer": 2
     },
-    "12-3": {
-      "a": {},
-      "b": {}
+    "b": {
+      "Ruin Guard": 1,
+      "Ruin Grader": 1,
+      "Ruin Cruiser": 2,
+      "Ruin Defender": 2
     }
   }
 }
