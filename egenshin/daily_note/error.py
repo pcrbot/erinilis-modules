@@ -14,7 +14,7 @@ class Cookie_Error(Error_Message):
 2. 登录游戏账号
 3. F12打开控制台
 4. 输入以下代码运行
-javascript:(()=>{_=(n)=>{for(i in(r=document.cookie.split(";"))){var arr=r[i].split("=");if(arr[0].trim()==n)return arr[1];}};c=_("cookie_token")||alert('请重新登录');m=_("account_id")+","+c;c&&confirm('确定复制到剪切板?\n'+m)&&copy(m)})();
+javascript:(()=>{_=(n)=>{for(i in(r=document.cookie.split(";"))){var arr=r[i].split("=");if(arr[0].trim()==n)return arr[1];}};c=_("cookie_token")||alert('请重新登录');m=_("account_id")+","+c;c&&confirm('确定复制到剪切板?:'+m)&&copy(m)})();
 5. 复制提示的内容, 私聊发给机器人
 私聊格式为
 
