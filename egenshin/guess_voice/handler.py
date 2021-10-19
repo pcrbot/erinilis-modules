@@ -50,7 +50,7 @@ def char_name_by_name(name):
         nickname = character_json[item]
         if name in nickname:
             return item
-    return ''
+    return name
 
 
 async def get_random_voice(name, language='中'):
