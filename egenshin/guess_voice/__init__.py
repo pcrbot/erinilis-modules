@@ -63,12 +63,12 @@ async def guess_genshin_voice(bot, ev):
     await asyncio.sleep(1)
     if hard_mode:
         try:
-            await bot.send(ev, guess.start2())
+            await bot.send(ev, await guess.start2())
         except Exception as e:
             guess.set_end()
             await bot.send(ev, str(e))
     else:
-        await bot.send(ev, guess.start(keyword.split()))
+        await bot.send(ev, await guess.start(keyword.split()))
 
 
 @sv.on_message('group')
@@ -88,7 +88,7 @@ async def get_genshin_voice(bot, ev):
     else:
         language = '中'
     await download_voice(bot, ev)
-    path = get_random_voice(name, language)
+    path = await get_random_voice(name, language)
     if not path:
         await bot.finish(ev, f'没有找到{name}的语音呢')
     await bot.send(ev, MessageSegment.record(f'file:///{util.get_path("guess_voice", path)}'))

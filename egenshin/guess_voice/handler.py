@@ -7,6 +7,7 @@ from apscheduler.triggers.date import DateTrigger
 from typing import List
 from nonebot import MessageSegment, scheduler, get_bot
 from hoshino.util import escape
+from .download_data import voice_list_by_mys, voice_detail_by_mys
 
 from .. import util
 
@@ -52,8 +53,18 @@ def char_name_by_name(name):
     return ''
 
 
-def get_random_voice(name, language='中'):
-    voice_list = voice_db.get(char_name_by_name(name))
+async def get_random_voice(name, language='中'):
+    char_name = char_name_by_name(name)
+    if language == '中':
+        # 如果是中文 则选择米游社的源
+        mys_list = await voice_list_by_mys()
+        char_voices = mys_list.get(char_name)
+        if not char_voices:
+            return
+        voice_list = await voice_detail_by_mys(char_voices.content_id)
+    else:
+        voice_list = voice_db.get(char_name)
+     
     if not voice_list:
         return
     temp_voice_list = []
@@ -63,7 +74,16 @@ def get_random_voice(name, language='中'):
             temp_voice_list.append(voice_path)
     if not temp_voice_list:
         return
-    path = os.path.join(data_path, random.choice(temp_voice_list))
+    
+    voice_path = random.choice(temp_voice_list)
+    
+    if language == '中':
+        # 如果是中文 则选择米游社的源
+        path = os.path.join(data_path, language, char_name, os.path.basename(voice_path))
+        await util.require_file(file=path, url=voice_path)
+    else:
+        path = os.path.join(data_path, voice_path)
+    
     return path
 
 
@@ -71,6 +91,7 @@ class Guess:
     time: int
     group_id: int
     group = {}
+    retry_count = 0
 
     def __init__(self, group_id: int, time=30):
         self.time = time
@@ -84,21 +105,41 @@ class Guess:
 
     def set_start(self):
         process[self.group_id] = {'start': True}
-        
+
     def set_end(self):
         process[self.group_id] = {}
 
-    def start(self, language: List[str] = None):
+    async def start(self, language: List[str] = None):
         if not language:
             language = ['中']
         # 随机一个语言
         language = random.choice(language)
         # 随机选择一个语音
-        answer = random.choice(list(voice_db.keys()))
-        # print('正确答案为: %s' % answer)
-        temp_voice_list = []
+        if language == '中':
+            # 如果是中文 则选择米游社的源
+            mys_list = await voice_list_by_mys()
 
-        for v in voice_db[answer]:
+            answer = random.choice(list(mys_list.keys()))
+            try:
+                db_dict = {
+                    answer: await
+                    voice_detail_by_mys(mys_list[answer].content_id)
+                }
+
+                self.retry_count = 0
+            except KeyError as e:
+                if self.retry_count == 4:
+                    self.retry_count = 0
+                    raise Exception('获取语音数据失败')
+                self.retry_count += 1
+                return await self.start([language])
+
+        else:
+            answer = random.choice(list(voice_db.keys()))
+            db_dict = voice_db
+
+        temp_voice_list = []
+        for v in db_dict[answer]:
             if not (answer in v['text']):
                 voice_path = get_voice_by_language(v, language)
                 if voice_path:
@@ -106,9 +147,18 @@ class Guess:
 
         if not temp_voice_list:
             hoshino.logger.info('随机到了个哑巴,, 重新随机.. 如果反复出现这个 你应该检查一下数据库')
-            return self.start([language])
+            return await self.start([language])
 
         voice_path = random.choice(temp_voice_list)
+
+        if language == '中':
+            # 如果是中文 则选择米游社的源
+            path = os.path.join(data_path, language, answer, os.path.basename(voice_path))
+            await util.require_file(file=path, url=voice_path)
+        else:
+            path = os.path.join(data_path, voice_path)
+            
+
         # 记录答案
         process[self.group_id] = {
             'start': True,
@@ -129,20 +179,20 @@ class Guess:
                           jobstore='default',
                           max_instances=1)
 
-        path = os.path.join(data_path, voice_path)
-
+        
+        print('答案: ' + answer)
         return MessageSegment.record(f'file:///{path}')
 
-    def start2(self):
+    async def start2(self):
         # hard mode
         if not os.path.exists(data2_path):
             print('请到github下载genshin_voice压缩包解压到 ' + data2_path)
             raise Exception('困难模式语音文件夹不存在')
-        
+
         names = list(voice2_db.keys())
         if not names:
             raise Exception('数据库错误. 请重新下载数据库文件')
-        
+
         names.remove('')
         names.remove('派蒙')
         names.remove('旅行者')
@@ -155,15 +205,15 @@ class Guess:
                 break
 
         if not answer_info:
-            return self.start2()
-        
+            return await self.start2()
+
         # 记录答案
         process[self.group_id] = {
             'start': True,
             'answer': answer,
             'ok': set()
         }
-        
+
         job_id = str(self.group_id) + '_guess_voice'
         if scheduler.get_job(job_id, 'default'):
             scheduler.remove_job(job_id, 'default')
