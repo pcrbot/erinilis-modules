@@ -1,7 +1,8 @@
 import re
-
-from hoshino import MessageSegment, Service, priv, Message
+from nonebot.message import CanceledException
+from hoshino import Message, MessageSegment, Service, priv
 from ..player_info import handle as player_info
+from ..util import support_private
 from .info_card import draw_info_card
 from .main import achievement
 
@@ -37,6 +38,7 @@ sv = Service(
 prefix = '原神'
 
 
+@support_private(sv)
 @sv.on_prefix((prefix + '成就', ))
 async def achievement_main(bot, ev):
     text = ev.message.extract_plain_text().strip()
@@ -99,14 +101,15 @@ async def achievement_main(bot, ev):
                 ev,
                 f'绑定的UID[{achi.info.uid}]记录的成就太少,请补充成就后再查看,发送 原神成就? 查看如何使用',
                 at_sender=True)
-
+            
+    except CanceledException:
+        pass
     except Exception as e:
-        if 'HoshinoBot finished' in e.args[0]:
-            return
         await bot.send(ev, e.args[0], at_sender=True)
         raise e
 
 
+@support_private(sv)
 @sv.on_prefix(('重置' + prefix + '成就', ))
 async def main(bot, ev):
     try:
@@ -117,6 +120,8 @@ async def main(bot, ev):
         await bot.send(ev, e.args[0], at_sender=True)
         raise e
 
+
+@support_private(sv)
 @sv.on_prefix(('a' + prefix + '成就', ))
 async def main(bot, ev):
     ev['detail'] = True

@@ -1,10 +1,17 @@
-from typing import List
 from dataclasses import dataclass
 from http.cookies import SimpleCookie
+from typing import List
+
+from apscheduler.triggers.date import DateTrigger
+from nonebot import scheduler
+
 from ..player_info import query
+from ..util import init_db
 from .error import *
 
 Account_Error = query.Account_Error
+
+remind_db = init_db('daily_note/data', 'remind.sqlite')
 
 
 @dataclass
@@ -30,13 +37,19 @@ class Daily_Note_Info:
 
 
 class Daily_Note():
-    def __init__(self, qid, cookie_raw=None):
+    def __init__(self, qid, cookie_raw=None, group_id=None):
         self.qid = qid
+        self.group_id = group_id
 
         self.cookie = query.get_cookie_by_qid(qid)
 
         if not any([cookie_raw, self.cookie]):
             raise Cookie_Error()
+
+        if cookie_raw and ',' not in cookie_raw:
+            raise Error_Message(
+                'cookie格式错误, 请参考说明, 正确的格式应为 100000000,Xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+            )
 
         self.uid = query.get_uid_by_qid(qid)
         if not self.uid:
@@ -54,9 +67,44 @@ class Daily_Note():
         json_data = await query.daily_note(self.uid, self.cookie_raw)
 
         if json_data.retcode == 10102:
-            raise Login_Error('请先在米游社角色信息那打开实时便笺功能')
+            raise Login_Error('UID[%s]请先在米游社角色信息那打开实时便笺功能' % self.uid)
         if json_data.retcode != 0:
             raise Login_Error(json_data.message)
 
         query.save_cookie(self.qid, self.cookie_raw)
         return Daily_Note_Info(**json_data.data)
+
+    def get_remind_key(self):
+        return '%s_%s' % (self.qid, self.uid)
+
+    async def remind(self, on=True):
+        db_key = self.get_remind_key()
+        if on:
+            remind_db[db_key] = {
+                'qid': self.qid,
+                'uid': self.uid,
+                'group_id': self.group_id
+            }
+            return '已打开提醒功能'
+        else:
+            del remind_db[db_key]
+            return '已关闭提醒功能'
+
+    async def remind_job(self):
+
+        # job_id = f'egenshin_remind_job_{self.uid}'
+
+        # scheduler.add_job(self.remind_job, trigger=DateTrigger(notify_time),
+        #                   id=job_id,
+        #                   misfire_grace_time=60,
+        #                   coalesce=True,
+        #                   jobstore='default',
+        #                   max_instances=1)
+        pass
+
+
+
+# @scheduler.scheduled_job('cron', minute=f"*/5")
+# async def update_resin():
+#     # 为设置提醒的用户刷新树脂
+#     pass

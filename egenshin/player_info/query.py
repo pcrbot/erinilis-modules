@@ -16,7 +16,11 @@ cookies = config.setting.cookies
 
 
 class Account_Error(Exception):
-    pass
+    def __init__(self, msg):
+        self.msg = msg
+
+    def __repr__(self):
+        return self.msg
 
 
 def __md5__(text):
@@ -91,7 +95,7 @@ async def request_data(uid, api='index', character_ids=None, user_cookie=None):
     json_data = await res.json(object_hook=Dict)
 
     if json_data.retcode == 10104:
-        raise Account_Error()
+        raise Account_Error('UID[%s]信息获取失败, 请绑定正确的UID' % uid)
 
     if json_data.retcode == 10001:
         print('账号已失效 可能被修改密码, 请检查')
@@ -114,6 +118,10 @@ async def request_data(uid, api='index', character_ids=None, user_cookie=None):
 
     last['current'] += 1
     last['all'] += 1
+    
+    if json_data.retcode != 0:
+        raise Account_Error(f'{uid} 不存在,或者未在米游社公开.(请打开米游社,我的-个人主页-管理-公开信息)')
+    
     return json_data
 
 

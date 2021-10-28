@@ -121,7 +121,7 @@ private_prefix = []
 
 # support private message
 @message_preprocessor
-async def handler(bot, ev, _):
+async def private_handler(bot, ev, _):
     if ev.detail_type != 'private':
         return
     for t in trigger.chain:

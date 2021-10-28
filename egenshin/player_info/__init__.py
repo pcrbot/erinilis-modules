@@ -1,6 +1,7 @@
-from hoshino import Service, priv, MessageSegment
-from ..util import get_config
-from . import query, info_card
+from hoshino import MessageSegment, Service, priv
+from nonebot.message import CanceledException
+from ..util import get_config, support_private
+from . import info_card, query
 
 sv_help = '''
 [ys#UID] 查询一个用户信息
@@ -22,7 +23,7 @@ async def handle(bot, ev):
     uid = ev.message.extract_plain_text().strip()
     if uid and not uid.isdigit():
         await bot.finish(ev, '游戏UID不合法')
-        
+
     qid = ev.user_id
     nickname = ev['sender']['nickname']
     m = ev.message
@@ -45,28 +46,38 @@ async def handle(bot, ev):
     if isinstance(raw_data, str):
         await bot.finish(ev, raw_data)
 
-    if raw_data.retcode != 0:
-        await bot.finish(ev, f'{uid} 不存在,或者未在米游社公开.(请打开米游社,我的-个人主页-管理-公开信息)')
-
     return uid, qid, nickname, raw_data
 
 
+@support_private(sv)
 @sv.on_prefix('ys#')
 async def main(bot, ev):
-    uid, qid, nickname, raw_data = await handle(bot, ev)
+    if ev.detail_type == 'private':
+        await bot.send(ev, '这个功能只能在授权的群内使用~')
+        return
+    try:
+        uid, qid, nickname, raw_data = await handle(bot, ev)
 
-    im = await info_card.draw_info_card(uid=uid,
-                                        qid=qid,
-                                        nickname=nickname,
-                                        raw_data=raw_data.data,
-                                        max_chara=12)
+        im = await info_card.draw_info_card(uid=uid,
+                                            qid=qid,
+                                            nickname=nickname,
+                                            raw_data=raw_data.data,
+                                            max_chara=12)
 
-    await bot.send(ev, MessageSegment.image(im), at_sender=True)
-    query.save_uid_by_qid(qid, uid)
+        await bot.send(ev, MessageSegment.image(im), at_sender=True)
+        query.save_uid_by_qid(qid, uid)
+    except CanceledException:
+        pass
+    except Exception as e:
+        await bot.send(ev, str(e), at_sender=True)
 
 
+@support_private(sv)
 @sv.on_prefix('ysa#')
 async def main(bot, ev):
+    if ev.detail_type == 'private':
+        await bot.send(ev, '这个功能只能在授权的群内使用~')
+        return
     try:
         uid, qid, nickname, raw_data = await handle(bot, ev)
 
@@ -78,5 +89,8 @@ async def main(bot, ev):
 
         await bot.send(ev, MessageSegment.image(im), at_sender=True)
         query.save_uid_by_qid(qid, uid)
+        
+    except CanceledException:
+        pass
     except Exception as e:
         await bot.send(ev, str(e), at_sender=True)
