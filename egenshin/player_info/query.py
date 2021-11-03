@@ -51,14 +51,19 @@ async def request_data(uid, api='index', character_ids=None, user_cookie=None, q
     server = 'cn_gf01'
     if uid[0] == "5":
         server = 'cn_qd01'
+        
+    limit_msg = '公用(%s次)已经全部使用完毕 你可以使用yss来获得额外的30次限额' % (len(cookies) * 30)
 
     if config.use_cookie_index == len(cookies) and not user_cookie:
         if not user_cookie and qid:
             user_cookie = get_cookie_by_qid(qid)
         if not user_cookie:
-            raise Account_Error('公用(%s次)已经全部使用完毕 你可以使用yss来获得额外的30次限额' % (len(cookies) * 30))
+            raise Account_Error(limit_msg)
+    try:
+        cookie = user_cookie or cookies[config.use_cookie_index]
+    except Exception as e:
+        raise Account_Error(limit_msg)
         
-    cookie = user_cookie or cookies[config.use_cookie_index]
     account_id = SimpleCookie(cookie)['account_id'].value
     print(
         '原神UID:(%s) 当前已查询%s次, 上一个账号查询%s次, 当前第%s个账号(%s), 一共%s个账号, 调用API-> %s' %
@@ -118,7 +123,7 @@ async def request_data(uid, api='index', character_ids=None, user_cookie=None, q
         last['last'] = last['current']
         last['current'] = 0
         if config.use_cookie_index == len(cookies):
-            raise Account_Error('公用(%s次)已经全部使用完毕 你可以使用yss来获得额外的30次限额' % (len(cookies) * 30))
+            raise Account_Error(limit_msg)
         return await request_data(uid, api=api, character_ids=character_ids)
 
     last['current'] += 1
