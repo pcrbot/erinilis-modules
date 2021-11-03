@@ -42,7 +42,7 @@ def __get_ds__(query, body=None):
 last = {'current': 0, 'last': 0, 'all': 0}
 
 
-async def request_data(uid, api='index', character_ids=None, user_cookie=None):
+async def request_data(uid, api='index', character_ids=None, user_cookie=None, qid=None):
     next_cookie = False
     now = datetime.datetime.now().timestamp()
     if now > config.runtime:
@@ -51,8 +51,13 @@ async def request_data(uid, api='index', character_ids=None, user_cookie=None):
     server = 'cn_gf01'
     if uid[0] == "5":
         server = 'cn_qd01'
-    if config.use_cookie_index == len(cookies):
-        return 'all cookie(%s) has limited' % len(cookies)
+
+    if config.use_cookie_index == len(cookies) and not user_cookie:
+        if not user_cookie and qid:
+            user_cookie = get_cookie_by_qid(qid)
+        else:
+            raise Account_Error('全部账号(%s)查询已经被限制' % len(cookies))
+        
     cookie = user_cookie or cookies[config.use_cookie_index]
     account_id = SimpleCookie(cookie)['account_id'].value
     print(
@@ -113,35 +118,35 @@ async def request_data(uid, api='index', character_ids=None, user_cookie=None):
         last['last'] = last['current']
         last['current'] = 0
         if config.use_cookie_index == len(cookies):
-            return 'all cookie(%s) has limited' % len(cookies)
+            raise Account_Error('全部账号(%s)查询已经被限制' % len(cookies))
         return await request_data(uid, api=api, character_ids=character_ids)
 
     last['current'] += 1
     last['all'] += 1
-    
+
     if json_data.retcode != 0:
         raise Account_Error(f'{uid} 不存在,或者未在米游社公开.(请打开米游社,我的-个人主页-管理-公开信息)')
-    
+
     return json_data
 
 
 @cache(ttl=datetime.timedelta(minutes=30), arg_key='uid')
-async def info(uid):
-    return await request_data(uid)
+async def info(uid, qid=None):
+    return await request_data(uid, qid=qid)
 
 
 @cache(ttl=datetime.timedelta(minutes=30), arg_key='uid')
-async def spiralAbyss(uid):
-    return await request_data(uid, 'spiralAbyss')
+async def spiralAbyss(uid, qid=None):
+    return await request_data(uid, 'spiralAbyss', qid=qid)
 
 
 @cache(ttl=datetime.timedelta(minutes=30), arg_key='uid')
-async def character(uid, character_ids):
-    return await request_data(uid, 'character', character_ids)
+async def character(uid, character_ids, qid=None):
+    return await request_data(uid, 'character', character_ids, qid=qid)
 
 
-async def daily_note(uid, cookie):
-    return await request_data(uid, 'dailyNote', user_cookie=cookie)
+async def daily_note(uid, cookie, qid=None):
+    return await request_data(uid, 'dailyNote', user_cookie=cookie, qid=qid)
 
 
 class stats:

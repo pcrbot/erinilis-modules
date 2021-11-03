@@ -3,7 +3,6 @@ import base64
 import datetime
 import functools
 import json
-import locale
 import os
 import re
 import time
@@ -19,8 +18,12 @@ from sqlitedict import SqliteDict
 
 bot = get_bot()
 
-# 解决部分系统无法格式化中文时间问题
-locale.setlocale(locale.LC_CTYPE, 'chinese')
+try:
+    import locale
+    # 解决部分系统无法格式化中文时间问题
+    locale.setlocale(locale.LC_CTYPE, 'chinese')
+except Exception as e:
+    pass
 
 class Dict(dict):
     __setattr__ = dict.__setitem__

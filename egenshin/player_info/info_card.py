@@ -65,8 +65,8 @@ async def avatar_card(avatar_id, level, constellation, fetter, detail_info):
         weapon_card = weapon_bg.copy()
         new_weapon_card_bg = weapon_card_bg[weapon_info.rarity].copy()
         # 武器等级
-        
-        
+
+
         weapon_card = easy_alpha_composite(weapon_card, new_weapon_card_bg, (4, 3))
         # 获取武器图标
         file_url = weapon_info.icon
@@ -74,29 +74,29 @@ async def avatar_card(avatar_id, level, constellation, fetter, detail_info):
         weapon_icon_img = await require_file(file=weapon_icon_dir / file_name, url=file_url)
         weapon_icon = Image.open(BytesIO(weapon_icon_img)).convert("RGBA").resize((56, 65), Image.LANCZOS)
         weapon_card = easy_alpha_composite(weapon_card, weapon_icon, (9, 6))
-        
+
         # 武器名称 精炼
         name_img = Image.new("RGBA", (weapon_bg.width - new_weapon_card_bg.width, weapon_bg.height))
         draw_text_by_line(name_img, (96.86, 9.71), weapon_info.name, get_font(18), '#475463', 226, True)
-        
+
         draw_text_by_line(name_img, (132.48, 34.01), f'Lv.{weapon_info.level}', get_font(14), '#475463', 226, True)
-        
+
         affix_name = weapon_info.affix_level == 5 and 'MAX' or f'{weapon_info.affix_level}阶'
         draw_text_by_line(name_img, (120, 53.39), f'精炼{affix_name}', get_font(18), '#cc9966', 226, True)
-        
+
         weapon_card = easy_alpha_composite(weapon_card, name_img, (new_weapon_card_bg.width, 0))
-        
-        
+
+
         # 复制到新的卡片上
         new_card = easy_alpha_composite(new_card, weapon_card, (0, card.height))
-        
+
         card = new_card
 
 
     return card
 
-async def gen_detail_info(uid ,character_ids):
-    info = await query.character(uid=uid, character_ids=character_ids)
+async def gen_detail_info(uid ,character_ids, qid):
+    info = await query.character(uid=uid, character_ids=character_ids, qid=qid)
     if info.retcode == 10102:
         raise Exception("武器信息读取失败, 请打开米游社,我的-个人主页-管理-公开信息")
     return {x.id: x for x in info.data.avatars}
@@ -183,22 +183,22 @@ async def draw_info_card(uid, qid, nickname, raw_data, max_chara=None):
     text_draw.text((880, 1576), 'Lv.' + str(world.level), '#d4aa6b', get_font(24))
     text_draw.text((880, 1606), 'Lv.' + str(world.offerings[0].level), '#d4aa6b', get_font(24))
     text_draw.text((880, 1639), stats.electroculus.__str__(), '#d4aa6b', get_font(24))
-    
+
     # 深渊星数
     if SHOW_SPIRAL_ABYSS_STAR:
-        abyss_info = await query.spiralAbyss(uid=uid)
+        abyss_info = await query.spiralAbyss(uid=uid, qid=qid)
         if abyss_info.retcode !=0 :
             raise Exception(abyss_info.message)
-        
+
         new_abyss_star_bg = abyss_star_bg.copy()
         draw_text_by_line(new_abyss_star_bg, (0, 60), str(abyss_info.data.total_star), get_font(36), '#78818b', 64, True)
         card_bg = easy_alpha_composite(card_bg.convert('RGBA'), new_abyss_star_bg, (925, 710))
-    
+
 
     detail_info = None
     detail_info_height = 0
     if max_chara == None and SHOW_WEAPON_INFO:
-        detail_info = await gen_detail_info(uid, [x.id for x in raw_data.avatars])
+        detail_info = await gen_detail_info(uid, [x.id for x in raw_data.avatars], qid)
         detail_info_height = weapon_bg.height
 
     avatar_cards = []
@@ -208,7 +208,7 @@ async def draw_info_card(uid, qid, nickname, raw_data, max_chara=None):
                                  chara["fetter"], detail_info
                                  and detail_info[chara['id']])
         avatar_cards.append(card)
-        
+
     chara_bg = Image.new('RGB', (1080, math.ceil(len(avatar_cards) / 4) *
                                  (315 + detail_info_height)), '#f0ece3')
     chara_img = image_array(chara_bg, avatar_cards, 4, 35, 0)

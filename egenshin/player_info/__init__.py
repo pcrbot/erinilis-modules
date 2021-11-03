@@ -41,7 +41,7 @@ async def handle(bot, ev):
                 '请在原有指令后面输入游戏uid,只需要输入一次就会记住下次直接使用{comm}获取就好\n例如:{comm}105293904'
                 .format(comm='ys#'))
 
-    raw_data = await query.info(uid=uid)
+    raw_data = await query.info(uid=uid, qid=qid)
 
     if isinstance(raw_data, str):
         await bot.finish(ev, raw_data)
@@ -89,7 +89,7 @@ async def main(bot, ev):
 
         await bot.send(ev, MessageSegment.image(im), at_sender=True)
         query.save_uid_by_qid(qid, uid)
-        
+
     except CanceledException:
         pass
     except Exception as e:
