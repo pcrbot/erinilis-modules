@@ -55,7 +55,7 @@ async def request_data(uid, api='index', character_ids=None, user_cookie=None, q
     if config.use_cookie_index == len(cookies) and not user_cookie:
         if not user_cookie and qid:
             user_cookie = get_cookie_by_qid(qid)
-        else:
+        if not user_cookie:
             raise Account_Error('全部账号(%s)查询已经被限制' % len(cookies))
         
     cookie = user_cookie or cookies[config.use_cookie_index]
