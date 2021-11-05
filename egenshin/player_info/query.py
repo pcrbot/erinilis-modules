@@ -215,7 +215,7 @@ async def request_data(uid,
     return json_data
 
 
-# @cache(ttl=datetime.timedelta(minutes=30), arg_key='uid')
+@cache(ttl=datetime.timedelta(minutes=30), arg_key='uid')
 async def info(uid, qid=None, group_id=None):
     return await request_data(uid, qid=qid, group_id=group_id)
 
