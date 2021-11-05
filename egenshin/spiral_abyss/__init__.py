@@ -60,7 +60,7 @@ async def main(bot, ev):
     if not uid:
         await bot.finish(ev, '请先使用ys#命令绑定一个原神UID')
 
-    user_info = await info(uid=uid, qid=ev.user_id)
+    user_info = await info(uid=uid, qid=ev.user_id, group_id=ev.group_id)
     if user_info.retcode != 0:
         await bot.finish(ev, '请确保ys#能正确显示玩家信息, api:[%s]' % user_info.message)
 

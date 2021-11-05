@@ -2,6 +2,7 @@ from hoshino import MessageSegment, Service, priv
 from nonebot.message import CanceledException
 from ..util import get_config, support_private
 from . import info_card, query
+from .cookies import Genshin_Cookies
 
 sv_help = '''
 [ys#UID] 查询一个用户信息
@@ -41,7 +42,7 @@ async def handle(bot, ev):
                 '请在原有指令后面输入游戏uid,只需要输入一次就会记住下次直接使用{comm}获取就好\n例如:{comm}105293904'
                 .format(comm='ys#'))
     query.save_uid_by_qid(qid, uid)
-    raw_data = await query.info(uid=uid, qid=qid)
+    raw_data = await query.info(uid=uid, qid=qid, group_id=ev.group_id)
 
     if isinstance(raw_data, str):
         await bot.finish(ev, raw_data)
@@ -62,13 +63,14 @@ async def main(bot, ev):
                                             qid=qid,
                                             nickname=nickname,
                                             raw_data=raw_data.data,
-                                            max_chara=12)
+                                            max_chara=12,
+                                            group_id=ev.group_id)
 
         await bot.send(ev, MessageSegment.image(im), at_sender=True)
     except CanceledException:
         pass
     except Exception as e:
-        await bot.send(ev, str(e), at_sender=True)
+        await bot.send(ev, repr(e), at_sender=True)
 
 
 @support_private(sv)
@@ -84,11 +86,29 @@ async def main(bot, ev):
                                             qid=qid,
                                             nickname=nickname,
                                             raw_data=raw_data.data,
-                                            max_chara=None)
+                                            max_chara=None,
+                                            group_id=ev.group_id)
 
         await bot.send(ev, MessageSegment.image(im), at_sender=True)
 
     except CanceledException:
         pass
     except Exception as e:
-        await bot.send(ev, str(e), at_sender=True)
+        await bot.send(ev, repr(e), at_sender=True)
+
+
+@support_private(sv)
+@sv.on_prefix('添加令牌')
+async def main(bot, ev):
+    try:
+        if ev.detail_type == 'group':
+            await bot.send(ev,'请撤回, 这个功能只能私聊使用~')
+            return
+
+        text = ev.message.extract_plain_text().strip()
+        await Genshin_Cookies().raw_text_add_group(text)
+
+    except CanceledException:
+        pass
+    except Exception as e:
+        await bot.send(ev, repr(e), at_sender=True)

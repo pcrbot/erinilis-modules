@@ -28,7 +28,7 @@ async def main(bot, ev):
         if text.startswith('绑定'):
             if ev.detail_type == 'group':
                 raise Error_Message('请撤回, 不支持在群内绑定, 请私聊机器人')
-            cookie_raw = text[2:]
+            cookie_raw = text[2:].strip()
 
         dn = Daily_Note(ev.user_id, cookie_raw, ev.get('group_id'))
 

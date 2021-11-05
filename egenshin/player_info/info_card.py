@@ -95,8 +95,8 @@ async def avatar_card(avatar_id, level, constellation, fetter, detail_info):
 
     return card
 
-async def gen_detail_info(uid ,character_ids, qid):
-    info = await query.character(uid=uid, character_ids=character_ids, qid=qid)
+async def gen_detail_info(uid ,character_ids, qid, group_id=None):
+    info = await query.character(uid=uid, character_ids=character_ids, qid=qid, group_id=group_id)
     if info.retcode == 10102:
         raise Exception("武器信息读取失败, 请打开米游社,我的-个人主页-管理-公开信息")
     return {x.id: x for x in info.data.avatars}
@@ -104,7 +104,7 @@ async def gen_detail_info(uid ,character_ids, qid):
 
 
 # @cache(ttl=datetime.timedelta(minutes=30), arg_key='uid')
-async def draw_info_card(uid, qid, nickname, raw_data, max_chara=None):
+async def draw_info_card(uid, qid, nickname, raw_data, max_chara=None, group_id=None):
     '''
     绘制玩家资料卡
     '''
@@ -186,7 +186,7 @@ async def draw_info_card(uid, qid, nickname, raw_data, max_chara=None):
 
     # 深渊星数
     if SHOW_SPIRAL_ABYSS_STAR:
-        abyss_info = await query.spiralAbyss(uid=uid, qid=qid)
+        abyss_info = await query.spiralAbyss(uid=uid, qid=qid, group_id=group_id)
         if abyss_info.retcode !=0 :
             raise Exception(abyss_info.message)
 
@@ -198,7 +198,7 @@ async def draw_info_card(uid, qid, nickname, raw_data, max_chara=None):
     detail_info = None
     detail_info_height = 0
     if max_chara == None and SHOW_WEAPON_INFO:
-        detail_info = await gen_detail_info(uid, [x.id for x in raw_data.avatars], qid)
+        detail_info = await gen_detail_info(uid, [x.id for x in raw_data.avatars], qid, group_id)
         detail_info_height = weapon_bg.height
 
     avatar_cards = []

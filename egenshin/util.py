@@ -285,3 +285,16 @@ class process:
             self.ok()
             return False
         return bool(run.get('run'))
+
+
+async def get_all_group():
+    for self_id in bot._wsr_api_clients.keys():
+        group = await bot.get_group_list(self_id=self_id)
+        for group_info in group:
+            yield group_info
+
+
+async def get_group_info(group_id):
+    async for group in get_all_group():
+        if int(group_id) == group['group_id']:
+            return dict_to_object(group)

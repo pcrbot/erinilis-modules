@@ -64,7 +64,10 @@ class Daily_Note():
         self.cookie_raw = self.cookie.output(header='', sep=';').strip()
 
     async def get_info(self) -> Daily_Note_Info:
-        json_data = await query.daily_note(self.uid, self.cookie_raw)
+        try:
+            json_data = await query.daily_note(self.uid, self.cookie_raw)
+        except Exception as e:
+            Login_Error(repr(e) + '\n 如果已确认打开可能是获取的cookie不正确')
 
         if json_data.retcode == 10102:
             raise Login_Error('UID[%s]请先在米游社角色信息那打开实时便笺功能' % self.uid)
@@ -103,8 +106,8 @@ class Daily_Note():
         pass
 
 
-
 # @scheduler.scheduled_job('cron', minute=f"*/5")
 # async def update_resin():
 #     # 为设置提醒的用户刷新树脂
 #     pass
+

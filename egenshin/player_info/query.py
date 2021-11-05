@@ -8,11 +8,37 @@ from hoshino import aiorequests
 from urllib.parse import urlencode
 from http.cookies import SimpleCookie
 from ..util import get_config, get_next_day, Dict, init_db, cache
+from .cookies import Genshin_Cookies
 
 config = get_config()
 config.use_cookie_index = 0
 config.runtime = get_next_day()
-cookies = config.setting.cookies
+
+db = init_db(config.cache_dir, 'uid.sqlite')
+
+
+def get_db(qid):
+    return db.get(qid, {})
+
+
+def get_uid_by_qid(qid):
+    return get_db(qid).get('uid')
+
+
+def save_uid_by_qid(qid, uid):
+    info = get_db(qid)
+    info['uid'] = uid
+    db[qid] = info
+
+
+def get_cookie_by_qid(qid):
+    return get_db(qid).get('cookie')
+
+
+def save_cookie(qid, cookie):
+    info = get_db(qid)
+    info['cookie'] = cookie
+    db[qid] = info
 
 
 class Account_Error(Exception):
@@ -22,6 +48,16 @@ class Account_Error(Exception):
     def __repr__(self):
         return self.msg
 
+class LimitMessage(Exception):
+    def __init__(self, use_count):
+        self.use_count = use_count
+
+    def __repr__(self):
+        return f'''
+公用({self.use_count}次)已经全部使用完,不是本插件限制,而是米游社限制
+你可以使用yss来添加个人的使用次数
+也可以私聊机器人 添加令牌? 来添加本群的使用次数
+        '''.strip()
 
 def __md5__(text):
     _md5 = hashlib.md5()
@@ -40,9 +76,25 @@ def __get_ds__(query, body=None):
 
 
 last = {'current': 0, 'last': 0, 'all': 0}
+group_use_index = {}
 
 
-async def request_data(uid, api='index', character_ids=None, user_cookie=None, qid=None):
+def get_global_cookies(index=0):
+    cookies = config.setting.cookies
+    cookies_len = len(cookies)
+    if index >= cookies_len:
+        return None, cookies_len
+    else:
+        return cookies[index], cookies_len
+
+
+async def request_data(uid,
+                       api='index',
+                       character_ids=None,
+                       user_cookie=None,
+                       qid=None,
+                       group_id=None):
+
     next_cookie = False
     now = datetime.datetime.now().timestamp()
     if now > config.runtime:
@@ -51,24 +103,46 @@ async def request_data(uid, api='index', character_ids=None, user_cookie=None, q
     server = 'cn_gf01'
     if uid[0] == "5":
         server = 'cn_qd01'
-        
-    limit_msg = '公用(%s次)已经全部使用完毕 你可以使用yss来获得额外的30次限额' % (len(cookies) * 30)
 
-    if config.use_cookie_index == len(cookies) and not user_cookie:
+    cookie, cookies_len = get_global_cookies(config.use_cookie_index)
+    all_can_use = cookies_len * 30
+    group_cookies = False
+
+    if not cookie:
+        # 公用的使用完毕
         if not user_cookie and qid:
             user_cookie = get_cookie_by_qid(qid)
-        if not user_cookie:
-            raise Account_Error(limit_msg)
-    try:
-        cookie = user_cookie or cookies[config.use_cookie_index]
-    except Exception as e:
-        raise Account_Error(limit_msg)
-        
+
+        # 优先使用群内设置的cookie
+        group_cookies = Genshin_Cookies().db.get(group_id)
+        if group_cookies:
+            # 如果该群有设置了cookie 那么则使用该群的cookie 并且不使用个人的cookie
+            group_index = group_use_index.get(group_id, {}).get('index', 0)
+            if group_index == len(group_cookies):
+                if user_cookie:
+                    # 如果群内上限了 并且有个人的 那么使用个人的
+                    cookie = user_cookie
+                else:
+                    group_limit_msg = f'\n本群 {group_index * 30} 次使用完毕'
+                    raise Account_Error(repr(LimitMessage(all_can_use)) + group_limit_msg)
+            else:
+                # 如果群没限制 则使用群的cookie
+                cookie = group_cookies[group_index]
+                group_cookies = True
+
+        elif user_cookie:
+            # 如果群没设置过cookie 那么就使用自己的
+            cookie = user_cookie
+
+    if not cookie:
+        # 如果还是没 那么就提示上限
+        raise LimitMessage(all_can_use)
+
     account_id = SimpleCookie(cookie)['account_id'].value
     print(
         '原神UID:(%s) 当前已查询%s次, 上一个账号查询%s次, 当前第%s个账号(%s), 一共%s个账号, 调用API-> %s' %
         (last['all'], last['current'] + 1, last['last'],
-         config.use_cookie_index + 1, account_id, len(cookies), api))
+         config.use_cookie_index + 1, account_id, cookies_len, api))
 
     headers = {
         'Accept': 'application/json, text/plain, */*',
@@ -112,18 +186,24 @@ async def request_data(uid, api='index', character_ids=None, user_cookie=None, q
         next_cookie = True
     if json_data.retcode == 10103:
         print('error cookie [%s] (%s) !' %
-              (config.use_cookie_index, cookies[config.use_cookie_index]))
+              (config.use_cookie_index, account_id))
         next_cookie = True
     if json_data.retcode == 10101 or next_cookie:
         if user_cookie:
             print('user_cookie is limited!')
-            raise Account_Error()
+            raise Account_Error('个人使用的30次已上限~')
         print('cookie [%s] is limited!' % config.use_cookie_index)
-        config.use_cookie_index += 1
-        last['last'] = last['current']
-        last['current'] = 0
-        if config.use_cookie_index == len(cookies):
-            raise Account_Error(limit_msg)
+
+        if group_cookies:
+            group_use_index['group_id'] = dict(
+                index=group_use_index.get(group_id, {}).get('index', 0) + 1)
+        elif not user_cookie:
+            config.use_cookie_index += 1
+            last['last'] = last['current']
+            last['current'] = 0
+            if config.use_cookie_index == cookies_len:
+                raise LimitMessage(all_can_use)
+
         return await request_data(uid, api=api, character_ids=character_ids)
 
     last['current'] += 1
@@ -135,19 +215,19 @@ async def request_data(uid, api='index', character_ids=None, user_cookie=None, q
     return json_data
 
 
-@cache(ttl=datetime.timedelta(minutes=30), arg_key='uid')
-async def info(uid, qid=None):
-    return await request_data(uid, qid=qid)
+# @cache(ttl=datetime.timedelta(minutes=30), arg_key='uid')
+async def info(uid, qid=None, group_id=None):
+    return await request_data(uid, qid=qid, group_id=group_id)
 
 
 @cache(ttl=datetime.timedelta(minutes=30), arg_key='uid')
-async def spiralAbyss(uid, qid=None):
-    return await request_data(uid, 'spiralAbyss', qid=qid)
+async def spiralAbyss(uid, qid=None, group_id=None):
+    return await request_data(uid, 'spiralAbyss', qid=qid, group_id=group_id)
 
 
 @cache(ttl=datetime.timedelta(minutes=30), arg_key='uid')
-async def character(uid, character_ids, qid=None):
-    return await request_data(uid, 'character', character_ids, qid=qid)
+async def character(uid, character_ids, qid=None, group_id=None):
+    return await request_data(uid, 'character', character_ids, qid=qid, group_id=group_id)
 
 
 async def daily_note(uid, cookie, qid=None):
@@ -281,30 +361,3 @@ class stats:
             self.exquisite_chest_str, self.common_chest_str
         ]
         return '\n'.join(list(filter(None, str_list)))
-
-
-db = init_db(config.cache_dir, 'uid.sqlite')
-
-
-def get_db(qid):
-    return db.get(qid, {})
-
-
-def get_uid_by_qid(qid):
-    return get_db(qid).get('uid')
-
-
-def save_uid_by_qid(qid, uid):
-    info = get_db(qid)
-    info['uid'] = uid
-    db[qid] = info
-
-
-def get_cookie_by_qid(qid):
-    return get_db(qid).get('cookie')
-
-
-def save_cookie(qid, cookie):
-    info = get_db(qid)
-    info['cookie'] = cookie
-    db[qid] = info
