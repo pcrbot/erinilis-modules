@@ -3,6 +3,7 @@ from nonebot.message import CanceledException
 from ..util import get_config, support_private
 from . import info_card, query
 from .cookies import Genshin_Cookies
+from ..imghandler import text_image
 
 sv_help = '''
 [ys#UID] 查询一个用户信息
@@ -99,7 +100,7 @@ async def main(bot, ev):
 
 @support_private(sv)
 @sv.on_prefix('添加令牌')
-async def main(bot, ev):
+async def add_cookie(bot, ev):
     try:
         if ev.detail_type == 'group':
             await bot.send(ev,'请撤回, 这个功能只能私聊使用~')
@@ -111,4 +112,4 @@ async def main(bot, ev):
     except CanceledException:
         pass
     except Exception as e:
-        await bot.send(ev, repr(e), at_sender=True)
+        await bot.send(ev, MessageSegment.image(await text_image(repr(e))), at_sender=True)

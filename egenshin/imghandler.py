@@ -2,7 +2,7 @@ import math
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 from hoshino import aiorequests
 from io import BytesIO
-from .util import get_font
+from .util import get_font, pil2b64
 
 
 async def get_pic(url, size=None, *args, **kwargs) -> Image:
@@ -136,3 +136,81 @@ def image_array(canvas, image_list, col, space=0, top=0):
     easy_paste(canvas, list_canvas, (math.ceil(
         (canvas.size[0] - list_canvas.size[0]) / 2), 0))
     return canvas
+
+w65 = get_font(26, w=65)
+
+def get_duanluo(text):
+    txt = Image.new('RGBA', (600, 800), (255, 255, 255, 0))
+    draw = ImageDraw.Draw(txt)
+    # 所有文字的段落
+    duanluo = ""
+    max_width = 1080
+    # 宽度总和
+    sum_width = 0
+    # 几行
+    line_count = 1
+    # 行高
+    line_height = 0
+    for char in text:
+        width, height = draw.textsize(char, w65)
+        sum_width += width
+        if sum_width > max_width: # 超过预设宽度就修改段落 以及当前行数
+            line_count += 1
+            sum_width = 0
+            duanluo += '\n'
+        duanluo += char
+        line_height = max(height, line_height)
+    if not duanluo.endswith('\n'):
+        duanluo += '\n'
+    return duanluo, line_height, line_count
+
+def split_text(content):
+    # 按规定宽度分组
+    max_line_height, total_lines = 0, 0
+    allText = []
+    for text in content.split('\n'):
+        duanluo, line_height, line_count = get_duanluo(text)
+        max_line_height = max(line_height, max_line_height)
+        total_lines += line_count
+        allText.append((duanluo, line_count))
+    line_height = max_line_height
+    total_height = total_lines * line_height
+    drow_height = total_lines * line_height
+    return allText, total_height, line_height, drow_height
+
+async def text_image(raw_str: str):
+    drow_height = 0
+    msg_list = raw_str.split()
+    for msg in msg_list:
+        if msg.strip().endswith(('jpg', 'png')):
+            img = await get_pic(msg.strip())
+            img_height = img.size[1]
+            if img.width > 1080:
+                img_height = int(img.height * 0.6)
+            drow_height += img_height + 40
+        else:
+            x_drow_duanluo, x_drow_note_height, x_drow_line_height, x_drow_height = split_text(msg)
+            drow_height += x_drow_height
+            
+    im = Image.new("RGB", (1080, drow_height), '#f9f6f2')
+    draw = ImageDraw.Draw(im)
+    # 左上角开始
+    x, y = 0, 0
+    for msg in msg_list:
+        if msg.strip().endswith(('jpg', 'png')):
+            img = await get_pic(msg.strip())
+            if img.width > im.width:
+                img = img.resize((int(img.width * 0.6), int(img.height * 0.6)))
+            easy_paste(im, img, (0, y))
+            y += img.size[1] + 40
+        else:
+            drow_duanluo, drow_note_height, drow_line_height, drow_height = split_text(msg)
+            for duanluo, line_count in drow_duanluo:
+                draw.text((x, y), duanluo, fill=(0, 0, 0), font=w65)
+                y += drow_line_height * line_count
+                
+    _x, _y = w65.getsize("囗")
+    padding = (_x, _y, _x, _y)
+    im = ImageOps.expand(im, padding, '#f9f6f2')
+
+    return pil2b64(im)

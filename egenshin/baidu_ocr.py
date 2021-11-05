@@ -2,9 +2,10 @@ import json
 import base64
 import aiofiles
 import asyncio
+import datetime
 from hoshino import aiorequests
 from urllib.parse import urlencode
-from .util import Dict, get_config
+from .util import Dict, get_config, cache
 
 config = get_config().setting
 
@@ -12,11 +13,12 @@ TOKEN_URL = 'https://aip.baidubce.com/oauth/2.0/token'
 OCR_URL = "https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic"
 
 
-async def fetch_token():
+@cache(ttl=datetime.timedelta(hours=12))
+async def fetch_token(API_KEY=None, SECRET_KEY=None):
     params = {
         'grant_type': 'client_credentials',
-        'client_id': config.baidu_ocr.API_KEY,
-        'client_secret': config.baidu_ocr.SECRET_KEY
+        'client_id': API_KEY or config.baidu_ocr.API_KEY,
+        'client_secret': SECRET_KEY or config.baidu_ocr.SECRET_KEY
     }
     post_data = urlencode(params).encode('utf-8')
     req = await aiorequests.post(TOKEN_URL, post_data, timeout=10)
