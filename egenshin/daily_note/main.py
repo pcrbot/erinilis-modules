@@ -67,7 +67,7 @@ class Daily_Note():
         try:
             json_data = await query.daily_note(self.uid, self.cookie_raw)
         except Exception as e:
-            Login_Error(repr(e) + '\n 如果已确认打开可能是获取的cookie不正确')
+            raise Login_Error(repr(e) + '\n 如果已确认打开可能是获取的cookie不正确')
 
         if json_data.retcode == 10102:
             raise Login_Error('UID[%s]请先在米游社角色信息那打开实时便笺功能' % self.uid)

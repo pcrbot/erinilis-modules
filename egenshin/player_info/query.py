@@ -88,12 +88,15 @@ def get_global_cookies(index=0):
         return cookies[index], cookies_len
 
 
-async def request_data(uid,
-                       api='index',
-                       character_ids=None,
-                       user_cookie=None,
-                       qid=None,
-                       group_id=None):
+async def request_data(
+    uid,
+    api='index',
+    character_ids=None,
+    user_cookie=None,
+    qid=None,
+    group_id=None,
+    force_user_cookie=None,
+):
 
     next_cookie = False
     now = datetime.datetime.now().timestamp()
@@ -134,6 +137,10 @@ async def request_data(uid,
             # 如果群没设置过cookie 那么就使用自己的
             cookie = user_cookie
 
+    if force_user_cookie and user_cookie:
+        cookie = user_cookie
+    
+    
     if not cookie:
         # 如果还是没 那么就提示上限
         raise LimitMessage(all_can_use)
@@ -231,7 +238,7 @@ async def character(uid, character_ids, qid=None, group_id=None):
 
 
 async def daily_note(uid, cookie, qid=None):
-    return await request_data(uid, 'dailyNote', user_cookie=cookie, qid=qid)
+    return await request_data(uid, 'dailyNote', user_cookie=cookie, qid=qid, force_user_cookie=True)
 
 
 class stats:
