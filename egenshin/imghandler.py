@@ -180,7 +180,7 @@ def split_text(content):
 
 async def text_image(raw_str: str):
     drow_height = 0
-    msg_list = raw_str.split()
+    msg_list = raw_str.split('\n')
     for msg in msg_list:
         if msg.strip().endswith(('jpg', 'png')):
             img = await get_pic(msg.strip())
