@@ -57,6 +57,6 @@ class Genshin_Cookies():
         group_cookies = set(self.db.get(group_id, []))
         group_cookies.add(raw_cookie)
         self.db[group_id] = list(group_cookies)
-        msg = f'{group_info.group_name}({group_id}) 添加成功~\n'
-        msg += f'当前已有 {len(group_cookies)} 个账号,每天有额外查询 {len(group_cookies) * 30} 次'
+        msg = f'群: {group_info.group_name}({group_id})添加成功~\n'
+        msg += f'当前已有{len(group_cookies)}个账号,每天有额外查询{len(group_cookies) * 30}次'
         raise Message(msg)
