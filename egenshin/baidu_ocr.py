@@ -13,7 +13,7 @@ TOKEN_URL = 'https://aip.baidubce.com/oauth/2.0/token'
 OCR_URL = "https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic"
 
 
-@cache(ttl=datetime.timedelta(hours=1))
+@cache(ttl=datetime.timedelta(minutes=10))
 async def fetch_token(API_KEY=None, SECRET_KEY=None):
     params = {
         'grant_type': 'client_credentials',
