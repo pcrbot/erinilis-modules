@@ -32,17 +32,17 @@ def get_all_achievements_api():
 
 
 # 2.0新增
-def get_all_achievements20_api():
-    keep_head = 1
-    keep_row = 0
-    return end_point('l6oi5q'), keep_head, keep_row, 10, 0, Achievements20_Info
+# def get_all_achievements20_api():
+#     keep_head = 1
+#     keep_row = 0
+#     return end_point('l6oi5q'), keep_head, keep_row, 10, 0, Achievements20_Info
 
 
 # 2.1新增
-def get_all_achievements21_api():
-    keep_head = 1
-    keep_row = 1
-    return end_point('zc19mx'), keep_head, keep_row, 12, 0, Achievements21_Info
+# def get_all_achievements21_api():
+#     keep_head = 1
+#     keep_row = 1
+#     return end_point('zc19mx'), keep_head, keep_row, 12, 0, Achievements21_Info
 
 # 2.2新增
 def get_all_achievements22_api():
@@ -99,13 +99,13 @@ async def request_data(top_type, url, keep_head, keep_row, field_count,
 async def achievements_sheet(top_type='天地万象'):
     result = {}
     data = await request_data(*((top_type, ) + get_all_achievements_api()))
-    data20 = await request_data(*((top_type, ) + get_all_achievements20_api()))
-    data21 = await request_data(*((top_type, ) + get_all_achievements21_api()))
+    # data20 = await request_data(*((top_type, ) + get_all_achievements20_api()))
+    # data21 = await request_data(*((top_type, ) + get_all_achievements21_api()))
     data22 = await request_data(*((top_type, ) + get_all_achievements22_api()))
 
     result.update(data)
-    result.update(data20)
-    result.update(data21)
+    # result.update(data20)
+    # result.update(data21)
     result.update(data22)
 
     return result
