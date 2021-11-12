@@ -61,14 +61,14 @@ async def guess_genshin_voice(bot, ev):
     guess.set_start()
     await bot.send(ev, f'即将发送一段原神语音,将在{setting_time}秒后公布答案')
     await asyncio.sleep(1)
-    if hard_mode:
-        try:
+    try:
+        if hard_mode:
             await bot.send(ev, await guess.start2())
-        except Exception as e:
-            guess.set_end()
-            await bot.send(ev, str(e))
-    else:
-        await bot.send(ev, await guess.start(keyword.split()))
+        else:
+            await bot.send(ev, await guess.start(keyword.split()))
+    except Exception as e:
+        guess.set_end()
+        await bot.send(ev, str(e))
 
 
 @sv.on_message('group')
