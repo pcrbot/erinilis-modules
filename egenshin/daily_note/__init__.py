@@ -22,7 +22,8 @@ async def main(bot, ev):
     text = ev.message.extract_plain_text().strip()
     if text in ['?', '？']:
         await bot.finish(ev, sv_help, at_sender=True)
-
+        
+    text = text.replace('，', ',')
     cookie_raw = ''
     try:
         if text.startswith('绑定'):
@@ -47,3 +48,8 @@ async def main(bot, ev):
         await bot.send(ev, repr(e), at_sender=True)
     except Account_Error as e:
         await bot.send(ev, repr(e), at_sender=True)
+
+@sv.on_prefix(('yst',))
+async def main(bot, ev):
+    dn = Daily_Note(ev.user_id, None, ev.get('group_id'))
+    await dn.remind_job()

@@ -4,6 +4,7 @@ from hoshino import Service, aiorequests
 from .service import switcher
 from . import util, gacha_log
 from .bind import bind
+from ..egenshin.util import support_private
 
 sv = Service('gachalog')
 
@@ -23,23 +24,21 @@ bind_help = """
 例: {comm}https://webstatic.mi....
 """
 
-
-@sv.on_message('group')
-async def gachalog_main(*params):
-    bot, ctx = (_bot, params[0]) if len(params) == 1 else params
-
-    msg = str(ctx['message']).strip()
-    keyword = util.get_msg_keyword(config.comm.gachalog, msg, True)
-    if isinstance(keyword, str):
-        await get_log(ctx)
-
-    keyword = util.get_msg_keyword(config.comm.gacha_statistics, msg, True)
-    if isinstance(keyword, str):
-        await gacha_statistics(ctx)
+@support_private(sv)
+@sv.on_prefix(('原神卡池进度' , '卡池进度'))
+async def gachalog(bot, ev):
+    await get_log(ev)
+    
+    
+@support_private(sv)
+@sv.on_prefix(('原神卡池统计' , '卡池统计'))
+async def gachalog(bot, ev):
+    await gacha_statistics(ev)
 
 
-@sv.on_prefix(f'原神卡池绑定')
-async def main(bot, ev):
+@support_private(sv)
+@sv.on_prefix(('原神卡池绑定' , '卡池绑定'))
+async def gacha_bind(bot, ev):
     msg = ev.message.extract_plain_text().strip()
     await bot.send(ev, await bind(ev.user_id, msg).save(), at_sender=True)
 

@@ -34,7 +34,7 @@ class Genshin_Cookies():
         if not raw_text or raw_text in ['?', '？']:
             raise HelpMessage()
 
-        add_info = raw_text.split(',')
+        add_info = raw_text.replace('，', ',').split(',')
         if not add_info or len(add_info) != 3:
             raise HelpMessage()
 
