@@ -8,6 +8,7 @@
 """
 import re
 import random
+from pathlib import Path
 from nonebot import *
 from . import util
 
@@ -211,7 +212,15 @@ async def answer(ctx, _reg_flag=False):
     # 如果使用了base64 那么需要把信息里的图片转换一下
     if config['image_base64']:
         ans['message'] = util.message_image2base64(ans['message'])
-
+    
+    for value in ans['message']:
+        if value['type'] == 'image':
+            # 处理一下绝对路径问题
+            img_path = Path(value['data']['file'])
+            img_name = img_path.stem + img_path.suffix
+            new_path = Path(__file__).parent / config['cache_dir'] / 'img' / img_name
+            value['data']['file'] = 'file:///' + str(new_path)
+            
     # 最后就是把验证成功的消息返回去
     return ans_msg
 
