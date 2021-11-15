@@ -35,7 +35,9 @@ async def main(bot, ev):
             cookie_raw = text[2:].strip()
 
         dn = Daily_Note(ev.user_id, cookie_raw, ev.get('group_id'))
-
+        
+        if re.findall(r'[关禁不][闭用要]提醒', '不要提醒'):
+            await bot.finish(ev, await dn.remind(False))
 
         remind_reg = re.findall(r'([开启打]?[启用开]?提醒)(\d+)?', text)
 
@@ -43,8 +45,7 @@ async def main(bot, ev):
             _, once_remind = remind_reg[0]
             await bot.finish(ev, await dn.remind(once_remind=once_remind))
 
-        if re.findall(r'([关禁不]?[闭用要]?提醒)(\d+)?', text):
-            await bot.finish(ev, await dn.remind(False))
+        
 
         im = await draw_info_card(await dn.get_info())
         await bot.send(ev, MessageSegment.image(im), at_sender=True)
