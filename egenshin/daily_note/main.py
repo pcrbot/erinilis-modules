@@ -133,9 +133,9 @@ async def update_resin():
                 db_info['once_remind'] = ''
 
         # 探索提醒
-        if any([x.status == 'Finished' for x in data.expeditions]):
-            await notify_remind_resin(db_info['qid'], db_info['group_id'], data)
-            notified = True
+        # if any([x.status == 'Finished' for x in data.expeditions]):
+        #     await notify_remind_resin(db_info['qid'], db_info['group_id'], data)
+        #     notified = True
 
         if notified:
             db_info['last_notify_time'] = int(time.time())
