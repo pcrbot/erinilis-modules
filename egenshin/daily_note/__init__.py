@@ -36,7 +36,7 @@ async def main(bot, ev):
 
         dn = Daily_Note(ev.user_id, cookie_raw, ev.get('group_id'))
         
-        if re.findall(r'[关禁不][闭用要]提醒', '不要提醒'):
+        if re.findall(r'[关禁不][闭用要]提醒', text):
             await bot.finish(ev, await dn.remind(False))
 
         remind_reg = re.findall(r'([开启打]?[启用开]?提醒)(\d+)?', text)
