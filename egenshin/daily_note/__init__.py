@@ -1,8 +1,11 @@
+import re
+
+from hoshino import MessageSegment, Service, priv
 from nonebot.message import CanceledException
-from hoshino import Service, priv, MessageSegment
+
 from ..util import support_private
-from .main import Daily_Note, Error_Message, Account_Error, Cookie_Error
 from .info_card import draw_info_card
+from .main import Account_Error, Cookie_Error, Daily_Note, Error_Message
 
 sv_help = repr(Cookie_Error())
 sv = Service(
@@ -22,7 +25,7 @@ async def main(bot, ev):
     text = ev.message.extract_plain_text().strip()
     if text in ['?', '？']:
         await bot.finish(ev, sv_help, at_sender=True)
-        
+
     text = text.replace('，', ',')
     cookie_raw = ''
     try:
@@ -33,15 +36,19 @@ async def main(bot, ev):
 
         dn = Daily_Note(ev.user_id, cookie_raw, ev.get('group_id'))
 
-        if text in ['开启提醒', '启用提醒', '打开提醒']:
-            await bot.finish(ev, await dn.remind())
-            
-        if text in ['关闭提醒', '禁用提醒', '不要提醒']:
-            await bot.finish(ev, await dn.remind(False)) 
+
+        remind_reg = re.findall(r'([开启打]?[启用开]?提醒)(\d+)?', text)
+
+        if remind_reg:
+            _, once_remind = remind_reg[0]
+            await bot.finish(ev, await dn.remind(once_remind=once_remind))
+
+        if re.findall(r'([关禁不]?[闭用要]?提醒)(\d+)?', text):
+            await bot.finish(ev, await dn.remind(False))
 
         im = await draw_info_card(await dn.get_info())
         await bot.send(ev, MessageSegment.image(im), at_sender=True)
-        
+
     except CanceledException:
         pass
     except Error_Message as e:
@@ -49,7 +56,3 @@ async def main(bot, ev):
     except Account_Error as e:
         await bot.send(ev, repr(e), at_sender=True)
 
-@sv.on_prefix(('yst',))
-async def main(bot, ev):
-    dn = Daily_Note(ev.user_id, None, ev.get('group_id'))
-    await dn.remind_job()

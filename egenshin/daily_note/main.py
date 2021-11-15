@@ -1,39 +1,20 @@
-from dataclasses import dataclass
+import asyncio
+import time
+from datetime import timedelta
 from http.cookies import SimpleCookie
-from typing import List
 
 from apscheduler.triggers.date import DateTrigger
-from nonebot import scheduler
+from nonebot import Message, MessageSegment, get_bot, scheduler
 
 from ..player_info import query
 from ..util import init_db
 from .error import *
+from .info_card import draw_info_card
+from .typing import Daily_Note_Info
 
 Account_Error = query.Account_Error
 
 remind_db = init_db('daily_note/data', 'remind.sqlite')
-
-
-@dataclass
-class Daily_Note_expeditions:
-    avatar_side_icon: str  # 头像icon
-    status: str  # 'Finished' or 'Ongoing' 状态
-    remained_time: str  # 剩余时间
-
-
-@dataclass
-class Daily_Note_Info:
-    current_resin: int  # 当前树脂
-    max_resin: int  # 最大树脂
-    resin_recovery_time: str  # 树脂回复时间
-    finished_task_num: int  # 完成委托个数
-    total_task_num: int  # 全部委托个数
-    is_extra_task_reward_received: bool
-    remain_resin_discount_num: int  # 周本树脂减半剩余次数
-    resin_discount_num_limit: int  # 周本树脂减半次数
-    current_expedition_num: int  # 当前派遣数量
-    max_expedition_num: int  # 最大派遣数量
-    expeditions: List[Daily_Note_expeditions]  # 派遣列表
 
 
 class Daily_Note():
@@ -80,34 +61,82 @@ class Daily_Note():
     def get_remind_key(self):
         return '%s_%s' % (self.qid, self.uid)
 
-    async def remind(self, on=True):
+    async def remind(self, on=True, once_remind=None):
+        once_msg = ''
+        if once_remind:
+            once_remind = int(once_remind)
+            once_msg = f' 并且树脂{once_remind}时提醒你'
+
         db_key = self.get_remind_key()
         if on:
             remind_db[db_key] = {
                 'qid': self.qid,
                 'uid': self.uid,
-                'group_id': self.group_id
+                'group_id': self.group_id,
+                'once_remind': once_remind
             }
-            return '已打开提醒功能'
+            return '已打开提醒功能' + once_msg
         else:
             del remind_db[db_key]
             return '已关闭提醒功能'
 
-    async def remind_job(self):
 
-        # job_id = f'egenshin_remind_job_{self.uid}'
+async def iter_new_resin():
+    for db_key, info in remind_db.items():
+        try:
+            json_data = await query.daily_note(info['uid'], qid=info['qid'])
+            if json_data.retcode != 0:
+                raise Error_Message(json_data.message)
+            json_data = Daily_Note_Info(**json_data.data)
+            info['db_key'] = db_key
+            yield info, json_data
+            await asyncio.sleep(1)
+        except Exception as e:
+            del remind_db[db_key]
+            raise Error_Message('获取失败,请重新绑定后再开启 原因: \n' + repr(e))
 
-        # scheduler.add_job(self.remind_job, trigger=DateTrigger(notify_time),
-        #                   id=job_id,
-        #                   misfire_grace_time=60,
-        #                   coalesce=True,
-        #                   jobstore='default',
-        #                   max_instances=1)
-        pass
+
+async def notify_remind_resin(qid, group_id, info):
+    bot = get_bot()
+    message = MessageSegment.image(await draw_info_card(info))
+    try:
+        tasks = [bot.send_private_msg(user_id=qid, message=message)]
+        await asyncio.gather(*tasks)
+    except Exception as e:
+        # 私聊发送失败时 则使用群聊
+        await bot.send_group_msg(group_id=group_id,
+                        message=Message([MessageSegment.at(qid),
+                                         message]))
 
 
-# @scheduler.scheduled_job('cron', minute=f"*/5")
-# async def update_resin():
-#     # 为设置提醒的用户刷新树脂
-#     pass
+@scheduler.scheduled_job('cron', minute=f"*/8")
+async def update_resin():
+    # 为设置提醒的用户刷新树脂
+    async for db_info, data in iter_new_resin():
+        notified = False
+        remind_times = set([155, 160])
+        once_time = db_info['once_remind']
+        if once_time:
+            remind_times.add(once_time)
 
+        now = time.time()
+        last_notify_time = db_info.get('last_notify_time', int(now))
+        if int(now) - last_notify_time > timedelta(minutes=15).seconds:
+            # 15分钟内不重复通知
+            continue
+
+        # 如果树脂需要提醒
+        if data.current_resin in remind_times:
+            await notify_remind_resin(db_info['qid'], db_info['group_id'], data)
+            notified = True
+            if data.current_resin >= once_time:
+                db_info['once_remind'] = ''
+
+        # 探索提醒
+        if any([x.status == 'Finished' for x in data.expeditions]):
+            await notify_remind_resin(db_info['qid'], db_info['group_id'], data)
+            notified = True
+
+        if notified:
+            db_info['last_notify_time'] = int(time.time())
+            remind_db[db_info['db_key']] = db_info

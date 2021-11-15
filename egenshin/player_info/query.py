@@ -137,8 +137,8 @@ async def request_data(
             # 如果群没设置过cookie 那么就使用自己的
             cookie = user_cookie
 
-    if force_user_cookie and user_cookie:
-        cookie = user_cookie
+    if force_user_cookie:
+        cookie = user_cookie or get_cookie_by_qid(qid)
     
     
     if not cookie:
@@ -237,7 +237,7 @@ async def character(uid, character_ids, qid=None, group_id=None):
     return await request_data(uid, 'character', character_ids, qid=qid, group_id=group_id)
 
 
-async def daily_note(uid, cookie, qid=None):
+async def daily_note(uid, cookie=None, qid=None):
     return await request_data(uid, 'dailyNote', user_cookie=cookie, qid=qid, force_user_cookie=True)
 
 

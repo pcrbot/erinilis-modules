@@ -3,7 +3,7 @@ from pathlib import Path
 
 from ..imghandler import *
 from ..util import get_font, get_path, pil2b64
-from .main import Daily_Note_Info
+from .typing import Daily_Note_Info
 
 default_text_color = '#78818b'
 success_text_color = '#669999'
