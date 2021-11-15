@@ -5,9 +5,11 @@ from nonebot.message import CanceledException
 
 from ..util import support_private
 from .info_card import draw_info_card
-from .main import Account_Error, Cookie_Error, Daily_Note, Error_Message
+from .main import Account_Error, Cookie_Error, Daily_Note, Error_Message, Cookie_Error_tampermonkey
 
 sv_help = repr(Cookie_Error())
+sv_help2 = repr(Cookie_Error_tampermonkey())
+
 sv = Service(
     name='原神实时便笺',  # 功能名
     use_priv=priv.NORMAL,  # 使用权限
@@ -26,6 +28,9 @@ async def main(bot, ev):
     if text in ['?', '？']:
         await bot.finish(ev, sv_help, at_sender=True)
 
+    if text in ['?2', '？2']:
+        await bot.finish(ev, sv_help2, at_sender=True)
+
     text = text.replace('，', ',')
     cookie_raw = ''
     try:
@@ -35,7 +40,7 @@ async def main(bot, ev):
             cookie_raw = text[2:].strip()
 
         dn = Daily_Note(ev.user_id, cookie_raw, ev.get('group_id'))
-        
+
         if re.findall(r'[关禁不][闭用要]提醒', text):
             await bot.finish(ev, await dn.remind(False))
 
@@ -45,7 +50,6 @@ async def main(bot, ev):
             _, once_remind = remind_reg[0]
             await bot.finish(ev, await dn.remind(once_remind=once_remind))
 
-        
 
         im = await draw_info_card(await dn.get_info())
         await bot.send(ev, MessageSegment.image(im), at_sender=True)
@@ -56,4 +60,3 @@ async def main(bot, ev):
         await bot.send(ev, repr(e), at_sender=True)
     except Account_Error as e:
         await bot.send(ev, repr(e), at_sender=True)
-

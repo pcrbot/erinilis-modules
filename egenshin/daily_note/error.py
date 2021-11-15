@@ -23,10 +23,30 @@ javascript:(()=>{_=(n)=>{for(i in(r=document.cookie.split(";"))){var arr=r[i].sp
 yss绑定0000000,xxxxxxxxxxxx
 
 其中0000000,xxxxxxxxxxxx是复制的内容
-*手机需要把这段代码添加到收藏夹 在米游社页面打开
+
+如果你想查看另外个方法可以发送 yss?2
+* 同时兼任手机端
         '''
         return t.rstrip()
 
+class Cookie_Error_tampermonkey(Error_Message):
+    def __repr__(self):
+        t = '''
+如果你是PC端,浏览器需要安装tampermonkey插件(https://www.tampermonkey.net/)
+如果你是手机端,可以下载油猴浏览器(http://www.youhouzi.cn/),并且在右下角打开菜单 [打开电脑模式] ,之后在[脚本管理]->[启用脚本功能]
+
+然后打开链接安装脚本 https://greasyfork.org/scripts/435553-%E7%B1%B3%E6%B8%B8%E7%A4%BEcookie/code/%E7%B1%B3%E6%B8%B8%E7%A4%BEcookie.user.js
+
+就可以访问米游社进行登录了
+提示复制的内容可以直接私聊发给机器人
+
+私聊格式为
+
+yss绑定0000000,xxxxxxxxxxxx
+
+其中0000000,xxxxxxxxxxxx是复制的内容
+        '''
+        return t.rstrip()
 
 class Login_Error(Error_Message):
     pass
