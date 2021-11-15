@@ -120,8 +120,8 @@ async def update_resin():
             remind_times.add(once_time)
 
         now = time.time()
-        last_notify_time = db_info.get('last_notify_time', int(now))
-        if int(now) - last_notify_time > timedelta(minutes=15).seconds:
+        last_notify_time = db_info.get('last_notify_time')
+        if last_notify_time and last_notify_time + timedelta(minutes=15).seconds > int(now):
             # 15分钟内不重复通知
             continue
 
