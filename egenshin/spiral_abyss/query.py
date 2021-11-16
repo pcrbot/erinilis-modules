@@ -24,8 +24,6 @@ enemies_img = assets_dir / 'spiral_abyss' / 'enemies'
 with open(assets_dir / 'character.json', 'r', encoding="utf-8") as f:
     character: dict = json.loads(f.read(), object_hook=Dict)
 
-# with open(assets_dir / 'spiral_abyss' / 'enemies.json', 'r', encoding="utf-8") as f:
-#     enemies: dict = json.loads(f.read(), object_hook=Dict)
 @cache(ttl=datetime.timedelta(hours=12))
 async def gh_enemies():
     return await gh_json('assets/spiral_abyss/enemies.json')
@@ -41,27 +39,13 @@ async def decode(raw_data):
     return json.loads(ret, object_hook=Dict)
 
 
-@cache(ttl=datetime.timedelta(hours=12), arg_key='page')
+# @cache(ttl=datetime.timedelta(hours=12), arg_key='page')
 async def __get_html_soup__(page=''):
     res = await aiorequests.get(BASE_URL + page, timeout=10)
     return BeautifulSoup(await res.content, 'lxml')
 
 
-async def __get_enemies__(floor='12'):
-    pass
-    # build_id = await __get_build_id__()
-    # res = await aiorequests.get(BASE_URL + f'/_next/static/{build_id}/_buildManifest.js', timeout=10)
-    # res = await res.text
-    # links = re.findall(r"\(\"\S+\"\)", res)[0][1:-1].split(',')
-    # for link in links:
-    #     link = link.replace("'", '').replace('"', '')
-    #     res = await aiorequests.get(BASE_URL + '/_next/' + link, timeout=10)
-    #     res = await res.text
-    #     if re.search(r'2\.0', res):
-    #         print(link)
-
-
-@cache(ttl=datetime.timedelta(hours=12))
+# @cache(ttl=datetime.timedelta(hours=12))
 async def __get_build_id__():
     soup = await __get_html_soup__()
     data = soup.find('script', {"id": "__NEXT_DATA__"}).next
@@ -71,7 +55,7 @@ async def __get_build_id__():
     return data.buildId
 
 
-@cache(ttl=datetime.timedelta(hours=2), arg_key='floor')
+@cache(ttl=datetime.timedelta(hours=12), arg_key='floor')
 async def get_abyss_data(floor):
     json_url = '%s/_next/data/%s/zh/floor-%s.json' % (BASE_URL, await __get_build_id__(), floor or '12')
     res = await aiorequests.get(json_url, timeout=10)
