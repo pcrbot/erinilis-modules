@@ -25,7 +25,7 @@ yss绑定0000000,xxxxxxxxxxxx
 其中0000000,xxxxxxxxxxxx是复制的内容
 
 如果你想查看另外个方法可以发送 yss?2
-* 同时兼任手机端
+* 同时兼容手机端
         '''
         return t.rstrip()
 

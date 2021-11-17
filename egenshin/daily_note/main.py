@@ -114,14 +114,16 @@ async def update_resin():
     # 为设置提醒的用户刷新树脂
     async for db_info, data in iter_new_resin():
         notified = False
-        remind_times = set([155, 160])
+        remind_times = set([140, 160])
         once_time = db_info['once_remind']
         if once_time:
             remind_times.add(once_time)
 
         now = time.time()
         last_notify_time = db_info.get('last_notify_time')
-        if last_notify_time and last_notify_time + timedelta(minutes=15).seconds > int(now):
+        max_resin = db_info.get('max_resin') and data.current_resin == 160
+        
+        if last_notify_time and last_notify_time + timedelta(minutes=15).seconds > int(now) or max_resin:
             # 15分钟内不重复通知
             continue
 
@@ -129,6 +131,8 @@ async def update_resin():
         if data.current_resin in remind_times:
             await notify_remind_resin(db_info['qid'], db_info['group_id'], data)
             notified = True
+            db_info['max_resin'] = data.current_resin == 160
+            
             if data.current_resin >= once_time:
                 db_info['once_remind'] = ''
 
