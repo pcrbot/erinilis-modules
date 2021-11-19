@@ -2,6 +2,7 @@
 import base64
 import datetime
 import functools
+import hashlib
 import json
 import os
 import re
@@ -11,15 +12,17 @@ from pathlib import Path
 
 import aiofiles
 import yaml
-from hoshino import CanceledException, aiorequests, trigger, priv
+from hoshino import CanceledException, aiorequests, priv, trigger
 from nonebot import *
 from PIL import ImageFont
 from sqlitedict import SqliteDict
+
 
 bot = get_bot()
 
 try:
     import locale
+
     # 解决部分系统无法格式化中文时间问题
     locale.setlocale(locale.LC_CTYPE, 'chinese')
 except Exception as e:
@@ -29,6 +32,8 @@ class Dict(dict):
     __setattr__ = dict.__setitem__
     __getattr__ = dict.__getitem__
 
+def md5(context):
+    return hashlib.md5(context).hexdigest()
 
 def dict_to_object(dict_obj):
     if not isinstance(dict_obj, dict):
@@ -38,13 +43,17 @@ def dict_to_object(dict_obj):
         inst[k] = dict_to_object(v)
     return inst
 
-
+config_cache = {}
 # 获取配置
 def get_config(name='config.yml'):
-    file = open(os.path.join(os.path.dirname(__file__), str(Path(name))),
-                'r',
-                encoding="utf-8")
-    return dict_to_object(yaml.load(file.read(), Loader=yaml.FullLoader))
+    file_path = Path(__file__).parent / name
+    file_path_md5 = md5(str(file_path).encode())
+    if config_cache.get(file_path_md5):
+        return config_cache[file_path_md5]
+    
+    with file_path.open(mode='r', encoding="utf-8") as f:
+        config_cache[file_path_md5] = dict_to_object(yaml.load(f.read(), Loader=yaml.FullLoader))
+        return config_cache[file_path_md5]
 
 
 config = get_config()
