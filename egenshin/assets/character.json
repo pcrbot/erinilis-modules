@@ -211,5 +211,15 @@
     "name": "珊瑚宫心海",
     "rarity": 5,
     "element": "Hydro"
+  },
+  "10000055": {
+    "name": "五郎",
+    "rarity": 4,
+    "element": "Geo"
+  },
+  "10000057": {
+    "name": "荒泷一斗",
+    "rarity": 5,
+    "element": "Geo"
   }
 }
