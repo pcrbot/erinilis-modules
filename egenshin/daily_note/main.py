@@ -133,7 +133,7 @@ async def update_resin():
             notified = True
             db_info['max_resin'] = data.current_resin == 160
             
-            if data.current_resin >= once_time:
+            if once_time and data.current_resin >= once_time:
                 db_info['once_remind'] = ''
 
         # 探索提醒
