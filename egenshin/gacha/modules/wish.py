@@ -112,7 +112,7 @@ class wish:
         else:
             self.user.count_5 = 1
             self.user.inc_count(4)
-            if self.gacha_type == GACHA_TYPE.activity.value or self.gacha_type == GACHA_TYPE.weapon.value:
+            if self.gacha_type == GACHA_TYPE.activity.value or self.gacha_type == GACHA_TYPE.activity2.value or self.gacha_type == GACHA_TYPE.weapon.value:
                 # 如果是限定池或者武器池
                 self.user.is_up = not is_up
 
