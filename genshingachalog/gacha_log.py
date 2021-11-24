@@ -95,7 +95,7 @@ class gacha_log:
                 break
             if end_id == -1:
                 break
-            await asyncio.sleep(1)
+            await asyncio.sleep(0.3)
             clist = (await self.get_api(page=page, gacha_type=gacha_type, end_id=end_id)).list or \
                     (req_history and history)
             if not clist:
