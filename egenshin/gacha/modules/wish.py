@@ -26,7 +26,7 @@ def gacha_type_by_name(name):
 
 
 def is_character_gacha(gacha_type):
-    return gacha_type == GACHA_TYPE.activity.value or gacha_type == GACHA_TYPE.permanent.value
+    return gacha_type == GACHA_TYPE.activity.value or gacha_type == GACHA_TYPE.activity2.value or gacha_type == GACHA_TYPE.permanent.value
 
 
 def random_int():
