@@ -1,14 +1,17 @@
+import asyncio
 import base64
-import requests
 import json
 import math
 import re
 import urllib.parse
-from io import BytesIO
-import matplotlib.pyplot as plt
 from enum import Enum
+from io import BytesIO
+
+import matplotlib.pyplot as plt
+import requests
 from hoshino import aiorequests
 from nonebot import MessageSegment
+
 from . import util
 from .xlsx_handler import write_xlsx
 
@@ -92,6 +95,7 @@ class gacha_log:
                 break
             if end_id == -1:
                 break
+            await asyncio.sleep(1)
             clist = (await self.get_api(page=page, gacha_type=gacha_type, end_id=end_id)).list or \
                     (req_history and history)
             if not clist:
