@@ -53,6 +53,8 @@ async def gacha(bot, ev):
 
 async def handle_msg(bot, ev):
     msg = ev.message.extract_plain_text().strip() or '限定'
+    if msg == '2':
+        msg = '限定2'
     gacha_type = gacha_type_by_name(msg)
     if not gacha_type:
         await bot.finish(ev, '不存在此卡池: %s' % msg)

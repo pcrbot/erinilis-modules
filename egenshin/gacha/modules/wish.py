@@ -8,6 +8,7 @@ from .wish_user import wish_user
 
 class GACHA_TYPE(Enum):
     activity = 301  # 限定卡池
+    activity2 = 400  # 限定卡池
     weapon = 302  # 武器卡池
     permanent = 200  # 常驻卡池
 
@@ -15,6 +16,8 @@ class GACHA_TYPE(Enum):
 def gacha_type_by_name(name):
     if re.search(r'^[限活][定动]池?$', name, re.I):
         return GACHA_TYPE.activity.value
+    if re.search(r'^[限活][定动]池?2$', name, re.I):
+        return GACHA_TYPE.activity2.value
     if re.search(r'^[武][器]池?$', name, re.I):
         return GACHA_TYPE.weapon.value
     if re.search(r'^[常普][驻通规]池?$', name, re.I):
