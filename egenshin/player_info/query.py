@@ -74,6 +74,31 @@ def __get_ds__(query, body=None):
                 '&q=' + q)
     return i + "," + r + "," + c
 
+cookie_info_cache = {}
+
+async def get_cookie_info(cookie):
+    account_id = SimpleCookie(cookie)['account_id'].value
+    if cookie_info_cache.get(account_id):
+        return cookie_info_cache[account_id]
+    
+    url = 'https://api-takumi.mihoyo.com/game_record/card/wapi/getGameRecordCard?uid=' + account_id
+    
+    headers = {
+        'x-rpc-app_version': '2.16.1',
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBS/2.11.1',
+        'x-rpc-client_type': '5',
+        'x-rpc-device_id': ''.join(random.choices(string.ascii_lowercase + '1234567890', k=32)),
+        'Cookie': cookie,
+        'ds': __get_ds__({}, '')
+    }
+    res = await aiorequests.get(url=url, headers=headers, timeout=5)
+    json_data = await res.json(object_hook=Dict)
+    try:
+        info = json_data.data.list[0]
+    except Exception:
+        info = {}
+    cookie_info_cache[account_id] = info
+    return cookie_info_cache[account_id]
 
 last = {'current': 0, 'last': 0, 'all': 0}
 group_use_index = {}
@@ -139,8 +164,16 @@ async def request_data(
 
     if force_user_cookie:
         cookie = user_cookie or get_cookie_by_qid(qid)
-    
-    
+
+    #mys限制不能看别人全部角色 那么如果查的是自己的 就直接使用已绑定yss的
+    if not force_user_cookie:
+        cookie_info = await get_cookie_info(cookie)
+        if not cookie_info or cookie_info.game_role_id != uid:
+            user_cookie = get_cookie_by_qid(qid)
+            if user_cookie:
+                cookie = user_cookie
+
+
     if not cookie:
         # 如果还是没 那么就提示上限
         raise LimitMessage(all_can_use)
@@ -211,7 +244,15 @@ async def request_data(
             if config.use_cookie_index == cookies_len:
                 raise LimitMessage(all_can_use)
 
-        return await request_data(uid, api=api, character_ids=character_ids)
+        return await request_data(
+            uid=uid,
+            api=api,
+            character_ids=character_ids,
+            user_cookie=user_cookie,
+            qid=qid,
+            group_id=group_id,
+            force_user_cookie=force_user_cookie,
+        )
 
     last['current'] += 1
     last['all'] += 1
