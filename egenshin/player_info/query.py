@@ -1,13 +1,16 @@
+import asyncio
 import datetime
-import string
-import random
 import hashlib
-import time
 import json
-from hoshino import aiorequests
-from urllib.parse import urlencode
+import random
+import string
+import time
 from http.cookies import SimpleCookie
-from ..util import get_config, get_next_day, Dict, init_db, cache
+from urllib.parse import urlencode
+
+from hoshino import aiorequests
+
+from ..util import Dict, cache, get_config, get_next_day, gh_json, init_db
 from .cookies import Genshin_Cookies
 
 config = get_config()
@@ -16,6 +19,9 @@ config.runtime = get_next_day()
 
 db = init_db(config.cache_dir, 'uid.sqlite')
 
+@cache(ttl=datetime.timedelta(hours=12))
+async def character_list():
+    return await gh_json('assets/character.json')
 
 def get_db(qid):
     return db.get(qid, {})
@@ -80,9 +86,9 @@ async def get_cookie_info(cookie):
     account_id = SimpleCookie(cookie)['account_id'].value
     if cookie_info_cache.get(account_id):
         return cookie_info_cache[account_id]
-    
+
     url = 'https://api-takumi.mihoyo.com/game_record/card/wapi/getGameRecordCard?uid=' + account_id
-    
+
     headers = {
         'x-rpc-app_version': '2.16.1',
         'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBS/2.11.1',
@@ -121,6 +127,7 @@ async def request_data(
     qid=None,
     group_id=None,
     force_user_cookie=None,
+    no_log=False
 ):
 
     next_cookie = False
@@ -179,10 +186,11 @@ async def request_data(
         raise LimitMessage(all_can_use)
 
     account_id = SimpleCookie(cookie)['account_id'].value
-    print(
-        '原神UID:(%s) 当前已查询%s次, 上一个账号查询%s次, 当前第%s个账号(%s), 一共%s个账号, 调用API-> %s' %
-        (last['all'], last['current'] + 1, last['last'],
-         config.use_cookie_index + 1, account_id, cookies_len, api))
+    if not no_log:
+        print(
+            '原神UID:(%s) 当前已查询%s次, 上一个账号查询%s次, 当前第%s个账号(%s), 一共%s个账号, 调用API-> %s' %
+            (last['all'], last['current'] + 1, last['last'],
+            config.use_cookie_index + 1, account_id, cookies_len, api))
 
     headers = {
         'Accept': 'application/json, text/plain, */*',
@@ -262,10 +270,35 @@ async def request_data(
 
     return json_data
 
+async def request_all_avatar(uid, raw_data, qid, group_id):
+    if raw_data.retcode == 0: #success
+        avatar_number = raw_data.data.stats.avatar_number
+        avatars_ids = set([str(x.id) for x in raw_data.data.avatars])
+        if avatar_number != len(avatars_ids):
+            # 如果显示不全人物
+            print('uid: %s 获取全部角色信息' % uid)
+            all_character = set((await character_list()).keys())
+            tasks = [
+                character(uid, [int(x)], qid, group_id)
+                for x in all_character - avatars_ids
+            ]
+            data = []
+            futures = await asyncio.wait(tasks)
+            for x in futures[0]:
+                try:
+                    data.append(*x.result().data.avatars)
+                except Exception as e:
+                    if not isinstance(e, Account_Error):
+                        print(repr(e))
+            print('uid: %s 获取完毕 一共 %s 个' % (uid, len(data)))
+            raw_data['data']['avatars'] += data
+    return raw_data
+
 
 @cache(ttl=datetime.timedelta(minutes=30), arg_key='uid')
 async def info(uid, qid=None, group_id=None):
-    return await request_data(uid, qid=qid, group_id=group_id)
+    info_data = await request_data(uid, qid=qid, group_id=group_id)
+    return await request_all_avatar(uid, info_data, qid, group_id)
 
 
 @cache(ttl=datetime.timedelta(minutes=30), arg_key='uid')
@@ -273,9 +306,14 @@ async def spiralAbyss(uid, qid=None, group_id=None):
     return await request_data(uid, 'spiralAbyss', qid=qid, group_id=group_id)
 
 
-@cache(ttl=datetime.timedelta(minutes=30), arg_key='uid')
+# @cache(ttl=datetime.timedelta(minutes=30), arg_key='uid')
 async def character(uid, character_ids, qid=None, group_id=None):
-    return await request_data(uid, 'character', character_ids, qid=qid, group_id=group_id)
+    return await request_data(uid,
+                              'character',
+                              character_ids,
+                              qid=qid,
+                              group_id=group_id,
+                              no_log=True)
 
 
 async def daily_note(uid, cookie=None, qid=None):

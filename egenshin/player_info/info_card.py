@@ -99,7 +99,7 @@ async def gen_detail_info(uid ,character_ids, qid, group_id=None):
     info = await query.character(uid=uid, character_ids=character_ids, qid=qid, group_id=group_id)
     if info.retcode == 10102:
         raise Exception("武器信息读取失败, 请打开米游社,我的-个人主页-管理-公开信息")
-    return {x.id: x for x in info.data.avatars}
+    return info.data.avatars
 
 
 
@@ -198,8 +198,11 @@ async def draw_info_card(uid, qid, nickname, raw_data, max_chara=None, group_id=
     detail_info = None
     detail_info_height = 0
     if max_chara == None and SHOW_WEAPON_INFO:
-        detail_info = await gen_detail_info(uid, [x.id for x in raw_data.avatars], qid, group_id)
+        detail_info = await gen_detail_info(
+            uid, [x.id for x in raw_data.avatars if not x.get('weapon')], qid,
+            group_id)
         detail_info_height = weapon_bg.height
+        detail_info = {x['id']: x for x in raw_data.avatars + detail_info}
 
     avatar_cards = []
     for chara in char_data[:max_chara or len(char_data)]:
