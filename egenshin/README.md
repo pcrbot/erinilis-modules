@@ -12,6 +12,8 @@
 
 ---
 
+需要把目录下的`config_example.yml`编辑好后改成`config.yml`
+
 ## 原神公告指令
 
 命令  | 说明 | 例

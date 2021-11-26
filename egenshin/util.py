@@ -82,14 +82,15 @@ db = {}
 
 # 初始化数据库
 def init_db(db_dir, db_name='db.sqlite', tablename='unnamed') -> SqliteDict:
-    if db.get(db_name):
+    db_cache_key = db_name + tablename
+    if db.get(db_cache_key):
         return db[db_name]
-    db[db_name] = SqliteDict(get_path(db_dir, db_name),
+    db[db_cache_key] = SqliteDict(get_path(db_dir, db_name),
                              tablename=tablename,
                              encode=json.dumps,
                              decode=json.loads,
                              autocommit=True)
-    return db[db_name]
+    return db[db_cache_key]
 
 
 # 寻找MessageSegment里的某个关键字的位置
