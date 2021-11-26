@@ -119,13 +119,40 @@ async def draw_info_card(uid, qid, nickname, raw_data, max_chara=None, group_id=
 
     char_data = raw_data.avatars
 
+    detail_info = None
+    detail_info_height = 0
+    if max_chara == None and SHOW_WEAPON_INFO:
+        detail_info = await gen_detail_info(
+            uid, [x.id for x in raw_data.avatars if not x.get('weapon')], qid,
+            group_id)
+        detail_info_height = weapon_bg.height
+        detail_info = {x['id']: x for x in raw_data.avatars + detail_info}
+
     for k in raw_data.avatars:
         if k['name'] == '旅行者':
-            k['rarity'] = 3
+            k['rarity'] = 4.5
         if k['name'] == '埃洛伊':
             k['rarity'] = 3
 
-    char_data.sort(key=lambda x: (-x['rarity'], -x['actived_constellation_num'], -x['level']))  # , -x['fetter']
+    # 有武器信息时，加入排序
+    if detail_info:
+        for chara in char_data:	
+            chara["detail_info"] = detail_info[chara["id"]]
+        
+        # 在原来的基础上增加武器排序                
+        char_data.sort(
+            key=lambda x: (	
+            -x["rarity"],	
+            -x["actived_constellation_num"],
+            -x["level"],	
+            -x["fetter"],	
+            -x["detail_info"]["weapon"]["rarity"],	
+            -x["detail_info"]["weapon"]["affix_level"],	
+            -x["detail_info"]["weapon"]["level"]
+        )	
+    )
+    else:
+        char_data.sort(key=lambda x: (-x['rarity'], -x['actived_constellation_num'], -x['level'], -x['fetter'])) 
 
     # 头像
     if QQ_Avatar:
@@ -193,16 +220,6 @@ async def draw_info_card(uid, qid, nickname, raw_data, max_chara=None, group_id=
         new_abyss_star_bg = abyss_star_bg.copy()
         draw_text_by_line(new_abyss_star_bg, (0, 60), str(abyss_info.data.total_star), get_font(36), '#78818b', 64, True)
         card_bg = easy_alpha_composite(card_bg.convert('RGBA'), new_abyss_star_bg, (925, 710))
-
-
-    detail_info = None
-    detail_info_height = 0
-    if max_chara == None and SHOW_WEAPON_INFO:
-        detail_info = await gen_detail_info(
-            uid, [x.id for x in raw_data.avatars if not x.get('weapon')], qid,
-            group_id)
-        detail_info_height = weapon_bg.height
-        detail_info = {x['id']: x for x in raw_data.avatars + detail_info}
 
     avatar_cards = []
     for chara in char_data[:max_chara or len(char_data)]:
