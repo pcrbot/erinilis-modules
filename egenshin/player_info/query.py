@@ -18,6 +18,7 @@ config.use_cookie_index = 0
 config.runtime = get_next_day()
 
 db = init_db(config.cache_dir, 'uid.sqlite')
+avatar_db = init_db(config.cache_dir, 'uid.sqlite', tablename='uid_avatars')
 
 @cache(ttl=datetime.timedelta(hours=12))
 async def character_list():
@@ -278,6 +279,28 @@ async def request_all_avatar(uid, raw_data, qid, group_id):
             # 如果显示不全人物
             print('uid: %s 获取全部角色信息' % uid)
             all_character = set((await character_list()).keys())
+            # 查看数据库是否已经存储过
+            avatar_db_ids = avatar_db.get(uid, [])
+            if avatar_db_ids and avatar_number == len(avatar_db_ids):
+                # 如果有 并且数量和现有角色对得上 那么返回缓存
+                print('uid: %s 使用缓存' % uid)
+                tasks = []
+                for ids in [
+                        avatar_db_ids[i:i + 8]
+                        for i in range(0, len(avatar_db_ids), 8)
+                ]:
+                    tasks.append(character(uid, ids, qid, group_id))
+                data = []
+                futures = await asyncio.wait(tasks)
+                for x in futures[0]:
+                    try:
+                        data.append(x.result().data.avatars)
+                    except Exception as e:
+                        if not isinstance(e, Account_Error):
+                            print(repr(e))
+                raw_data['data']['avatars'] = sum(data, [])
+                return raw_data
+
             tasks = [
                 character(uid, [int(x)], qid, group_id)
                 for x in all_character - avatars_ids
@@ -292,6 +315,7 @@ async def request_all_avatar(uid, raw_data, qid, group_id):
                         print(repr(e))
             print('uid: %s 获取完毕 一共 %s 个' % (uid, len(data)))
             raw_data['data']['avatars'] += data
+            avatar_db[uid] = [x['id'] for x in raw_data['data']['avatars']]
     return raw_data
 
 
