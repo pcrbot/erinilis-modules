@@ -261,6 +261,7 @@ async def request_data(
             qid=qid,
             group_id=group_id,
             force_user_cookie=force_user_cookie,
+            no_log=no_log
         )
 
     last['current'] += 1
@@ -340,8 +341,16 @@ async def character(uid, character_ids, qid=None, group_id=None):
                               no_log=True)
 
 
-async def daily_note(uid, cookie=None, qid=None):
-    return await request_data(uid, 'dailyNote', user_cookie=cookie, qid=qid, force_user_cookie=True)
+async def daily_note(cookie=None, qid=None):
+    cookie_info = await get_cookie_info(cookie)
+    if not cookie_info:
+        raise Account_Error('绑定的cookie获取失败,请确保已绑定游戏账号')
+    return await request_data(cookie_info.game_role_id,
+                              'dailyNote',
+                              user_cookie=cookie,
+                              qid=qid,
+                              force_user_cookie=True,
+                              no_log=True)
 
 
 class stats:

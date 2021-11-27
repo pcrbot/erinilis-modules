@@ -32,9 +32,9 @@ class Daily_Note():
                 'cookie格式错误, 请参考说明, 正确的格式应为 100000000,Xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
             )
 
-        self.uid = query.get_uid_by_qid(qid)
-        if not self.uid:
-            raise Error_Message('请先使用ys#绑定')
+        # self.uid = query.get_uid_by_qid(qid)
+        # if not self.uid:
+        #     raise Error_Message('请先使用ys#绑定')
 
         self.cookie = SimpleCookie(self.cookie)
         if cookie_raw:
@@ -46,7 +46,7 @@ class Daily_Note():
 
     async def get_info(self) -> Daily_Note_Info:
         try:
-            json_data = await query.daily_note(self.uid, self.cookie_raw)
+            json_data = await query.daily_note(self.cookie_raw, self.qid)
         except Exception as e:
             raise Login_Error(repr(e) + '\n 如果已确认打开可能是获取的cookie不正确')
 

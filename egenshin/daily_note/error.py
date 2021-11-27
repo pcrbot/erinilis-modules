@@ -11,7 +11,6 @@ class Cookie_Error(Error_Message):
 * 这个插件需要获取账号cookie, 外泄有可能导致您的账号遭受损失, 请注意相关事项再进行绑定, 造成一切损失由用户自行承担
 * 修改密码可以直接使其失效
 
-0. 确保ys#的是自己的uid
 1. 打开米游社(https://bbs.mihoyo.com/ys/)
 2. 登录游戏账号
 3. F12打开控制台
