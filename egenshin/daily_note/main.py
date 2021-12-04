@@ -58,7 +58,12 @@ class Daily_Note():
         query.save_cookie(self.qid, self.cookie_raw)
         return Daily_Note_Info(**json_data.data)
 
-    def get_remind_key(self):
+    async def get_remind_key(self):
+        cookie_info = await query.get_cookie_info(self.cookie_raw)
+        if not cookie_info:
+            raise Account_Error('绑定的cookie获取失败,请确保已绑定游戏账号')
+        
+        self.uid = cookie_info.game_role_id
         return '%s_%s' % (self.qid, self.uid)
 
     async def remind(self, on=True, once_remind=None):
@@ -67,7 +72,7 @@ class Daily_Note():
             once_remind = int(once_remind)
             once_msg = f' 并且树脂{once_remind}时提醒你'
 
-        db_key = self.get_remind_key()
+        db_key = await self.get_remind_key()
         if on:
             remind_db[db_key] = {
                 'qid': self.qid,
