@@ -3,6 +3,7 @@ import base64
 import datetime
 import functools
 import hashlib
+import inspect
 import json
 import os
 import re
@@ -16,7 +17,6 @@ from hoshino import CanceledException, aiorequests, priv, trigger
 from nonebot import *
 from PIL import ImageFont
 from sqlitedict import SqliteDict
-
 
 bot = get_bot()
 
@@ -84,7 +84,7 @@ db = {}
 def init_db(db_dir, db_name='db.sqlite', tablename='unnamed') -> SqliteDict:
     db_cache_key = db_name + tablename
     if db.get(db_cache_key):
-        return db[db_name]
+        return db[db_cache_key]
     db[db_cache_key] = SqliteDict(get_path(db_dir, db_name),
                              tablename=tablename,
                              encode=json.dumps,
@@ -162,20 +162,18 @@ def support_private(sv):
     return wrap
 
 
-def cache(ttl=datetime.timedelta(hours=1), arg_key=None):
+def cache(ttl=datetime.timedelta(hours=1), **kwargs):
     def wrap(func):
         cache_data = {}
 
         @functools.wraps(func)
         async def wrapped(*args, **kw):
             nonlocal cache_data
+            bound = inspect.signature(func).bind(*args, **kw)
+            bound.apply_defaults()
+            ins_key = '|'.join(['%s_%s' % (k, v) for k, v in bound.arguments.items()])
             default_data = {"time": None, "value": None}
-            ins_key = 'default'
-            if arg_key:
-                ins_key = arg_key + str(kw.get(arg_key, ''))
-                data = cache_data.get(ins_key, default_data)
-            else:
-                data = cache_data.get(ins_key, default_data)
+            data = cache_data.get(ins_key, default_data)
 
             now = datetime.datetime.now()
             if not data['time'] or now - data['time'] > ttl:
