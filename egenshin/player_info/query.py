@@ -39,7 +39,8 @@ def save_uid_by_qid(qid, uid):
 
 
 def get_cookie_by_qid(qid):
-    return get_db(qid).get('cookie')
+    pass
+    # return get_db(qid).get('cookie')
 
 
 def save_cookie(qid, cookie):
@@ -273,6 +274,7 @@ async def request_data(
     return json_data
 
 async def request_all_avatar(uid, raw_data, qid, group_id):
+    return raw_data
     if raw_data.retcode == 0: #success
         avatar_number = raw_data.data.stats.avatar_number
         avatars_ids = set([str(x.id) for x in raw_data.data.avatars])
