@@ -39,8 +39,7 @@ def save_uid_by_qid(qid, uid):
 
 
 def get_cookie_by_qid(qid):
-    pass
-    # return get_db(qid).get('cookie')
+    return get_db(qid).get('cookie')
 
 
 def save_cookie(qid, cookie):
