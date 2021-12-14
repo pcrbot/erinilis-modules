@@ -53,7 +53,7 @@ def weapon_probability(rank, count):
     ret = 0
     if rank == 5 and count <= 62:
         ret = 70
-    elif rank == 5 and count <= 62:
+    elif rank == 5 and count <= 73:
         ret = 70 + 700 * (count - 62)
     elif rank == 5 and count >= 74:
         ret = 7770 + 350 * (count - 73)
