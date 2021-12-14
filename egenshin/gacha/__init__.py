@@ -1,7 +1,6 @@
 from datetime import timedelta
-from bs4 import BeautifulSoup
 from hoshino import Service, priv, MessageSegment
-from ..util import filter_list, get_next_day, cache
+from ..util import filter_list, cache
 from .utils.gacha_info import gacha_info_list, gacha_info
 from .modules.wish import wish, gacha_type_by_name
 from .modules.wish_ui import wish_ui
@@ -62,10 +61,11 @@ async def handle_msg(bot, ev):
     return gacha_type, gacha_name, gacha_data
 
 
-@cache(ttl=timedelta(hours=24), arg_key='gacha_type')
+@cache(ttl=timedelta(hours=24))
 async def gacha_pool(gacha_type):
     data = await gacha_info_list()
-    gacha_data = filter_list(data, lambda x: x.gacha_type == gacha_type)[0]
+    f = lambda x: x.gacha_type == gacha_type
+    gacha_data = sorted(filter_list(data, f), key=lambda x: x.end_time)[-1]
     gacha_id = gacha_data.gacha_id
     gacha_name = gacha_data.gacha_name
     gacha_type = gacha_data.gacha_type
