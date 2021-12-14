@@ -5,7 +5,7 @@ from nonebot.message import CanceledException
 
 from ..util import support_private
 from .info_card import draw_info_card
-from .main import Account_Error,update_resin, Cookie_Error, Daily_Note, Error_Message, Cookie_Error_tampermonkey
+from .main import Account_Error, Cookie_Error, Daily_Note, Error_Message, Cookie_Error_tampermonkey
 
 sv_help = repr(Cookie_Error())
 sv_help2 = repr(Cookie_Error_tampermonkey())
@@ -60,9 +60,3 @@ async def main(bot, ev):
         await bot.send(ev, repr(e), at_sender=True)
     except Account_Error as e:
         await bot.send(ev, repr(e), at_sender=True)
-
-
-
-@sv.on_prefix(('tt', ))
-async def main(bot, ev):
-    await update_resin()
