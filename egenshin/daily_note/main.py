@@ -82,14 +82,16 @@ class Daily_Note():
             }
             return '已打开提醒功能' + once_msg
         else:
-            del remind_db[db_key]
+            if remind_db.get(db_key):
+                del remind_db[db_key]
             return '已关闭提醒功能'
 
 
 async def iter_new_resin():
     for db_key, info in remind_db.items():
         try:
-            json_data = await query.daily_note(info['uid'], qid=info['qid'])
+            cookie = query.get_cookie_by_qid(info['qid'])
+            json_data = await query.daily_note(cookie, qid=info['qid'])
             if json_data.retcode != 0:
                 raise Error_Message(json_data.message)
             json_data = Daily_Note_Info(**json_data.data)
