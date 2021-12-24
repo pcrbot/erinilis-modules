@@ -88,7 +88,7 @@ async def get_cookie_info(cookie):
     if cookie_info_cache.get(account_id):
         return cookie_info_cache[account_id]
 
-    url = 'https://api-takumi.mihoyo.com/game_record/card/wapi/getGameRecordCard?uid=' + account_id
+    url = 'https://api-takumi-record.mihoyo.com/game_record/card/wapi/getGameRecordCard?uid=' + account_id
 
     headers = {
         'x-rpc-app_version': '2.16.1',
@@ -208,7 +208,7 @@ async def request_data(
 
     json_data = None
     fn = aiorequests.get
-    base_url = 'https://api-takumi.mihoyo.com/game_record/app/genshin/api/%s'
+    base_url = 'https://api-takumi-record.mihoyo.com/game_record/app/genshin/api/%s'
     url = base_url % api + '?'
     if api == 'index':
         url += urlencode(params)
