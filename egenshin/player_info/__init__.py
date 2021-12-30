@@ -71,7 +71,8 @@ async def main(bot, ev):
     except CanceledException:
         pass
     except Exception as e:
-        await bot.send(ev, repr(e), at_sender=True)
+        sv.logger.error(e)
+        await bot.send(ev, '呜呜呜~查询出错了，请稍后再试！', at_sender=True)
 
 
 @support_private(sv)
@@ -95,7 +96,8 @@ async def main(bot, ev):
     except CanceledException:
         pass
     except Exception as e:
-        await bot.send(ev, repr(e), at_sender=True)
+        sv.logger.error(e)
+        await bot.send(ev, '呜呜呜~查询出错了，请稍后再试！', at_sender=True)
 
 
 @support_private(sv)
@@ -103,7 +105,7 @@ async def main(bot, ev):
 async def add_cookie(bot, ev):
     try:
         if ev.detail_type == 'group':
-            await bot.send(ev,'请撤回, 这个功能只能私聊使用~')
+            await bot.send(ev, '请撤回, 这个功能只能私聊使用~')
             return
 
         text = ev.message.extract_plain_text().strip()
