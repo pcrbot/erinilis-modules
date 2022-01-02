@@ -147,7 +147,7 @@ async def update_voice_data():
 @cache(ttl=timedelta(hours=24))
 async def voice_list_by_mys():
     try:
-        url = 'https://api-static.mihoyo.com/common/blackboard/ys_obc/v1/home/content/list?app_sn=ys_obc&channel_id=80'
+        url = 'https://api-static.mihoyo.com/common/blackboard/ys_obc/v1/home/content/list?app_sn=ys_obc&channel_id=84'
         res = await aiorequests.get(url, timeout=30)
     except aiorequests.exceptions.ConnectionError:
         raise
@@ -155,7 +155,7 @@ async def voice_list_by_mys():
     if json_data.retcode:
         raise Exception(json_data.message)
     try:
-        data_list = json_data.data.list[0].children[2].list
+        data_list = json_data.data.list[0].list
     except KeyError as e:
         raise Exception('获取语音列表失败, 请联系作者修复')
 
