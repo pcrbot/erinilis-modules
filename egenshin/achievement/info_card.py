@@ -54,9 +54,10 @@ async def item_img(info, item_space, detail):
     draw_text_by_line(new_bg, (220, 25), info.name, get_font(28), '#535250', 861)
     draw_text_by_line(new_bg, (220, 70), info.desc, get_font(25), '#b99e8b',1200)
     reward_index = 1115
-    if len(info.reward) == 2:
-        reward_index -= 5
-    draw_text_by_line(new_bg, (reward_index, 85), info.reward, get_font(21),
+    if getattr(info, 'reward', None):
+        if len(info.reward) == 2:
+            reward_index -= 5
+        draw_text_by_line(new_bg, (reward_index, 85), info.reward, get_font(21),
                       '#ffffff', 100)
 
     quest_icon = None
