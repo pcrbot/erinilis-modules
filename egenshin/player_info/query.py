@@ -102,6 +102,9 @@ async def get_cookie_info(cookie):
     json_data = await res.json(object_hook=Dict)
     try:
         info = json_data.data.list[0]
+        for info in json_data.data.list:
+            if info.game_id == 2:
+                break
     except Exception:
         info = {}
     cookie_info_cache[account_id] = info
