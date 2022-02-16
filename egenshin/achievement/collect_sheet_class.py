@@ -4,7 +4,8 @@ from dataclasses import dataclass
 
 __all__ = [
     'remove_special_char', 'Achievements_Info', 'Achievements20_Info',
-    'Achievements21_Info', 'Achievements22_Info', 'Achievements24_Info'
+    'Achievements21_Info', 'Achievements22_Info', 'Achievements24_Info',
+    'Achievements25_Info'
 ]
 
 
@@ -125,3 +126,16 @@ class Achievements24_Info(Base):
     remark: str
     type: str = ''
     
+@dataclass
+class Achievements25_Info(Base):
+    code: str
+    version: str
+    is_hide: str
+    top_type: str
+    name: str
+    desc: str
+    type: str
+    rarity: str
+    reward: str
+    remark: str
+    neta: str
