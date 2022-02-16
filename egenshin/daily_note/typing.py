@@ -24,3 +24,4 @@ class Daily_Note_Info:
     current_home_coin: int # 当前洞天宝钱
     max_home_coin: int # 最大洞天宝钱
     home_coin_recovery_time: int # 洞天宝钱回复时间
+    calendar_url: str
