@@ -221,5 +221,10 @@
     "name": "荒泷一斗",
     "rarity": 5,
     "element": "Geo"
+  },
+  "10000058": {
+    "name": "八重神子",
+    "rarity": 5,
+    "element": "Electro"
   }
 }
