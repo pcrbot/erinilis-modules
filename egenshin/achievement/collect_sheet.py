@@ -11,6 +11,7 @@ with open(local_dir / 'unactuated.json', 'r', encoding="utf-8") as fp:
     UNACTUATED = [remove_special_char(x) for x in json.load(fp)]
 
 
+@cache(ttl=timedelta(hours=24))
 async def gh_unactuated_word():
     return await gh_json('achievement/unactuated.json')
 
@@ -72,7 +73,11 @@ def get_row_value(row):
 
 @cache(ttl=timedelta(hours=24), arg_key='url')
 async def request_raw_data(url):
-    res = await aiorequests.get(url)
+    headers = {
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36',
+        'referer': 'https://docs.qq.com/sheet/DS01hbnZwZm5KVnBB?tab=BB08J3'
+    }
+    res = await aiorequests.get(url, headers=headers)
     json_data = await res.json(object_hook=Dict)
     text = json_data.clientVars.collab_client_vars.initialAttributedText.text
     if not text:

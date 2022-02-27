@@ -190,17 +190,16 @@ def cache(ttl=datetime.timedelta(hours=1), **kwargs):
 
     return wrap
 
-
 async def github(path):
     try:
-        url = f'https://cdn.jsdelivr.net/gh/{path}'
+        url = f'https://raw.fastgit.org/{path}'
         res = await aiorequests.get(url, timeout=10)
         return await res.content
     except aiorequests.exceptions.ConnectionError:
         raise
 
 
-gh_end_point = 'pcrbot/erinilis-modules/egenshin/'
+gh_end_point = 'pcrbot/erinilis-modules/master/egenshin/'
 
 
 async def gh_json(file_path):
