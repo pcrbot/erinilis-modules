@@ -48,6 +48,12 @@ def save_cookie(qid, cookie):
     db[qid] = info
 
 
+def del_cookie(qid):
+    info = get_db(qid)
+    info.pop("cookie")
+    db[qid] = info
+
+
 class Account_Error(Exception):
     def __init__(self, msg):
         self.msg = msg
@@ -234,6 +240,8 @@ async def request_data(
         raise Account_Error('UID[%s]信息获取失败, 请绑定正确的UID' % uid)
 
     if json_data.retcode == 10001:
+        if user_cookie:
+            raise Account_Error("Cookie已失效，请重新绑定。")
         print('账号已失效 可能被修改密码, 请检查')
         next_cookie = True
     if json_data.retcode == 10103:
