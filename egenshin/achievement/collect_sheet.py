@@ -11,7 +11,6 @@ with open(local_dir / 'unactuated.json', 'r', encoding="utf-8") as fp:
     UNACTUATED = [remove_special_char(x) for x in json.load(fp)]
 
 
-@cache(ttl=timedelta(hours=24))
 async def gh_unactuated_word():
     return await gh_json('achievement/unactuated.json')
 
@@ -45,23 +44,27 @@ def get_all_achievements_api():
 #     keep_row = 1
 #     return end_point('zc19mx'), keep_head, keep_row, 12, 0, Achievements21_Info
 
-# 2.2新增
+# # 2.2新增
 # def get_all_achievements22_api():
 #     keep_head = 2
 #     keep_row = 1
 #     return end_point('ctb4sr'), keep_head, keep_row, 12, 0, Achievements22_Info
 
-# 2.4新增
+# # 2.4新增
 # def get_all_achievements24_api():
 #     keep_head = 2
 #     keep_row = 0
 #     return end_point('d7oz1q'), keep_head, keep_row, 7, 0, Achievements24_Info
 
-# 2.5新增
 def get_all_achievements25_api():
-    keep_head = 2
+    keep_head = 1
     keep_row = 1
     return end_point('xey3es'), keep_head, keep_row, 12, 0, Achievements25_Info
+
+def get_all_achievements26_api():
+    keep_head = 2
+    keep_row = 0
+    return end_point('6btsf8'), keep_head, keep_row, 7, 0, Achievements26_Info
 
 
 def get_row_value(row):
@@ -73,10 +76,7 @@ def get_row_value(row):
 
 @cache(ttl=timedelta(hours=24), arg_key='url')
 async def request_raw_data(url):
-    headers = {
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36',
-        'referer': 'https://docs.qq.com/sheet/DS01hbnZwZm5KVnBB?tab=BB08J3'
-    }
+    headers = {"Referer": "https://docs.qq.com/sheet/DS01hbnZwZm5KVnBB"}
     res = await aiorequests.get(url, headers=headers)
     json_data = await res.json(object_hook=Dict)
     text = json_data.clientVars.collab_client_vars.initialAttributedText.text
@@ -88,7 +88,7 @@ async def request_raw_data(url):
 
 async def request_data(top_type, url, keep_head, keep_row, field_count,
                        ext_field_count, structure):
-    gh_unactuated = [remove_special_char(x) for x in await gh_unactuated_word()]
+    # gh_unactuated = [remove_special_char(x) for x in await gh_unactuated_word()]
     raw_data = await request_raw_data(url=url)
     sheet_list = list_split(raw_data,
                             field_count + ext_field_count)[keep_head:]
@@ -101,7 +101,7 @@ async def request_data(top_type, url, keep_head, keep_row, field_count,
 
         name = str(data)
         
-        if name in UNACTUATED or name in gh_unactuated:
+        if name in UNACTUATED:
             continue
 
         if not top_type:
@@ -121,6 +121,8 @@ async def achievements_sheet(top_type='天地万象'):
     # data22 = await request_data(*((top_type, ) + get_all_achievements22_api()))
     # data24 = await request_data(*((top_type, ) + get_all_achievements24_api()))
     data25 = await request_data(*((top_type, ) + get_all_achievements25_api()))
+    data26 = await request_data(*((top_type, ) + get_all_achievements26_api()))
+    
 
     result.update(data)
     # result.update(data20)
@@ -128,5 +130,6 @@ async def achievements_sheet(top_type='天地万象'):
     # result.update(data22)
     # result.update(data24)
     result.update(data25)
+    result.update(data26)
 
     return result
