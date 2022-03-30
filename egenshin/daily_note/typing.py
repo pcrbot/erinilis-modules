@@ -7,6 +7,19 @@ class Daily_Note_expeditions:
     status: str  # 'Finished' or 'Ongoing' 状态
     remained_time: str  # 剩余时间
 
+@dataclass
+class Transformer_Recovery_Time:
+    Day: int
+    Hour: int 
+    Minute: int
+    Second: int
+    reached: bool
+
+@dataclass
+class Transformer:
+    obtained: str # 是否获得
+    recovery_time: Transformer_Recovery_Time
+    wiki: str
 
 @dataclass
 class Daily_Note_Info:
@@ -25,3 +38,4 @@ class Daily_Note_Info:
     max_home_coin: int # 最大洞天宝钱
     home_coin_recovery_time: int # 洞天宝钱回复时间
     calendar_url: str
+    transformer: Transformer # 参量质变仪
