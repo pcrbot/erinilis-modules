@@ -162,7 +162,7 @@ async def draw_info_card(uid, qid, nickname, raw_data, max_chara=None, group_id=
     else:
         cid = char_data[0]['id']
         avatar = Image.open(assets_dir / "avatar" / f"{cid}.png")
-    card_bg = Image.new('RGB', (1080, 1820), '#d19d78')
+    card_bg = Image.new('RGB', (1080, 1988), '#d19d78')
     easy_paste(card_bg, avatar, (412, 140))
     easy_paste(card_bg, info_bg, (0, 0))
     text_draw = ImageDraw.Draw(card_bg)
@@ -210,6 +210,19 @@ async def draw_info_card(uid, qid, nickname, raw_data, max_chara=None, group_id=
     text_draw.text((880, 1576), 'Lv.' + str(world.level), '#d4aa6b', get_font(24))
     text_draw.text((880, 1606), 'Lv.' + str(world.offerings[0].level), '#d4aa6b', get_font(24))
     text_draw.text((880, 1639), stats.electroculus.__str__(), '#d4aa6b', get_font(24))
+    
+    # 渊下宫
+    world = world_explorations['渊下宫']
+    text_draw.text((350, 1769), str(world.exploration_percentage) + '%', '#d4aa6b', get_font(24))
+
+    # 层岩巨渊 层岩巨渊·地下矿区
+    world = world_explorations['层岩巨渊']
+    text_draw.text((880, 1728), str(world.exploration_percentage) + '%', '#d4aa6b', get_font(24))
+    text_draw.text((880, 1813), 'Lv.' + str(world.offerings[0].level), '#d4aa6b', get_font(24))
+    world = world_explorations['层岩巨渊·地下矿区']
+    text_draw.text((880, 1769), str(world.exploration_percentage) + '%', '#d4aa6b', get_font(24))
+    
+    
 
     # 深渊星数
     if SHOW_SPIRAL_ABYSS_STAR:
