@@ -212,16 +212,15 @@ async def draw_info_card(uid, qid, nickname, raw_data, max_chara=None, group_id=
     text_draw.text((880, 1639), stats.electroculus.__str__(), '#d4aa6b', get_font(24))
     
     # 渊下宫
-    world = world_explorations['渊下宫']
-    text_draw.text((350, 1769), str(world.exploration_percentage) + '%', '#d4aa6b', get_font(24))
+    world = world_explorations.get('渊下宫')
+    text_draw.text((350, 1769), str(world.exploration_percentage ) + '%' if world else "未探索", '#d4aa6b', get_font(24))
 
     # 层岩巨渊 层岩巨渊·地下矿区
-    world = world_explorations['层岩巨渊']
-    text_draw.text((880, 1728), str(world.exploration_percentage) + '%', '#d4aa6b', get_font(24))
-    text_draw.text((880, 1813), 'Lv.' + str(world.offerings[0].level), '#d4aa6b', get_font(24))
-    world = world_explorations['层岩巨渊·地下矿区']
-    text_draw.text((880, 1769), str(world.exploration_percentage) + '%', '#d4aa6b', get_font(24))
-    
+    world = world_explorations.get('层岩巨渊')
+    text_draw.text((880, 1728), str(world.exploration_percentage) + '%' if world else "未探索", '#d4aa6b', get_font(24))
+    text_draw.text((880, 1813), 'Lv.' + str(world.offerings[0].level) if world else "未探索", '#d4aa6b', get_font(24))
+    world = world_explorations.get('层岩巨渊·地下矿区')
+    text_draw.text((880, 1769), str(world.exploration_percentage) + '%' if world else "未探索", '#d4aa6b', get_font(24))
     
 
     # 深渊星数
