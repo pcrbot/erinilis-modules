@@ -1,6 +1,7 @@
 import re
 from nonebot.message import CanceledException
-from hoshino import Message, MessageSegment, Service, priv
+from hoshino import Service, priv
+from hoshino.typing import Message, MessageSegment
 from ..player_info import handle as player_info
 from ..util import support_private
 from .info_card import draw_info_card

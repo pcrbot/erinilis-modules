@@ -1,5 +1,6 @@
 from requests.exceptions import ConnectionError, ReadTimeout
-from hoshino import Service, priv, MessageSegment
+from hoshino import Service, priv
+from hoshino.typing import MessageSegment
 from .query import abyss_use_probability, abyss_use_teams
 from ..player_info.query import get_uid_by_qid, info
 from .match_teams import recommend_team
