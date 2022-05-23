@@ -1,5 +1,6 @@
 from datetime import timedelta
-from hoshino import Service, priv, MessageSegment
+from hoshino import Service, priv
+from hoshino.typing import MessageSegment
 from ..util import filter_list, cache
 from .utils.gacha_info import gacha_info_list, gacha_info
 from .modules.wish import wish, gacha_type_by_name

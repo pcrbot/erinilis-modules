@@ -1,4 +1,5 @@
-from hoshino import MessageSegment, Service, priv
+from hoshino import Service, priv
+from hoshino.typing import MessageSegment
 from nonebot.message import CanceledException
 from ..util import get_config, support_private
 from . import info_card, query

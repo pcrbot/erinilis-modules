@@ -1,4 +1,5 @@
-from hoshino import Service, priv, MessageSegment
+from hoshino import Service, priv
+from hoshino.typing import MessageSegment
 from .main import consume_remind
 from ..player_info.query import get_uid_by_qid
 from .ann_card import ann_list_card, ann_detail_card, sub_ann, unsub_ann

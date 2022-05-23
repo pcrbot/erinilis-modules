@@ -1,7 +1,8 @@
 import asyncio
 import os
 from .. import util
-from hoshino import Service, MessageSegment, priv
+from hoshino import Service, priv
+from hoshino.typing import MessageSegment
 from .handler import Guess, get_random_voice
 from . import download_data
 
