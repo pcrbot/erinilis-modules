@@ -226,5 +226,15 @@
     "name": "神里绫人",
     "rarity": 5,
     "element": "Hydro"
+  },
+  "10000060": {
+    "name": "夜兰",
+    "rarity": 5,
+    "element": "Hydro"
+  },
+  "10000065": {
+    "name": "久岐忍",
+    "rarity": 4,
+    "element": "Electro"
   }
 }

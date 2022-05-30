@@ -1,7 +1,7 @@
 # 原神插件
 
 ---
-之后杂项都更新到这个插件里 </br>
+暂时寄, 目前只更新资源了 </br>
 
 安装依赖
 > pip install pyyaml -i https://pypi.tuna.tsinghua.edu.cn/simple
